@@ -65,7 +65,7 @@ test('each package button goes through its own counted /dl route to its own asse
   const tile = section();
   // An x64 / arm64 switch shows that architecture's .deb and .rpm; each button
   // names its architecture for screen readers.
-  const buttons = [...tile.matchAll(/<li data-arch="(x64|arm64)"><a class="dl-tile-button" href="\/dl\/beta-linux-\1-(deb|rpm)" data-download-link data-track="download_click" data-platform="beta-linux-\1-\2" data-cta-position="beta-linux"><span class="sr-only">\1 <\/span>(\.\2)<\/a><\/li>/g)];
+  const buttons = [...tile.matchAll(/<li data-arch="(x64|arm64)"><a class="dl-tile-button" href="\/dl\/beta-linux-\1-(deb|rpm)" data-download-link data-track="download_click" data-platform="beta-linux-\1-\2" data-cta-position="beta-linux"><span class="dl-pkg-arch">\1 <\/span>(\.\2)<\/a><\/li>/g)];
   assert.deepEqual(buttons.map((m) => [m[1], m[2], `${m[1]} ${m[3]}`]), [
     ['x64', 'deb', 'x64 .deb'], ['x64', 'rpm', 'x64 .rpm'], ['arm64', 'deb', 'arm64 .deb'], ['arm64', 'rpm', 'arm64 .rpm'],
   ]);
@@ -75,6 +75,7 @@ test('each package button goes through its own counted /dl route to its own asse
   assert.deepEqual(Object.keys(dl.BETA_LINUX_DOWNLOADS).sort(), targets.toSorted());
   assert.match(tile, /<input type="radio" name="dl-beta-linux-arch" id="dl-beta-linux-x64" value="x64" checked \/>/, 'x64 shows without scripting');
   const css = read('site/src/styles/site.css');
+  assert.match(css, /@supports not selector\(:has\(\*\)\) \{\n  \.dl-beta-arch \{ display: none; \}/, 'without :has() all four packages show, named');
   assert.ok(css.includes('.dl-beta-row--linux:has(#dl-beta-linux-x64:checked) .dl-linux-packages [data-arch="arm64"]'), 'x64 hides the arm64 packages');
   assert.ok(css.includes('.dl-beta-row--linux:has(#dl-beta-linux-arm64:checked) .dl-linux-packages [data-arch="x64"]'), 'arm64 hides the x64 packages');
   for (const p of linux.packages) {

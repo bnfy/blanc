@@ -124,7 +124,7 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
               <div class="dl-method-pane" data-method="brew">
                 <figure class="dl-brew" aria-label="Homebrew command">
                   <pre><code><span class="terminal-prompt" aria-hidden="true">% </span>brew install --cask bnfy/tap/blanc</code></pre>
-                  <button type="button" class="terminal-copy" data-terminal-copy="brew install --cask bnfy/tap/blanc" data-track="feature_cta_click" data-feature="homebrew" data-cta-position="download-hero" hidden>Copy</button>
+                  <button type="button" class="terminal-copy" data-terminal-copy="brew install --cask bnfy/tap/blanc" data-track="feature_cta_click" data-feature="homebrew" data-cta-position="install-terminal" hidden>Copy</button>
                   <p class="sr-only" role="status" aria-live="polite" data-terminal-status></p>
                 </figure>
                 <p class="dl-meta">The same signed and notarized build.</p>
@@ -285,10 +285,10 @@ const betaReleased = new Date(`${beta.published}T00:00:00Z`)
               <input type="radio" name="dl-beta-linux-arch" id="dl-beta-linux-arm64" value="arm64" /><label for="dl-beta-linux-arm64">arm64</label>
             </div>
             <ul class="dl-linux-packages" aria-label="Download Beta for Linux">
-              <li data-arch="x64"><a class="dl-tile-button" href="/dl/beta-linux-x64-deb" data-download-link data-track="download_click" data-platform="beta-linux-x64-deb" data-cta-position="beta-linux"><span class="sr-only">x64 </span>.deb</a></li>
-              <li data-arch="x64"><a class="dl-tile-button" href="/dl/beta-linux-x64-rpm" data-download-link data-track="download_click" data-platform="beta-linux-x64-rpm" data-cta-position="beta-linux"><span class="sr-only">x64 </span>.rpm</a></li>
-              <li data-arch="arm64"><a class="dl-tile-button" href="/dl/beta-linux-arm64-deb" data-download-link data-track="download_click" data-platform="beta-linux-arm64-deb" data-cta-position="beta-linux"><span class="sr-only">arm64 </span>.deb</a></li>
-              <li data-arch="arm64"><a class="dl-tile-button" href="/dl/beta-linux-arm64-rpm" data-download-link data-track="download_click" data-platform="beta-linux-arm64-rpm" data-cta-position="beta-linux"><span class="sr-only">arm64 </span>.rpm</a></li>
+              <li data-arch="x64"><a class="dl-tile-button" href="/dl/beta-linux-x64-deb" data-download-link data-track="download_click" data-platform="beta-linux-x64-deb" data-cta-position="beta-linux"><span class="dl-pkg-arch">x64 </span>.deb</a></li>
+              <li data-arch="x64"><a class="dl-tile-button" href="/dl/beta-linux-x64-rpm" data-download-link data-track="download_click" data-platform="beta-linux-x64-rpm" data-cta-position="beta-linux"><span class="dl-pkg-arch">x64 </span>.rpm</a></li>
+              <li data-arch="arm64"><a class="dl-tile-button" href="/dl/beta-linux-arm64-deb" data-download-link data-track="download_click" data-platform="beta-linux-arm64-deb" data-cta-position="beta-linux"><span class="dl-pkg-arch">arm64 </span>.deb</a></li>
+              <li data-arch="arm64"><a class="dl-tile-button" href="/dl/beta-linux-arm64-rpm" data-download-link data-track="download_click" data-platform="beta-linux-arm64-rpm" data-cta-position="beta-linux"><span class="dl-pkg-arch">arm64 </span>.rpm</a></li>
             </ul>
           </div>
         </div>

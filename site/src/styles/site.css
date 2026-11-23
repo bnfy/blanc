@@ -1264,14 +1264,26 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .dl-betas-head { padding-bottom: 22px; }
 .dl-betas-head > p:not([class]) { margin: 12px 0 0; color: rgb(248 242 232 / 0.66); font-size: 15px; line-height: 1.5; }
 .dl-beta-row { position: relative; border-top: 1px solid rgb(248 242 232 / 0.14); }
-.dl-beta-line { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 16px; min-height: 44px; padding: 16px 52px 16px 0; }
-.dl-beta-logo { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: rgb(248 242 232 / 0.08); }
+.dl-beta-line { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: start; gap: 16px; min-height: 44px; padding: 16px 52px 16px 0; }
+.dl-beta-logo { display: grid; place-items: center; width: 40px; height: 40px; margin-top: 2px; border-radius: 12px; background: rgb(248 242 232 / 0.08); }
 .dl-beta-logo .platform-logo { width: 17px; height: 19px; fill: #F8F2E8; }
 .dl-beta-name h3 { margin: 0; font-family: var(--font-brand-text); font-size: 17px; font-weight: 500; line-height: 1.3; }
 .dl-beta-brief { display: flex; flex-wrap: wrap; margin: 3px 0 0; color: rgb(248 242 232 / 0.66); font-family: var(--font-mono); font-size: 12px; }
 .dl-beta-brief span + span::before { content: "·"; margin: 0 6px; }
 .dl-beta-line .dl-tile-button { margin-top: 0; padding: 9px 18px; font-size: 14px; white-space: nowrap; }
 .dl-beta-linux { display: flex; align-items: center; gap: 8px; }
+/* Everything in a row lines up on its first 44px line, where the Details arrow
+   sits, even when the name wraps. */
+.dl-beta-line > .dl-tile-button, .dl-beta-linux { margin-top: 3px; }
+/* Each package button names its architecture to screen readers; where :has()
+   can't drive the x64 / arm64 switch, all four show with their architecture
+   and the switch goes. */
+@supports selector(:has(*)) {
+  .dl-pkg-arch { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+}
+@supports not selector(:has(*)) {
+  .dl-beta-arch { display: none; }
+}
 .dl-beta-arch { display: inline-flex; padding: 3px; border-radius: 999px; background: rgb(248 242 232 / 0.08); }
 .dl-beta-arch input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .dl-beta-arch label { padding: 6px 12px; border-radius: 999px; color: rgb(248 242 232 / 0.66); font-size: 13px; cursor: pointer; transition: background 0.18s ease, color 0.18s ease; }
