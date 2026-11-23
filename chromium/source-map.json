@@ -564,7 +564,7 @@
     "blanc/browser/ui/window_buttons_linux.h": "ccd89dc918bc0a3f1e6ff2cb5729cb1f1b9b4357158d625a3c83644fb5713bf3",
     "blanc/browser/ui/window_buttons_mac.h": "073e606387de6a16a99d002eb9b9867558a54c6df7f082c586127e8a53decc3a",
     "blanc/browser/ui/window_buttons_mac.mm": "e5533712ddb87f48bef192ed875df4a70dab4898173f978d06b45a77e5233944",
-    "blanc/common/background_services.h": "63b9cffeef52fbc8dbcc2cab3bf040977bbb837ba770fc3f241e26919333893e",
+    "blanc/common/background_services.h": "c94ccf85a2816303b91fdf2d8f5cc38778550d9e0e5804dd7e556a4f597b5cf9",
     "blanc/common/browser_api/BUILD.gn": "cddd4f0679888bc17e0d2e93a96ee79e8ce854d9654042dc44175395640ebadd",
     "blanc/common/browser_api/browser_api.mojom": "21a0f55f9cad33174564139c82d482d303f310d7a0253e5cb67543a6c7c4f72b",
     "blanc/common/browser_api/browser_api_checks.h": "8cddb3943958827ec44ac1aea47c94b127b2a5b6a1870965f405f4163d65f708",
