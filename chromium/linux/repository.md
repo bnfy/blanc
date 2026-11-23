@@ -116,7 +116,7 @@ on November 22, 2026 to publish it before the 158.0.8127.37 update.
 
 Each tree from then on carries `deb/dists/stable/main/dep11/Components-{amd64,arm64}.yml.gz`,
 listed and hashed in the signed `Release`, with `by-hash` copies like the `Packages` indexes.
-`metadata.py dep11` writes it from the package's own
+`dep11()` in `metadata.py` writes it from the package's own
 `usr/share/appdata/blanc-beta.appdata.xml` (component `blanc-beta.desktop`, its name, summary,
 description, developer, licence and https links, the installed `blanc-beta` icon and the desktop
 launchable). The runner builds it; the owner's index check rebuilds the same bytes from the
