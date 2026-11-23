@@ -488,3 +488,18 @@ test('site:deploy refuses a changelog behind GitHub', () => {
   const scripts = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).scripts;
   assert.ok(scripts['site:deploy'].startsWith('npm run site:changelog:check && '), scripts['site:deploy']);
 });
+
+test('a beta with limits but no change notes warns', (t) => {
+  const warnings = [];
+  t.mock.method(console, 'warn', (message) => { warnings.push(message); });
+  const [, beta9] = betaFixture();
+  const limitsOnly = {
+    ...beta9,
+    tag_name: 'chromium-beta-2.0.0-beta.11',
+    published_at: '2026-11-25T00:00:00Z',
+    body: 'Intro.\n\n**What to know**\n\n- **A separate app.** Yes.\n\n**Not in this beta yet**\n\n- **Protected video** doesn\'t play.',
+  };
+  changelog.normalizeBetaReleases([...betaFixture(), limitsOnly]);
+  assert.deepEqual(warnings.filter((message) => /beta\.11/.test(message)).length, 1);
+  assert.ok(!warnings.some((message) => /beta\.9\b|beta\.2\b/.test(message)));
+});
