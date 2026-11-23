@@ -354,6 +354,41 @@ main .section-kicker {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+/* "All features" is the panel's one primary action, drawn like the bar's
+   Download button (owner, November 23, 2026). */
+.site-browser-panel a.site-browser-cta {
+  gap: 6px;
+  min-height: 36px;
+  margin: 2px 0 4px;
+  padding: 0 14px 0 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 14px;
+  font-weight: 500;
+}
+.site-browser-panel a.site-browser-cta:hover {
+  background: #000;
+  color: var(--paper);
+}
+.site-browser-cta svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 160ms ease;
+}
+.site-browser-cta:hover svg {
+  transform: translateX(2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-browser-cta svg {
+    transition: none;
+  }
+}
 .site-browser-more {
   margin-top: 6px;
   padding-top: 6px;

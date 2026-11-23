@@ -89,7 +89,14 @@ const hrefFor = (href) =>
               {
                 browserMenu.more.map((link, index) => (
                   <li class={index === 0 ? "site-browser-more" : undefined}>
-                    <a href={hrefFor(link.href)}>{link.label}</a>
+                    {link.primary ? (
+                      <a class="site-browser-cta" href={hrefFor(link.href)}>
+                        {link.label}
+                        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5 12.5 8 9 11.5" /></svg>
+                      </a>
+                    ) : (
+                      <a href={hrefFor(link.href)}>{link.label}</a>
+                    )}
                   </li>
                 ))
               }
