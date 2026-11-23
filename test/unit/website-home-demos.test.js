@@ -155,6 +155,9 @@ test('homepage titles are phrases without a closing period; section headlines ke
   for (const [, lead] of pin.matchAll(/<strong>([^<]+)<\/strong>/g)) assert.doesNotMatch(lead, /\.$/, lead);
   assert.match(css, /\.pin-media figcaption strong \{\s*display: block;/);
   assert.match(home, /<h1 id="opening-title">A little less browser\.<\/h1>/);
+  // The one section headline without a period: the Patron section's name
+  // (owner, November 23, 2026).
+  assert.match(home, /<h2 class="patron-title" id="patron-title">Blanc Patron<\/h2>/);
   // The first screen: the floating Island window below Download.
   assert.match(home, /<FloatingIslandWindow \/>/);
 });
