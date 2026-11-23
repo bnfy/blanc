@@ -1,0 +1,111 @@
+{
+ "milestone": "L3",
+ "platform": "linux",
+ "dates": [
+  "2026-11-22",
+  "2026-11-23"
+ ],
+ "plan": "docs/superpowers/plans/2026-11-21-linux-fork-l3.md",
+ "release": {
+  "version": "158.0.8127.906",
+  "tag": "chromium-beta-linux-158.0.8127.906",
+  "chromiumVersion": "158.0.8127.2",
+  "sourceCommit": "a52e29005d6237c405ddcc2afd3b0f216c8b390b",
+  "publishedAt": "2026-11-23T03:45:35Z",
+  "prerelease": true,
+  "latestStayed": "v1.52.0",
+  "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.906",
+  "ledger": "chromium/release/linux-ledger.json"
+ },
+ "builds": {
+  "proof": 905,
+  "release": 906,
+  "claims": "chromium/release/build-reservations.json (desktop-158: 905 proof, 906 release, linux, same source)",
+  "outputs": [
+   "out/BlancLinuxBeta",
+   "out/BlancLinuxArm64Beta"
+  ],
+  "buildCheckRuns": {
+   "905-x64": 45075294759,
+   "905-arm64": 45075613282,
+   "906-x64": 45076009487,
+   "906-arm64": 45076276413
+  }
+ },
+ "repository": {
+  "production": "https://pkg.blanc.day",
+  "staging": "https://pkg-staging.blanc.day",
+  "generation": 906,
+  "digest": "32459e866305910dad7bac5881b458580e4841f8b8a4c247477c166de25fce93",
+  "keyFingerprint": "50D361974F477C8C87E117BD95AE97ABCACFEE6C",
+  "signing": "Owner's Mac only (1Password); the runner built the metadata from the approved packages and never held the key"
+ },
+ "gate": [
+  {
+   "item": 1,
+   "check": "Update proof on every leg and both arches, refusals refused for the expected reason",
+   "result": "passed",
+   "runs": {
+    "updateProof": 45103487653,
+    "repoLifecycle": 45103802669
+   },
+   "legs": [
+    "x64-ubuntu",
+    "x64-debian",
+    "x64-fedora",
+    "arm64-ubuntu",
+    "arm64-debian",
+    "arm64-fedora"
+   ],
+   "testFixesBeforePass": [
+    "32b7db2e2 (chrome://policy reports level and scope as numbers)",
+    "ffdf6f60f (Hunspell dictionary download is not an update check; dnf5's wrong-key wording)"
+   ]
+  },
+  {
+   "item": 2,
+   "check": "Verify-public for the published version on x64 and arm64",
+   "result": "passed",
+   "run": 45108455963,
+   "legs": [
+    "x64-ubuntu",
+    "x64-debian",
+    "x64-fedora",
+    "arm64-ubuntu",
+    "arm64-debian",
+    "arm64-fedora"
+   ],
+   "firstRun": {
+    "run": 45107889525,
+    "failure": "api.github.com 403 for anonymous metadata reads on two x64 legs (shared runner rate limit); downloads unchanged",
+    "testFix": "read-only token for the three metadata reads only"
+   }
+  },
+  {
+   "item": 3,
+   "check": "Owner's VM hand checks",
+   "result": "passed, one partial item",
+   "record": "chromium/linux/hand-checks-l3.md",
+   "partial": "Ubuntu 26.04 has no Software Updater; App Center lists the update only once the repository publishes DEP-11 metadata (owner: add it before the .37 update)"
+  },
+  {
+   "item": 4,
+   "check": "Latest GitHub release still Electron's; Mac and Windows betas unaffected",
+   "result": "passed",
+   "latest": "v1.52.0"
+  },
+  {
+   "item": 5,
+   "check": "Owner approves the website copy before it deploys",
+   "result": "pending (website PR)"
+  }
+ ],
+ "privacyNotes": [
+  "Linux spell checking downloads its Hunspell dictionary from redirector.gvt1.com (/edgedl/chrome/dict/), as shipping Electron Blanc does; no other Google update or release host was contacted in the update proof's network logs."
+ ],
+ "followUps": [
+  "DEP-11 (AppStream) metadata in the repository before the 158.0.8127.37 update",
+  "The signer checks its tools (dpkg-deb, rpmkeys, gpg) before starting",
+  "The 158.0.8127.37 Linux betas after the build server moves to .37"
+ ]
+}

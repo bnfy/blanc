@@ -1,1 +1,69 @@
-{"schema": 1, "builds": []}
+{
+  "schema": 1,
+  "builds": [
+    {
+      "build": 905,
+      "version": "158.0.8127.905",
+      "date": "2026-11-22",
+      "sourceCommit": "a52e29005d6237c405ddcc2afd3b0f216c8b390b",
+      "purpose": "proof",
+      "candidates": {
+        "x64": {
+          "id": "linux-x64-63fafc3aa8601071",
+          "tarSha256": "e95772887fc3bfc0ead8dc5989df2196bceac441d4afecc2dcc4a195aff55358"
+        },
+        "arm64": {
+          "id": "linux-arm64-ec74115d5555aac5",
+          "tarSha256": "ac993e7b90d6091f1cd7bd373d2eb898c13e8e25610d12438d6857646992c5f1"
+        }
+      },
+      "packages": {
+        "blanc-beta_158.0.8127.905-1_amd64.deb": "82773c06f9d01add432a75a0904123aaba00a0950ba1d8005c14c90127549f76",
+        "blanc-beta-158.0.8127.905-1.x86_64.rpm": "6783174ec007cb11c3422f022edf40d5b95bb8c69dec9c7bff363077d711042b",
+        "blanc-beta_158.0.8127.905-1_arm64.deb": "d1ca2ea95c2fae7abdcfc7477618fc8bdf15d218561fa066c94b1eb1c2668c5f",
+        "blanc-beta-158.0.8127.905-1.aarch64.rpm": "bc46ba53c334d482790e273154d5f541b79cbbe5f4f5ffe173d1b11f6b365538"
+      },
+      "buildCheckRuns": {
+        "x64": 45075294759,
+        "arm64": 45075613282
+      },
+      "note": "Proof-only N-1 for the first Linux beta's update proof and VM hand check; never published. Its RPMs were later signed into the private approval only (approved-packages.json), and the packages ran only on runners and the owner's VM."
+    },
+    {
+      "build": 906,
+      "version": "158.0.8127.906",
+      "tag": "chromium-beta-linux-158.0.8127.906",
+      "date": "2026-11-23",
+      "sourceCommit": "a52e29005d6237c405ddcc2afd3b0f216c8b390b",
+      "chromiumVersion": "158.0.8127.2",
+      "candidates": {
+        "x64": {
+          "id": "linux-x64-400b354c5624ec89",
+          "tarSha256": "2412715d152bb44a9ffcfa9c4d164e51ab51e195b4f4ba77fab12109732a605f"
+        },
+        "arm64": {
+          "id": "linux-arm64-4834316238c1f96d",
+          "tarSha256": "399720c7cb963405bc357d1382451cb21d5ba2f048f747bbb983793ad47ad36d"
+        }
+      },
+      "packages": {
+        "blanc-beta_158.0.8127.906-1_amd64.deb": "03d9281b312efbc26b070bedad0deb3bd10c2b1ccf7143cca147e85f0263416b",
+        "blanc-beta-158.0.8127.906-1.x86_64.rpm": "8c317eb33ec4b7bfdadcfacad44c16ad461f66f356ea9ce13afa0b1850ce8227",
+        "blanc-beta_158.0.8127.906-1_arm64.deb": "4b2726d4b64317bc7d6357b0134993b0e0540f421b2617d6d0880becdd9af062",
+        "blanc-beta-158.0.8127.906-1.aarch64.rpm": "6ba06bdbde8dc1bd151f1f245076053f21d2ceb15a3c4db3bdae3a979e134449"
+      },
+      "buildCheckRuns": {
+        "x64": 45076009487,
+        "arm64": 45076276413
+      },
+      "repositoryGeneration": 906,
+      "repositoryDigest": "32459e866305910dad7bac5881b458580e4841f8b8a4c247477c166de25fce93",
+      "updateProofRun": 45103487653,
+      "repoLifecycleRun": 45103802669,
+      "verifyPublicRun": 45108455963,
+      "checksumsSigstoreSha256": "2df45ea925e2980c158323cf39af9e3c125512bbc64281f411bbcaab862ea866",
+      "publishedAt": "2026-11-23T03:45:35Z",
+      "note": "First public Blanc Beta for Linux: x64 and arm64 .deb and .rpm, a GitHub pre-release (not latest; v1.52.0 stayed latest) and generation 906 of the signed apt and dnf repository at pkg.blanc.day, the same tree proven on staging. Update proof 905 -> 906 and repository add/update/remove passed on Ubuntu 24.04, Debian 12 and Fedora 45, x64 and arm64; VM hand check on Ubuntu 26.04 arm64 (chromium/linux/hand-checks-l3.md). Owner decision 2026-11-22: ship on Chromium 158.0.8127.2; the first update moves to 158.0.8127.37 and the repository adds DEP-11 (App Center) metadata before it."
+    }
+  ]
+}

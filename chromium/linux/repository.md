@@ -1,8 +1,10 @@
 # Linux package repository
 
 Preview packages (`blanc-prototype`) use staging at `https://pkg-staging.blanc.day`.
-Only `blanc-beta` uses production at `https://pkg.blanc.day`. Both hosts are planned
-for L3. Until then, `apt update` warns on machines with a preview installed.
+Only `blanc-beta` uses production at `https://pkg.blanc.day`. Both hosts serve
+signed trees since November 22–23, 2026: staging took generation 906 first, and
+production published the same tree (digest `32459e866305910dad7bac5881b458580e4841f8b8a4c247477c166de25fce93`)
+with the first public Blanc Beta for Linux, 158.0.8127.906.
 
 | Source | Staging | Production |
 | --- | --- | --- |
@@ -102,6 +104,17 @@ blanc.day zone): `blanc-linux-packages-staging` and `blanc-linux-packages`.
 `chromium/linux/repository/worker/`. The Worker is bound as `PACKAGES` and serves
 `pkg-staging.blanc.day` and `pkg.blanc.day` as custom domains; until the first
 publication writes `current.json`, every path answers 404.
+
+## AppStream (DEP-11) metadata
+
+Not published yet. Ubuntu 26.04's App Center lists an apt update only when it can match the
+package to an AppStream component by package name, which comes from a repository's DEP-11
+catalog (`main/dep11/Components-<arch>.yml.gz`, listed and hashed in `Release`). Without one it
+hides Blanc's updates; with a local entry naming `Package: blanc-beta` it listed
+"Blanc Beta 905 → 906" ([VM check](hand-checks-l3.md#app-center-and-dep-11)). The owner decided on
+November 22, 2026 to add it before the 158.0.8127.37 update: `metadata.py` builds it on the
+runner from the package's own AppStream file and desktop entry, the Mac's index check verifies
+it with the rest of `Release`, and the lifecycle check covers it. It changes no package.
 
 ## Publication and recovery
 

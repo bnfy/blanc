@@ -6,6 +6,10 @@ umask 077
 [[ $# == 3 ]] || { echo "Usage: $0 APPROVAL_DIR UNSIGNED_TREE NEW_SIGNED_TREE" >&2; exit 2; }
 source "$(dirname "$0")/repository-common.sh"
 open_repository_work
+# metadata.py's index check needs these; fail before the vault opens, not after.
+for tool in dpkg-deb rpmkeys gpg gpgv python3; do
+  command -v "$tool" >/dev/null || { echo "Install $tool before signing (Homebrew: dpkg, rpm, gnupg)." >&2; exit 1; }
+done
 mkdir "$work/approved" "$work/rpmdb"
 cp "$1/approved-packages.json" "$1/approved-packages.json.asc" "$work/approved/"
 verify "$work/approved/approved-packages.json.asc" "$work/approved/approved-packages.json"
