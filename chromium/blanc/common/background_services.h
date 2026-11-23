@@ -16,14 +16,18 @@ namespace blanc {
 
 // Chromium services that reach Google on their own and that shipping Blanc
 // never runs (outbound-isolation check, 2026-11-01): the component updater,
-// secure network time queries and autofill server predictions. They are
-// turned off with Chromium's own switch and features, in the browser process
-// before anything reads them; child processes get the features from the
-// browser. Header-only, like island_mode.h.
+// secure network time queries, autofill server predictions, and Google AI
+// Mode's eligibility check (AimEnabled: with Google as a private window's
+// search engine it asked www.google.com/async/folae, 2026-11-23; Android's
+// list already had it). They are turned off with Chromium's own switch and
+// features, in the browser process before anything reads them; child
+// processes get the features from the browser. Header-only, like
+// island_mode.h.
 inline constexpr std::string_view kDisableComponentUpdateSwitch =
     "disable-component-update";
-inline constexpr std::array<std::string_view, 2> kDisabledBackgroundFeatures =
-    {"NetworkTimeServiceQuerying", "AutofillServerCommunication"};
+inline constexpr std::array<std::string_view, 3> kDisabledBackgroundFeatures =
+    {"NetworkTimeServiceQuerying", "AutofillServerCommunication",
+     "AimEnabled"};
 
 // Adds the switch and the features to any --disable-features already given.
 inline void DisableBackgroundServices(base::CommandLine& command_line) {
