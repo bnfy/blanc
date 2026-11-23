@@ -80,3 +80,17 @@ test('DNS lookups of the probe host are the probe; any other name is the beta', 
   const other = clean(); other.pflog.push({at: T('2026-11-14T10:05:00Z'), address: '192.168.1.1', port: 53, line: line('clients2.google.com')});
   assert.equal(judgeBeta(other).verdict, 'fail');
 });
+
+test('the active-session check fails on any outside host and needs the probe in every log', async () => {
+  const {judgeActiveSession} = await import('./outbound/active-session.mjs');
+  const names = ['startup-idle', 'relaunch', 'private-window'];
+  const quiet = {localhost: 9, [PROBE_HOST]: 3};
+  const logs = extra => Object.fromEntries(names.map(n => [n, netlog(n === 'private-window' ? {...quiet, ...extra} : quiet)]));
+  assert.equal(judgeActiveSession(names, logs({})).verdict, 'pass');
+  const google = judgeActiveSession(names, logs({'www.google.com': 20}));
+  assert.equal(google.verdict, 'fail');
+  assert.deepEqual(google.problems, ['private-window: the beta tried to reach www.google.com (20 network log entries)']);
+  const noProbe = judgeActiveSession(names, {...logs({}), relaunch: netlog({localhost: 2})});
+  assert.match(noProbe.problems[0], /relaunch: the network log never names the probe host/);
+  assert.match(judgeActiveSession(names, {}).problems[0], /no network log/);
+});
