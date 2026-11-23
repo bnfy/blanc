@@ -32,12 +32,14 @@ const normalize = text => text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*(?:>|
 // widgets; the layout wording it retired leaves these ledgers' checks, and its
 // new wording is recorded there (docs/website-v1.51-start-page-claims.json).
 const v151StartLedger = JSON.parse(read('docs/website-v1.51-start-page-claims.json'));
-// The Privacy & Security page was re-checked against public v1.52.0; the
-// wording it replaced leaves these checks the same way
-// (docs/website-trust-v1.52-claims.json).
+const retiredWording = new Set(v151StartLedger.retiredWording);
+// The Privacy & Security page was re-checked against public v1.52.0
+// (docs/website-trust-v1.52-claims.json). Its retired wording leaves these
+// checks only for the file it was retired from: other pages that still carry
+// the same sentence stay guarded.
 const v152TrustLedger = JSON.parse(read('docs/website-trust-v1.52-claims.json'));
-const retiredWording = new Set([...v151StartLedger.retiredWording, ...v152TrustLedger.retired.map(entry => entry.exactWording)]);
-const live = claims => claims.filter(claim => !retiredWording.has(claim.exactWording));
+const retiredInFile = new Set(v152TrustLedger.retired.map(({ source, exactWording }) => `${source}\n${exactWording}`));
+const live = claims => claims.filter(claim => !retiredWording.has(claim.exactWording) && !retiredInFile.has(`${claim.source}\n${claim.exactWording}`));
 
 test('the public-release claim ledger resolves to verified v1.27.0, including blocking providers', () => {
   assert.equal(ledger.publicRelease, 'v1.27.0');

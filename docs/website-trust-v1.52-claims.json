@@ -1,0 +1,180 @@
+{
+  "scope": "The Privacy & Security page (/trust): its release evidence, the How Blanc works rows, the connections list, and the Security and Private tabs guides it embeds, re-checked against public v1.52.0 on November 23, 2026. Earlier wording was last checked against v1.25.0 (app explanations) and v1.27.0 (release evidence).",
+  "publicRelease": "v1.52.0",
+  "sourceSha": "a0506da144b6be952fe49f241e54dd2063d333a3",
+  "releaseEvidence": "docs/release-incidents/2026-11-21-v1.52.0.md",
+  "completedReleaseEvidenceRevision": "06783061d06555c241980ae4d7d82c00be9864fe",
+  "verified": "2026-11-23",
+  "evidenceGroups": {
+    "releaseVerification": {
+      "qualification": "v1.52.0 was published on November 21, 2026 with both Mac architectures (DMG and zip), one Windows installer with windows-signature.json, one x86_64 AppImage, SHA256SUMS, its Sigstore bundle and a CycloneDX SBOM; Linux ships only the AppImage (package.json linux target). The release record, completed after the tag at 06783061, says under Independent verification that both DMGs passed Gatekeeper (notarized Developer ID), strict deep codesign, the pinned leaf, stapler validate, build 1520 and their architecture; windows-signature.json is Valid with the expected publisher and matches the installer's SHA-256; SHA256SUMS passed 16 of 16 and cosign verified the bundle; hosted smoke passed the published AppImage. The record distinguishes hosted checks (native run, hosted smoke), checks on the release Mac and owner approvals (three acceptance scenarios run on the MacBook Pro, the ecs-signing gate under the standing release approval); it records no waiver. docs/release-verification.md at the tag still gives the files, cosign and per-platform signature steps.",
+      "evidence": [
+        "docs/release-verification.md",
+        "package.json",
+        ".github/workflows/release-windows-linux.yml",
+        "scripts/release.sh"
+      ]
+    },
+    "syncFindings": {
+      "qualification": "docs/security-assessment.md (identical at the tag and on main) still lists the account-locator authorization (R3) and the non-atomic write and delete races (R5) as open. The request-size cap (#474, MAX_REQUEST_BYTES) is in production blanc-sync since its November 2 deployment (cloudflare/sync-worker/README.md, test/unit/sync-worker-limits.test.js), so the sentence saying it was not deployed is retired. No independent external audit has been commissioned.",
+      "evidence": [
+        "docs/security-assessment.md",
+        "cloudflare/sync-worker/README.md",
+        "cloudflare/sync-worker/src/index.js",
+        "test/unit/sync-worker-limits.test.js"
+      ]
+    },
+    "licensing": {
+      "qualification": "LICENSE, ASSET-LICENSE.md and THIRD-PARTY-NOTICES.md exist at v1.52.0 and the page links them at that tag; the app explanations on the page were re-read against the tag's source for this record.",
+      "evidence": [
+        "LICENSE",
+        "ASSET-LICENSE.md",
+        "THIRD-PARTY-NOTICES.md"
+      ]
+    },
+    "blocking": {
+      "qualification": "Blanc Blocker compiles only the bundled, hash-verified EasyList and EasyPrivacy snapshots (adblock/sources/pinned.json) and its loader has no fetch capability. Since v1.27 Settings → Privacy & Security offers uBlock Origin as the blocking provider for regular tabs; its Settings text says 'Filter lists update automatically', and private tabs keep Blanc Blocker (src/main/ublock-provider.js). The shield chip and popover show a blocked count and a per-site switch, not a list of what was blocked (copy/messages/en.json shield keys).",
+      "evidence": [
+        "adblock/sources/pinned.json",
+        "src/main/adblock-engine-loader.js",
+        "src/renderer/pages/settings.html",
+        "src/main/ublock-provider.js",
+        "copy/messages/en.json"
+      ]
+    },
+    "localNetwork": {
+      "qualification": "Since v1.50.0 (#1593) a website's request to this device or the local network raises a Blanc prompt for the top-level site, remembered per site and kept in memory only in private sessions; cross-origin frames are refused without a prompt (src/main/local-network-access.js, permissions.js PROMPTED and localNetworkPolicyFor). Media, location and notifications remain the other prompted permissions.",
+      "evidence": [
+        "src/main/local-network-access.js",
+        "src/main/permissions.js",
+        "docs/press/release-notes/v1.50.0.md"
+      ]
+    },
+    "search": {
+      "qualification": "Bangs are on by default (settings.js bangsEnabled: true, since v1.36) and send a search to the bang's site instead of the selected engine; !w is in the bundled catalog. Suggestions go to the selected provider only, never from private tabs or for recognized sensitive input (src/main/search-suggestions.js).",
+      "evidence": [
+        "src/main/settings.js",
+        "src/main/search-suggestions.js",
+        "src/renderer/pages/bangs-catalog.js"
+      ]
+    },
+    "bangIcons": {
+      "qualification": "bang-icons-policy.js asks https://blanc.day/bang-icons/<host> only for hosts in the built-in catalog, never for a host from your own bangs, and not while a private tab is active or before setup completes.",
+      "evidence": [
+        "src/main/bang-icons-policy.js",
+        "src/main/bang-icons.js"
+      ]
+    },
+    "siteIcons": {
+      "qualification": "favicon-network.js fetches a site's icon itself, with no cookies, referrer or page and session state, to keep it for favorites, bang rows and shared tabs.",
+      "evidence": [
+        "src/main/favicon-network.js",
+        "src/main/favicon-sanitizer.js"
+      ]
+    },
+    "whatsNew": {
+      "qualification": "After a feature update whats-new-check.js sends one HEAD to blanc.day with credentials 'omit' and no referrer to learn whether that release's What's New page exists, and whats-new.js opens it once in a tab.",
+      "evidence": [
+        "src/main/whats-new-check.js",
+        "src/main/whats-new.js"
+      ]
+    },
+    "protectedMedia": {
+      "qualification": "Since v1.43.0 Blanc downloads Google's Widevine component through castLabs ECS's component updater and later checks there for updates (drm-runtime.js). The earlier 'without cookies' had no evidence in Blanc's code at the tag (the request belongs to the component updater), so it is dropped.",
+      "evidence": [
+        "docs/press/release-notes/v1.43.0.md",
+        "src/main/drm-runtime.js"
+      ]
+    },
+    "sync": {
+      "qualification": "Sync's encrypted stores at the tag are bookmarks, settings, session, icons, sends (pages sent to another device, v1.44) and spaces (src/main/sync.js STORES, src/main/sends.js). Since v1.45 Sync can be turned on without a passphrase, with a random key and a recovery code, and devices join with a pairing code (sync.js startNew, sync-pairing.js); a passphrase, when used, is never stored or sent, and the retained key is wrapped by the operating system credential service.",
+      "evidence": [
+        "src/main/sync.js",
+        "src/main/sends.js",
+        "src/main/sync-pairing.js",
+        "docs/press/release-notes/v1.45.0.md"
+      ]
+    },
+    "passkeys": {
+      "qualification": "Blanc's own Secure Enclave passkeys are Mac only (setupWebAuthn returns unless the platform is darwin); on Windows, passkeys go through Windows' own dialog.",
+      "evidence": [
+        "src/main/webauthn.js",
+        "docs/press/release-notes/v1.52.0.md"
+      ]
+    },
+    "onePassword": {
+      "qualification": "1Password fill is available on macOS, Windows and Linux but isOnePasswordDeviceSupported refuses Windows on Arm, where the x64 app cannot load the Arm64 SDK library; fill is off by default.",
+      "evidence": [
+        "src/main/onepassword-availability.js",
+        "docs/1password-integration.md"
+      ]
+    },
+    "privateSessions": {
+      "qualification": "Each profile has its own private session: Personal uses private-browsing and each named profile private-browsing-<id> (profile-sessions.js privatePartitionFor), discarded when Blanc quits.",
+      "evidence": [
+        "src/main/profile-sessions.js"
+      ]
+    },
+    "websiteMeasurement": {
+      "qualification": "This describes the website, not the app. site.js turns Google measurement on by default outside consent-required regions and requires a saved opt-in in the EEA, UK and Switzerland (and when the location is unknown), as the privacy policy says; the footer's Privacy choices turn it off.",
+      "evidence": [
+        "site/src/scripts/site.js",
+        "site/src/pages/privacy.astro"
+      ]
+    }
+  },
+  "claims": [
+    { "id": "trust152-001", "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "public v1.52.0 · November 21, 2026", "subject": "Blanc", "evidenceGroups": ["releaseVerification"], "verdict": "verified" },
+    { "id": "trust152-002", "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "Authentication evidence for the official v1.52.0 downloads", "subject": "Blanc", "evidenceGroups": ["releaseVerification"], "verdict": "verified" },
+    { "id": "trust152-003", "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "Official DMG · Mac verification steps · v1.52.0 verification record", "subject": "Blanc", "evidenceGroups": ["releaseVerification"], "verdict": "verified" },
+    { "id": "trust152-004", "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "Official installer and signature report · Windows verification steps · v1.52.0 native checks", "subject": "Blanc", "evidenceGroups": ["releaseVerification"], "verdict": "verified" },
+    { "id": "trust152-005", "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "Official AppImage, manifest and Sigstore bundle · Manifest verification steps · v1.52.0 public-download checks", "subject": "Blanc", "evidenceGroups": ["releaseVerification"], "verdict": "verified" },
+    { "id": "trust152-006", "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "These checks authenticate the publisher and downloaded bytes. They do not establish that the application is free of security flaws or provide an independent review of its architecture. The release record distinguishes hosted checks, physical-machine confirmations and owner approvals.", "subject": "Blanc", "evidenceGroups": ["releaseVerification"], "verdict": "verified" },
+    { "id": "trust152-007", "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "Sync v1 encrypts data, but possession of its account locator authorizes ciphertext retrieval, replacement and deletion. Concurrent writes and deletion can race. These unresolved findings remain part of the public maintainer assessment.", "subject": "Blanc", "evidenceGroups": ["syncFindings"], "verdict": "verified" },
+    { "id": "trust152-008", "source": "site/src/components/guides/foundations.astro", "exactWording": "App explanations checked against public Blanc v1.52.0. Read its source and release evidence. Signed manifests authenticate downloads; they do not establish reproducible builds. More questions?", "subject": "Blanc", "evidenceGroups": ["licensing", "releaseVerification"], "verdict": "verified" },
+    { "id": "trust152-009", "source": "site/src/components/guides/foundations.astro", "exactWording": "Blanc Blocker applies network rules and cosmetic filters from bundled, hash-verified EasyList and EasyPrivacy snapshots. It does not fetch changing filter lists or remote scriptlet resources at startup. Reviewed list updates arrive with a new Blanc release. If you choose uBlock Origin instead in Settings, it updates its filter lists from their publishers; private tabs keep Blanc Blocker.", "subject": "Blanc", "evidenceGroups": ["blocking"], "verdict": "verified" },
+    { "id": "trust152-010", "source": "site/src/components/guides/foundations.astro", "exactWording": "Browsing sends requests to those sites and their resources. Blocking reduces known ads and trackers; it cannot stop every form of tracking. Since Blanc 1.50, a website asks before it reaches this device or your local network.", "subject": "Blanc", "evidenceGroups": ["localNetwork"], "verdict": "verified" },
+    { "id": "trust152-011", "source": "site/src/components/guides/foundations.astro", "exactWording": "Site icons", "subject": "Blanc", "evidenceGroups": ["siteIcons"], "verdict": "verified" },
+    { "id": "trust152-012", "source": "site/src/components/guides/foundations.astro", "exactWording": "To keep a site’s icon for a favorite, a bang or a shared tab, Blanc may fetch that icon from the site itself, without cookies or a referrer.", "subject": "Blanc", "evidenceGroups": ["siteIcons"], "verdict": "verified" },
+    { "id": "trust152-013", "source": "site/src/components/guides/foundations.astro", "exactWording": "What’s New after an update", "subject": "Blanc", "evidenceGroups": ["whatsNew"], "verdict": "verified" },
+    { "id": "trust152-014", "source": "site/src/components/guides/foundations.astro", "exactWording": "After a feature update, Blanc asks blanc.day, without cookies or a referrer, whether that release has a What’s New page, and opens it once in a tab.", "subject": "Blanc", "evidenceGroups": ["whatsNew"], "verdict": "verified" },
+    { "id": "trust152-015", "source": "site/src/components/guides/foundations.astro", "exactWording": "Blanc 1.43.0 and later download Google’s Widevine component so sites can play protected video and music. Blanc asks Google’s component update service for it, and later checks there for updates. A site’s player sends its license requests to the license server that site chooses.", "subject": "Blanc", "evidenceGroups": ["protectedMedia"], "verdict": "verified" },
+    { "id": "trust152-016", "source": "site/src/components/guides/foundations.astro", "exactWording": "A submitted search goes to your selected search engine, or to the site a bang names (such as !w). If suggestions are enabled, eligible typed prefixes also go to that provider. Suggestions are excluded from private tabs and recognized sensitive-looking input. Choosing Google makes Google a recipient.", "subject": "Blanc", "evidenceGroups": ["search"], "verdict": "verified" },
+    { "id": "trust152-017", "source": "site/src/components/guides/foundations.astro", "exactWording": "Bang icons", "subject": "Blanc", "evidenceGroups": ["bangIcons"], "verdict": "verified" },
+    { "id": "trust152-018", "source": "site/src/components/guides/foundations.astro", "exactWording": "With bangs on, Blanc asks blanc.day for the icons of built-in bang sites it shows in the ⌘L panel. Your own bangs’ sites are never sent, and private tabs ask for none.", "subject": "Blanc", "evidenceGroups": ["bangIcons"], "verdict": "verified" },
+    { "id": "trust152-019", "source": "site/src/components/guides/foundations.astro", "exactWording": "If you enable Sync, eligible Favorites, settings, optional open-tab snapshots, pages you send to another device and, since Blanc 1.45, Spaces you choose to share are encrypted before reaching Blanc’s Cloudflare-hosted service. Cookies, passwords and browsing history are not synced.", "subject": "Blanc", "evidenceGroups": ["sync"], "verdict": "verified" },
+    { "id": "trust152-020", "source": "site/src/components/guides/foundations.astro", "exactWording": "Optional uBlock Origin", "subject": "Blanc", "evidenceGroups": ["blocking"], "verdict": "verified" },
+    { "id": "trust152-021", "source": "site/src/components/guides/foundations.astro", "exactWording": "If you choose uBlock Origin as your blocker in Settings, it downloads filter list updates from the lists’ publishers. Private tabs keep Blanc Blocker.", "subject": "Blanc", "evidenceGroups": ["blocking"], "verdict": "verified" },
+    { "id": "trust152-022", "source": "site/src/components/guides/foundations.astro", "exactWording": "This website has separate choices. Cloudflare counts page views without cookies, and the download redirect counts aggregate downloads. Google analytics and limited ad-conversion measurement require opt-in in the EEA, UK and Switzerland and are on by default elsewhere; you can turn them off through the footer’s Privacy choices. Turning them off prevents future optional measurement.", "subject": "Blanc website", "evidenceGroups": ["websiteMeasurement"], "verdict": "verified" },
+    { "id": "trust152-023", "source": "site/src/components/guides/security.astro", "exactWording": "Blanc Blocker runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows how much was blocked on each page. How blocking works.", "subject": "Blanc", "evidenceGroups": ["blocking"], "verdict": "verified" },
+    { "id": "trust152-024", "source": "site/src/components/guides/security.astro", "exactWording": "On a Mac with Touch ID, Blanc creates device-bound passkeys inside Apple’s Secure Enclave. The private key never leaves the chip, and Blanc is signed with an Apple-issued Developer ID and provisioned to hold its own keychain access group. Secure Enclave passkeys are macOS only for now.", "subject": "Blanc", "evidenceGroups": ["passkeys"], "verdict": "verified" },
+    { "id": "trust152-025", "source": "site/src/components/guides/security.astro", "exactWording": "Camera, microphone, location, notifications, the local network — each request raises a Blanc prompt, and each decision is remembered for that site. Decisions made in a private tab are never written to disk.", "subject": "Blanc", "evidenceGroups": ["localNetwork"], "verdict": "verified" },
+    { "id": "trust152-026", "source": "site/src/components/guides/security.astro", "exactWording": "Optional 1Password fill on macOS, Windows and Linux (not Windows on Arm).", "subject": "Blanc", "evidenceGroups": ["onePassword"], "verdict": "verified" },
+    { "id": "trust152-027", "source": "site/src/components/guides/security.astro", "exactWording": "Sync is off by default. Favorites, eligible settings, optional open-tab snapshots and, since Blanc 1.45, Spaces you choose to share are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. A passphrase, if you use one, is never stored or sent, and the retained key is wrapped by the operating system credential service.", "subject": "Blanc", "evidenceGroups": ["sync"], "verdict": "verified" },
+    { "id": "trust152-028", "source": "site/src/components/guides/private-tabs.astro", "exactWording": "Private tabs share one separate in-memory browsing session with other private tabs of the same profile opened during the same Blanc run; they do not share cookies or site storage with regular tabs, and the private session is discarded when Blanc quits. Websites, downloads, your network, or an employer may still observe activity, and files you explicitly save remain on disk.", "subject": "Blanc", "evidenceGroups": ["privateSessions"], "verdict": "verified" }
+  ],
+  "retired": [
+    { "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "public v1.27.0 · October 3, 2026", "ledgers": ["website-revamp-claims-v1.27.json:reddit-483"], "reason": "Re-pinned to public v1.52.0 (trust152-001)." },
+    { "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "Official DMG · Mac verification steps · v1.27.0 verification record", "ledgers": ["website-revamp-claims-v1.27.json:reddit-486"], "reason": "Re-pinned to public v1.52.0 (trust152-003)." },
+    { "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "Official installer and signature report · Windows verification steps · v1.27.0 native checks", "ledgers": ["website-revamp-claims-v1.27.json:reddit-488"], "reason": "Re-pinned to public v1.52.0 (trust152-004)." },
+    { "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "Official AppImage, manifest and Sigstore bundle · Manifest verification steps · v1.27.0 public-download checks", "ledgers": ["website-revamp-claims-v1.27.json:reddit-490"], "reason": "Re-pinned to public v1.52.0 (trust152-005)." },
+    { "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "These checks authenticate the publisher and downloaded bytes. They do not establish that the application is free of security flaws or provide an independent review of its architecture. The release record distinguishes hosted checks, physical-machine confirmations and owner waivers.", "ledgers": ["website-revamp-claims-v1.27.json:reddit-491"], "reason": "The v1.52.0 record has owner approvals and no waiver (trust152-006)." },
+    { "source": "site/src/components/ReleaseEvidence.astro", "exactWording": "Sync v1 encrypts data, but possession of its account locator authorizes ciphertext retrieval, replacement and deletion. Concurrent writes and deletion can race. Merged request-size limits are not yet deployed. These unresolved findings remain part of the public maintainer assessment.", "ledgers": ["website-revamp-claims-v1.27.json:reddit-495"], "reason": "The request-size limits are deployed in production Sync (trust152-007)." },
+    { "source": "site/src/components/guides/foundations.astro", "exactWording": "This website has separate choices. Cloudflare counts page views without cookies, and the download redirect counts aggregate downloads. Google analytics and limited ad-conversion measurement load only after you choose Allow through the footer’s Privacy choices, or if you previously saved that grant. Declining or withdrawing prevents future optional measurement.", "ledgers": ["website-revamp-claims-v1.27.json:trust-125-363"], "reason": "Since October 29, 2026 the website requires opt-in only in the EEA, UK and Switzerland (trust152-022)." },
+    { "source": "site/src/components/guides/foundations.astro", "exactWording": "App explanations checked against public Blanc v1.25.0. Read its source and release evidence. Signed manifests authenticate downloads; they do not establish reproducible builds. More questions?", "ledgers": ["website-revamp-claims-v1.27.json:trust-125-371"], "reason": "Re-checked against public v1.52.0 (trust152-008)." },
+    { "source": "site/src/components/guides/foundations.astro", "exactWording": "A submitted search goes to your selected search engine. If suggestions are enabled, eligible typed prefixes also go to that provider. Suggestions are excluded from private tabs and recognized sensitive-looking input. Choosing Google makes Google a recipient.", "ledgers": ["website-revamp-claims-v1.27.json:trust-125-375"], "reason": "Bangs, on by default since v1.36, send a search to another site (trust152-016)." },
+    { "source": "site/src/components/guides/foundations.astro", "exactWording": "If you enable Sync, eligible Favorites, settings, optional open-tab snapshots and, since Blanc 1.45, Spaces you choose to share are encrypted before reaching Blanc’s Cloudflare-hosted service. Cookies, passwords and browsing history are not synced.", "ledgers": ["website-v1.45-claims.json:v145-019"], "reason": "Sync also carries pages sent to another device (trust152-019)." },
+    { "source": "site/src/components/guides/security.astro", "exactWording": "Blanc Blocker runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. How blocking works.", "ledgers": ["website-revamp-claims-v1.27.json:reddit-456"], "reason": "The shield shows a blocked count, not a list (trust152-023)." },
+    { "source": "site/src/components/guides/security.astro", "exactWording": "On a Mac with Touch ID, Blanc creates device-bound passkeys inside Apple’s Secure Enclave. The private key never leaves the chip, and Blanc is signed with an Apple-issued Developer ID and provisioned to hold its own keychain access group. macOS only for now.", "ledgers": ["website-revamp-claims-v1.27.json:reddit-465"], "reason": "Passkeys work on Windows through Windows' own dialog; only Secure Enclave passkeys are Mac only (trust152-024)." },
+    { "source": "site/src/components/guides/security.astro", "exactWording": "Camera, microphone, location, notifications — each request raises a Blanc prompt, and each decision is remembered for that site. Decisions made in a private tab are never written to disk.", "ledgers": ["website-revamp-claims-v1.27.json:reddit-467"], "reason": "v1.50.0 added the local network prompt (trust152-025)." },
+    { "source": "site/src/components/guides/security.astro", "exactWording": "Optional 1Password fill on macOS, Windows and Linux.", "ledgers": ["website-v1.34-claims.json:v134-1p-001"], "reason": "Fill is not available on Windows on Arm (trust152-026)." },
+    { "source": "site/src/components/guides/security.astro", "exactWording": "Sync is off by default. Favorites, eligible settings, optional open-tab snapshots and, since Blanc 1.45, Spaces you choose to share are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. The passphrase is never stored or sent, and the retained key is wrapped by the operating system credential service.", "ledgers": ["website-v1.45-claims.json:v145-017"], "reason": "Since v1.45 Sync can be turned on without a passphrase (trust152-027)." },
+    { "source": "site/src/components/guides/private-tabs.astro", "exactWording": "Private tabs share one separate in-memory browsing session with other private tabs opened during the same Blanc run; they do not share cookies or site storage with regular tabs, and the private session is discarded when Blanc quits. Websites, downloads, your network, or an employer may still observe activity, and files you explicitly save remain on disk.", "ledgers": ["website-revamp-claims-v1.27.json:revamp-copy-107"], "reason": "Each profile has its own private session (trust152-028)." }
+  ],
+  "releaseEvidenceUpdates": [
+    { "before": "v1.27.0", "after": "v1.52.0", "reason": "Release evidence re-pinned to public v1.52.0." },
+    { "before": "October 3, 2026", "after": "November 21, 2026", "reason": "v1.52.0's publication date." },
+    { "before": "owner waivers.", "after": "owner approvals.", "reason": "The v1.52.0 record has owner approvals and no waiver." },
+    { "before": "Merged request-size limits are not yet deployed. ", "after": "", "reason": "The request-size limits are deployed in production Sync." }
+  ]
+}

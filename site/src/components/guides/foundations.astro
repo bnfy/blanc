@@ -4,19 +4,31 @@ import TrustIcon from "../TrustIcon.astro";
 const connections = [
   [
     "Websites you open",
-    "Browsing sends requests to those sites and their resources. Blocking reduces known ads and trackers; it cannot stop every form of tracking.",
+    "Browsing sends requests to those sites and their resources. Blocking reduces known ads and trackers; it cannot stop every form of tracking. Since Blanc 1.50, a website asks before it reaches this device or your local network.",
+  ],
+  [
+    "Site icons",
+    "To keep a site’s icon for a favorite, a bang or a shared tab, Blanc may fetch that icon from the site itself, without cookies or a referrer.",
   ],
   [
     "App updates",
     "Installed builds contact GitHub Releases to check for and download Blanc updates. The update replaces the whole app, including its bundled Electron and Chromium.",
   ],
   [
+    "What’s New after an update",
+    "After a feature update, Blanc asks blanc.day, without cookies or a referrer, whether that release has a What’s New page, and opens it once in a tab.",
+  ],
+  [
     "Protected media",
-    "Blanc 1.43.0 and later download Google’s Widevine component so sites can play protected video and music. Blanc asks Google’s component update service for it, without cookies, and later checks there for updates. A site’s player sends its license requests to the license server that site chooses.",
+    "Blanc 1.43.0 and later download Google’s Widevine component so sites can play protected video and music. Blanc asks Google’s component update service for it, and later checks there for updates. A site’s player sends its license requests to the license server that site chooses.",
   ],
   [
     "Search and suggestions",
-    "A submitted search goes to your selected search engine. If suggestions are enabled, eligible typed prefixes also go to that provider. Suggestions are excluded from private tabs and recognized sensitive-looking input. Choosing Google makes Google a recipient.",
+    "A submitted search goes to your selected search engine, or to the site a bang names (such as !w). If suggestions are enabled, eligible typed prefixes also go to that provider. Suggestions are excluded from private tabs and recognized sensitive-looking input. Choosing Google makes Google a recipient.",
+  ],
+  [
+    "Bang icons",
+    "With bangs on, Blanc asks blanc.day for the icons of built-in bang sites it shows in the ⌘L panel. Your own bangs’ sites are never sent, and private tabs ask for none.",
   ],
   [
     "Usage measurement",
@@ -28,7 +40,11 @@ const connections = [
   ],
   [
     "Optional Sync",
-    "If you enable Sync, eligible Favorites, settings, optional open-tab snapshots and, since Blanc 1.45, Spaces you choose to share are encrypted before reaching Blanc’s Cloudflare-hosted service. Cookies, passwords and browsing history are not synced.",
+    "If you enable Sync, eligible Favorites, settings, optional open-tab snapshots, pages you send to another device and, since Blanc 1.45, Spaces you choose to share are encrypted before reaching Blanc’s Cloudflare-hosted service. Cookies, passwords and browsing history are not synced.",
+  ],
+  [
+    "Optional uBlock Origin",
+    "If you choose uBlock Origin as your blocker in Settings, it downloads filter list updates from the lists’ publishers. Private tabs keep Blanc Blocker.",
   ],
   [
     "Optional Patron and 1Password",
@@ -42,9 +58,13 @@ const connections = [
 // The Privacy & Security page draws each connection with an icon.
 const connectionIcons = {
   "Websites you open": "globe",
+  "Site icons": "image",
   "App updates": "download",
+  "What’s New after an update": "spark",
   "Protected media": "play",
   "Search and suggestions": "search",
+  "Bang icons": "bang",
+  "Optional uBlock Origin": "shield-slash",
   "Usage measurement": "chart",
   DNS: "network",
   "Optional Sync": "cloud",
@@ -123,7 +143,9 @@ const connectionIcons = {
         Blanc Blocker applies network rules and cosmetic filters from bundled,
         hash-verified EasyList and EasyPrivacy snapshots. It does not fetch changing
         filter lists or remote scriptlet resources at startup. Reviewed list updates
-        arrive with a new Blanc release.
+        arrive with a new Blanc release. If you choose uBlock Origin instead in
+        Settings, it updates its filter lists from their publishers; private tabs
+        keep Blanc Blocker.
       </p><p>
         The blocker is independent of an extension store. You can turn it off for a
         site when something breaks, or change its setting in the app. Lists target
@@ -161,10 +183,10 @@ const connectionIcons = {
         >.
       </p><p class="works-evidence">
         App explanations checked against public <a
-          href="https://github.com/bnfy/blanc/releases/tag/v1.25.0">Blanc v1.25.0</a
-        >. Read its <a href="https://github.com/bnfy/blanc/tree/v1.25.0">source</a> and
+          href="https://github.com/bnfy/blanc/releases/tag/v1.52.0">Blanc v1.52.0</a
+        >. Read its <a href="https://github.com/bnfy/blanc/tree/v1.52.0">source</a> and
         <a
-          href="https://github.com/bnfy/blanc/blob/5b8fa03bda00cbd7fbcafba16384e63c7e85ff9a/docs/release-incidents/2026-10-01-v1.25.0.md"
+          href="https://github.com/bnfy/blanc/blob/06783061d06555c241980ae4d7d82c00be9864fe/docs/release-incidents/2026-11-21-v1.52.0.md"
           >release evidence</a
         >. Signed manifests authenticate downloads; they do not establish
         reproducible builds. <a href="/support">More questions?</a>
@@ -193,9 +215,10 @@ const connectionIcons = {
   </div><p class="connections-site-note">
     <strong>This website has separate choices.</strong> Cloudflare counts page views
     without cookies, and the download redirect counts aggregate downloads. Google
-    analytics and limited ad-conversion measurement load only after you choose Allow
-    through the footer’s Privacy choices, or if you previously saved that grant.
-    Declining or withdrawing prevents future optional measurement.
+    analytics and limited ad-conversion measurement require opt-in in the EEA, UK
+    and Switzerland and are on by default elsewhere; you can turn them off through
+    the footer’s Privacy choices. Turning them off prevents future optional
+    measurement.
   </p>
 </section>
 <section id="controls">
