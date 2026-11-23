@@ -62,11 +62,10 @@ void Encode(const v8::FunctionCallbackInfo<v8::Value>& args) {
 void Decode(const v8::FunctionCallbackInfo<v8::Value>& args) {
   if (args.Length() != 1 || !args[0]->IsUint8Array()) return;
   auto bytes = args[0].As<v8::Uint8Array>();
-  auto data = bytes->Buffer()->GetBackingStore();
-  // SAFETY: the backing-store length is supplied by V8; subspan validates the view.
-  auto span = UNSAFE_BUFFERS(base::span(static_cast<const uint8_t*>(data->Data()), data->ByteLength()))
-                  .subspan(bytes->ByteOffset(), bytes->ByteLength());
-  args.GetReturnValue().Set(Str(args.GetIsolate(), std::string(base::as_string_view(span))));
+  // CopyContents copies exactly the view's bytes, whatever its offset in the buffer.
+  std::string text(bytes->ByteLength(), '\0');
+  text.resize(bytes->CopyContents(text.data(), text.size()));
+  args.GetReturnValue().Set(Str(args.GetIsolate(), text));
 }
 }
 BlockerService::BlockerService(mojo::PendingReceiver<mojom::Blocker> receiver)

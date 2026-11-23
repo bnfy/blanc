@@ -23,7 +23,9 @@ test('fork beta is excluded from the real releases.json normalization and change
   assert.equal(normalizeReleases([release(beta.tag,false)]).length,0);
   assert.throws(()=>validateRelease({...beta,prerelease:false}));
   assert.ok(!payloadNames(beta).some(n=>/^(latest|beta).*\.ya?ml$/.test(n)));
-  for(const file of ['changelog.astro','changelog.xml.js'])assert.match(fs.readFileSync(new URL(`../../site/src/pages/${file}`,import.meta.url),'utf8'),/releases\.json/);
+  // The changelog page and feed take desktop releases from releases.json (the page through
+  // its entries module, which keeps Blanc Beta in its own data file).
+  for(const file of ['lib/changelog-entries.mjs','pages/changelog.xml.js'])assert.match(fs.readFileSync(new URL(`../../site/src/${file}`,import.meta.url),'utf8'),/releases\.json/);
 });
 test('stable GitHubProvider ignores newer beta Atom entry and requests only stable latest-mac.yml',async()=>{
   const policy=resolveUpdaterPolicy({isPackaged:true,env:{}});assert.equal(policy.allowPrerelease,false);

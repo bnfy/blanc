@@ -9,6 +9,8 @@ SRC=$HOME/chromium-android/src
 export PATH=$SRC/third_party/android_sdk/public/platform-tools:$SRC/third_party/node/linux/node-linux-x64/bin:$PATH
 mkdir -p "$EVIDENCE"
 adb install -r "$APK" >/dev/null
+# UI Automator sees page text only while an accessibility service is on (Chromium 159).
+bash "$(dirname "$0")/../support/accessibility-on.sh"
 # The step files import @cucumber/cucumber from the repository root.
 [ -e "$REPO/node_modules" ] || ln -s "$HOME/acceptance-node/node_modules" "$REPO/node_modules"
 cd "$REPO"
