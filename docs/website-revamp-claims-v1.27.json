@@ -2443,16 +2443,6 @@
       "verdict": "qualified"
     },
     {
-      "id": "home-audit-wallpaper-kicker",
-      "source": "site/src/pages/index.astro",
-      "exactWording": "Time-of-day wallpaper",
-      "subject": "Blanc",
-      "evidenceGroups": [
-        "wallpaper"
-      ],
-      "verdict": "qualified"
-    },
-    {
       "id": "reddit-433",
       "source": "site/src/pages/about.astro",
       "exactWording": "Independently controlled, without an ads business.",
@@ -10095,6 +10085,17 @@
       ],
       "verdict": "qualified",
       "reason": "October 29, 2026, after public v1.45.0 shipped Shared Spaces, Recently closed for shared Spaces and Turn on Sync without a passphrase (and Connect your iPhone, for Blanc for iPhone’s public TestFlight beta). The replacement wording is recorded in docs/website-v1.45-claims.json."
+    },
+    {
+      "id": "home-audit-wallpaper-kicker",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "Time-of-day wallpaper",
+      "subject": "Blanc",
+      "evidenceGroups": [
+        "wallpaper"
+      ],
+      "verdict": "qualified",
+      "reason": "November 23, 2026: the owner removed the homepage's time-of-day Start Page section (the MacBook that moves from dawn to night), whose lead held this wording. The Start Page feature page and the homepage's Start Page tool card still describe the wallpaper."
     }
   ],
   "supersededCandidateClaims": [

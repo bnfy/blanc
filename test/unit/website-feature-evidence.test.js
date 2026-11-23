@@ -913,10 +913,10 @@ test('the new homepage capture is tied to public v1.25.0 and its faithful export
     const bytes = fs.readFileSync(path.join(root, item.file));
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), item.sha256);
   }
+  // The homepage's time-of-day MacBook section was removed on November 23,
+  // 2026 (owner); the Features page still shows those captures.
   const homepage = read('site/src/pages/index.astro');
-  const startPage = JSON.parse(read('docs/website-captures-v1.38.0.json'));
-  assert.ok(homepage.includes(startPage.wallpapers[0].displayAsset.file.replace('site/public', '')));
-  assert.match(homepage, /aria-label="Blanc’s Start Page with the time-of-day wallpaper/);
+  assert.doesNotMatch(homepage, /home-wallpaper-|time-of-day wallpaper/);
 });
 
 
@@ -1011,9 +1011,10 @@ test('Start Page captures are tied to public v1.38.0 and are all the homepage sh
   // Every Start Page capture on the homepage is one of these public captures.
   const homepage = read('site/src/pages/index.astro');
   const shown = [...homepage.matchAll(/\/feature-captures\/(?:home-wallpaper-|ledger-|billboard-|shelf-|tally-|\$\{name\.toLowerCase\(\)\}-)[^"`]*\.webp/g)].map(match => match[0]);
-  // The time-of-day stage (one literal, one template); the layouts card gave
-  // way to v1.51.0's one Start Page (docs/website-homepage-start-widgets-claims.json).
-  assert.ok(shown.length >= 2);
+  // None since the owner removed the time-of-day stage (November 23, 2026);
+  // the layouts card gave way to v1.51.0's one Start Page
+  // (docs/website-homepage-start-widgets-claims.json). Any that return must
+  // still be public v1.38.0 captures.
   const homeKnown = new Set([...manifest.wallpapers.map(item => item.displayAsset.file), ...manifest.captures.map(item => item.webp.file)].map(file => file.replace('site/public', '')));
   for (const file of shown) {
     assert.match(file, /-v1\.38\.0\.webp$/, `${file} is not a v1.38.0 capture`);
