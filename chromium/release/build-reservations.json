@@ -25,6 +25,14 @@
           "windows"
         ],
         "purpose": "release"
+      },
+      {
+        "build": 908,
+        "sourceCommit": "b82e4fab7bb0400932a047beff0eaab5ba34b36f",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "proof"
       }
     ]
   }
