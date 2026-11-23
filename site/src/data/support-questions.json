@@ -174,5 +174,124 @@
     "a": [
       "Bananify, an independent software studio. Source code, official releases and security reporting are linked from How Blanc works."
     ]
+  },
+  {
+    "id": "iphone-get",
+    "q": "How do I get Blanc for iPhone and iPad?",
+    "a": [
+      "Blanc for iPhone and iPad is free on the App Store. It needs iOS or iPadOS 18.4 or later.",
+      "Blanc for iPhone and iPad is available on Apple’s App Store, and as a beta through Apple’s TestFlight, where new builds arrive first."
+    ],
+    "links": [
+      {
+        "href": "/download#iphone",
+        "text": "Get the app or join the beta →"
+      }
+    ]
+  },
+  {
+    "id": "iphone-pair",
+    "q": "How do I pair my iPhone or iPad with Blanc on my computer?",
+    "a": [
+      "On your computer, open Blanc’s Settings → Sync → Connect your iPhone. Open Blanc on your iPhone or iPad, choose Pair with your Blanc in Settings → Sync, and point it at the code on your computer.",
+      "Pairing needs Blanc 1.45 or later on your computer."
+    ]
+  },
+  {
+    "id": "iphone-sync",
+    "q": "What comes over from my computer?",
+    "a": [
+      "Your Favorites and your other devices’ tabs come with you, under their groups, and you can open any of them on your iPhone or iPad.",
+      "Turn on Shared Spaces and the Spaces you choose stay the same on your computer and your iPhone or iPad: open, close or move a tab on one, and the other follows. It’s off until you turn it on.",
+      "You can also send the page you’re reading to another of your Blanc devices, and find pages sent to you waiting there. Sync is end-to-end encrypted: Blanc stores only data it can’t read."
+    ]
+  },
+  {
+    "id": "iphone-island",
+    "q": "How does the Island work on iPhone and iPad?",
+    "a": [
+      "The Island is only as wide as what’s in it: Back, the site’s icon and the site, and New Tab.",
+      "Tap the site and the Island grows into a panel just above the keyboard. It starts with the page’s address: tap it to edit, hold it to copy the link."
+    ]
+  },
+  {
+    "id": "iphone-private",
+    "q": "Does Blanc for iPhone and iPad have private tabs?",
+    "a": [
+      "Yes. In a private tab the Island turns dark, and Close Private Tab is first in the page menu."
+    ]
+  },
+  {
+    "id": "iphone-default",
+    "q": "Can I make Blanc my default browser on iPhone?",
+    "a": [
+      "Yes. Since Blanc for iPhone 1.0.1, you can make Blanc your default browser."
+    ]
+  },
+  {
+    "id": "iphone-ipad",
+    "q": "What does Blanc do on iPad?",
+    "a": [
+      "Since version 1.0.3, Blanc runs on iPad: full screen in every orientation, with Split View, Glance, windows of their own, and keyboard shortcuts like ⌘L and ⌘T."
+    ]
+  },
+  {
+    "id": "beta-what",
+    "q": "What is Blanc Beta?",
+    "a": [
+      "Blanc Beta is Blanc built directly on Chromium, for Mac, Windows and Linux. It installs beside Blanc and never replaces it."
+    ],
+    "links": [
+      {
+        "href": "/download#betas",
+        "text": "Download Blanc Beta →"
+      }
+    ]
+  },
+  {
+    "id": "beta-requirements",
+    "q": "Which computers can run Blanc Beta?",
+    "a": [
+      "On a Mac: Apple Silicon Macs with macOS 13 or later. Intel Macs aren’t supported yet.",
+      "On Windows: x64 PCs. It’s tested on Windows 11.",
+      "On Linux: Debian, Ubuntu and Fedora, on x64 and arm64. Use the .deb on Debian and Ubuntu, the .rpm on Fedora. Install and update checks ran on Ubuntu 24.04, Debian 12 and Fedora 45, on x64 and arm64. KDE and x64 desktops haven’t been checked by hand."
+    ]
+  },
+  {
+    "id": "beta-updates",
+    "q": "How does Blanc Beta update?",
+    "a": [
+      "On a Mac, beta updates come from blanc.day, signed with the beta’s own key, and the app menu has Check for Updates.",
+      "On Windows, Blanc Beta keeps itself up to date through Blanc’s own updater. Every update is signed with Blanc’s key and checked before it’s installed, and Settings → About Blanc Beta shows whether it’s up to date.",
+      "On Linux, installing the package adds Blanc’s own signed package repository. New betas are then offered with your system updates through apt or dnf."
+    ]
+  },
+  {
+    "id": "beta-data",
+    "q": "Does Blanc Beta change my regular Blanc?",
+    "a": [
+      "No. Blanc Beta has its own name and its own data folder. Your regular Blanc, its data and settings are left untouched, and beta updates never touch it."
+    ]
+  },
+  {
+    "id": "beta-not-yet",
+    "q": "What isn’t in Blanc Beta yet?",
+    "a": [
+      "Protected video, such as Netflix or Spotify, doesn’t play yet. Sync hasn’t been checked against the live Sync service, so don’t rely on it yet. On Windows, some Blanc features still behave differently.",
+      "Each release’s notes list what’s new and what’s still missing."
+    ],
+    "links": [
+      {
+        "href": "/changelog?product=beta",
+        "text": "Blanc Beta release notes →"
+      }
+    ]
+  },
+  {
+    "id": "beta-report",
+    "q": "How do I report a problem with Blanc Beta?",
+    "a": [
+      "Use Report a bug or Email Support below. Say that you’re using Blanc Beta, and include its version from Settings → About."
+    ]
   }
 ]

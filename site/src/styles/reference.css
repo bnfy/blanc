@@ -23,70 +23,6 @@
   letter-spacing: 0.09em;
   font-size: 11px;
 }
-.support-search {
-  max-width: 660px;
-  margin-bottom: 34px;
-}
-.support-search > label {
-  display: block;
-  font-size: 12px;
-  color: var(--dim);
-  margin-bottom: 10px;
-}
-.support-search > div {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px solid #cfc4b4;
-  border-radius: 10px;
-  padding: 13px 18px;
-  background: #fff;
-}
-.support-search svg {
-  width: 23px;
-  height: 23px;
-  flex: none;
-  color: var(--dim);
-}
-.support-search input {
-  font: 400 15px/1.5 var(--font-brand-text);
-  background: none;
-  min-width: 0;
-  width: 100%;
-  border: 0;
-  outline-offset: 8px;
-}
-.support-search button {
-  background: none;
-  border: 0;
-  padding: 4px;
-  cursor: pointer;
-  color: var(--gold);
-}
-.support-search > p {
-  min-height: 20px;
-  font-size: 12px;
-  margin-top: 8px;
-  color: var(--dim);
-}
-.support-shortcuts {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-  margin-bottom: 66px;
-}
-.support-shortcuts a {
-  border-top: 1px solid var(--line);
-  padding: 18px 0;
-  text-decoration: none;
-  font-size: 13px;
-  display: flex;
-  gap: 14px;
-  justify-content: space-between;
-}
-.support-shortcuts a:hover {
-  color: var(--gold);
-}
 .answer-group {
   margin: 54px 0;
 }
@@ -236,61 +172,6 @@
 .reference-contact a:hover {
   text-decoration: underline;
 }
-#contact {
-  max-width: none;
-  margin: 0 0 66px;
-  padding-top: 0;
-  border-top: 0;
-  scroll-margin-top: 74px;
-}
-.contact-groups {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 56px;
-  margin-top: 28px;
-}
-.contact-groups h3 {
-  margin: 0 0 8px;
-  font: 400 12px/1.4 var(--font-brand-text);
-  letter-spacing: 0.06em;
-  color: var(--gold);
-}
-.contact-groups ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border-bottom: 1px solid var(--line);
-}
-.reference-contact .contact-groups a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0;
-  padding: 15px 0;
-  border-top: 1px solid var(--line);
-  color: inherit;
-  font-size: 15px;
-}
-.contact-groups svg {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  color: var(--gold);
-}
-.contact-groups small {
-  margin-left: auto;
-  font-size: 12px;
-  color: var(--dim);
-}
-.reference-contact .contact-groups a:hover {
-  color: var(--gold);
-  text-decoration: none;
-}
-.search-empty {
-  padding: 28px 0;
-  font-size: 15px;
-  color: var(--dim);
-}
 [hidden] {
   display: none !important;
 }
@@ -299,10 +180,6 @@
   scroll-margin-top: 74px;
 }
 @media (max-width: 760px) {
-  .contact-groups {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 28px;
-  }
   .reference-page {
     padding: 55px 24px 66px;
   }
@@ -311,14 +188,6 @@
   }
   .reference-heading > p:last-child {
     font-size: 16px;
-  }
-  .support-shortcuts {
-    grid-template-columns: 1fr 1fr;
-    gap: 0 20px;
-    margin-bottom: 42px;
-  }
-  .support-shortcuts a {
-    font-size: 12px;
   }
   .answer-topic > summary {
     font-size: 15px;
