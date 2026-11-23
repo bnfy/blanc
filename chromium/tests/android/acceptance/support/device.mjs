@@ -147,8 +147,10 @@ export class Device {
     // (tests/android/walkthrough.mjs); here it is marked done, as for someone who finished it, which
     // relaunches Blanc.
     if (PACKAGE === 'me.bnfy.blanc') {
-      // Android writes the preferences file a moment after the first page shows.
-      await this.waitFor(() => adb('shell', 'ls', `/data/data/${PACKAGE}/shared_prefs/`).includes(`${PACKAGE}_preferences.xml`),
+      // Android writes the preferences file a moment after the first page shows. Wait for a whole
+      // file, not just its name: read mid-write it can still be empty.
+      const prefPath = `/data/data/${PACKAGE}/shared_prefs/${PACKAGE}_preferences.xml`;
+      await this.waitFor(() => { try { return /<\/map>|<map\s*\/>/.test(adb('shell', 'cat', prefPath)); } catch { return false; } },
         'Blanc to write its preferences', 20);
       await this.setPref(`<int name="${WALKTHROUGH_KEY}" value="2147483647" />`, WALKTHROUGH_KEY);
     }
