@@ -6,8 +6,8 @@
       "from": "156.0.8078.79",
       "to": "159.0.8154.18",
       "startedAt": "2026-11-23T10:00:53Z",
-      "finishedAt": null,
-      "hours": null,
+      "finishedAt": "2026-11-23T10:18:25Z",
+      "hours": 0.3,
       "patchesConflicted": [
         "patches/android/0104-android-island.patch",
         "patches/android/0110-android-settings.patch",
@@ -15,7 +15,7 @@
         "patches/android/0124-android-context-menu.patch",
         "patches/android/0125-android-autofill-platform.patch"
       ],
-      "notes": "First rebase (A7 drill), from chromium a21ce95c to ee456dcc. TabUndoBarController.java moved to chrome/browser/tab_ui/android (refresh exit 1; pin and 0104 renamed). Conflicts resolved with a three-way rebase of the patch commits: 0104 keeps upstream's new destroyInAppUpdate() and its TabLaunchType import, and drops the imports its undo-bar hunk leaves unused; 0110 keeps only its search guard (upstream removed the callback it used to replace); 0114 adds localeConfig beside upstream's literal zygotePreloadName; 0124 drops 159's new Ask Gemini rows with the rest and keeps upstream's KeyboardShortcuts import; 0125 keeps upstream's restart-dialog flag and profile flush. The server's gclient sync hit googlesource 429 rate limits and was retried."
+      "notes": "First rebase (A7 drill), from chromium a21ce95c to ee456dcc. TabUndoBarController.java moved to chrome/browser/tab_ui/android (refresh exit 1; pin and 0104 renamed). Conflicts resolved with a three-way rebase of the patch commits: 0104 keeps upstream's new destroyInAppUpdate() and its TabLaunchType import, and drops the imports its undo-bar hunk leaves unused; 0110 keeps only its search guard (upstream removed the callback it used to replace); 0114 adds localeConfig beside upstream's literal zygotePreloadName; 0124 drops 159's new Ask Gemini rows with the rest and keeps upstream's KeyboardShortcuts import; 0125 keeps upstream's restart-dialog flag and profile flush. The server's gclient sync hit googlesource 429 rate limits and was retried. The lane PR (#1711) merged before compiling; making it build took #1713 (patch 0126 restores 156's android_override_version_code/_name, removed upstream; the Island's cc/mojom dependency) and #1728 (Blanc API changes: TabStateFileManager, TabModel group merge, WindowOpenDisposition, DocumentService pass key, V8 Buffer() and Data(); debug APKs marked debuggable again; gates turn on an accessibility service because 159 builds a page's tree only for a real one), merged 17:10 UTC. The release x64 build first passed at 14:12 UTC; 1.0.0-beta.6 (6), the first build on 159, was uploaded to the closed test at 00:44 UTC on Nov 24 (about 14.7 hours after starting). Robolectric (blanc_android_junit_tests) does not link its resources on 159 yet; a follow-up."
     }
   ]
 }
