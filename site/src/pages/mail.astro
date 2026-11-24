@@ -33,14 +33,14 @@ const plan = {
 };
 const addressCheckout = checkoutHrefFor('mail-address-annual');
 ---
-<BaseLayout title="Blanc Mail — A little less inbox" description="A mail app for Mac, coming soon. Bring your Gmail or Proton Mail account, or add a Blanc address of your own. Planned at $4.99 a month or $49.99 a year." path="/mail" header="solid">
+<BaseLayout title="Blanc Mail — A little less inbox" description="A mail app for Mac, coming soon. Bring your Gmail account, or add a Blanc address of your own. Planned at $4.99 a month or $49.99 a year." path="/mail" header="solid">
   <MailBar />
   <main id="main-content" class="mail-overview">
     <section class="offer-hero" aria-labelledby="offer-title">
       <div class="offer-opening">
         <p class="mail-eyebrow">Blanc Mail · for Mac · Coming soon</p>
         <h1 id="offer-title"><span class="mail-gold-text">A little less inbox.</span></h1>
-        <p class="offer-intro">A mail app for Mac. Bring your Gmail or Proton Mail account, or add a Blanc address of your own.</p>
+        <p class="offer-intro">A mail app for Mac. Bring your Gmail account, or add a Blanc address of your own.</p>
         <div class="envelope-stage" aria-hidden="true">
           <!-- The Mail icon as an object: a gold envelope, its flap and folds
                engraved, the Sunrise stamped where the flap meets. Decorative. -->
@@ -60,7 +60,7 @@ const addressCheckout = checkoutHrefFor('mail-address-annual');
       <div class="offer-paths">
         <div class="offer-path">
           <h2>Keep your email address</h2>
-          <p>Connect Gmail directly, or use your Proton Mail account through Proton Mail Bridge on your Mac.</p>
+          <p>Connect your Gmail account directly with Google Sign-In.</p>
           <details class="offer-signup">
             <summary class="offer-action">Join the app waitlist</summary>
             <MailWaitlistForm />

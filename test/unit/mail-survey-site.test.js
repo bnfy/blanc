@@ -111,17 +111,21 @@ test('the privacy page describes the survey contract', () => {
   assert.match(privacy, /<li>[^<]*Blanc Mail survey[^<]*deleted when that decision is made[^<]*<\/li>/);
 });
 
-// Keep provider compatibility explicit in the launch copy and its claims record.
-const PROTON_LINES = [
-  'A mail app for Mac. Bring your Gmail or Proton Mail account, or add a Blanc address of your own.',
-  'Connect Gmail directly, or use your Proton Mail account through Proton Mail Bridge on your Mac.',
+// The launch copy names only Gmail: Proton is in owner-only Mail builds, never a
+// customer build (November 24, 2026 record).
+const PROVIDER_LINES = [
+  'A mail app for Mac. Bring your Gmail account, or add a Blanc address of your own.',
+  'Connect your Gmail account directly with Google Sign-In.',
 ];
 const SURVEY_LINK = 'Help shape Blanc Mail: tell us what you’d want, anonymously.';
 const WAITLIST_INVITE = 'While you’re here, you can tell us what you’d want in Blanc Mail.';
 
-test('the Mail page names both providers and links the open survey', () => {
+test('the Mail pages name Gmail, not Proton, and the Mail page links the open survey', () => {
   const mail = read('site/src/pages/mail.astro');
-  for (const line of PROTON_LINES) assert.ok(mail.includes(line), line);
+  for (const line of PROVIDER_LINES) assert.ok(mail.includes(line), line);
+  for (const file of ['site/src/pages/mail.astro', 'site/src/pages/mail/reserve.astro', 'site/src/components/MailAppFeatures.astro', 'site/src/data/mail-questions.mjs']) {
+    assert.doesNotMatch(read(file), /Proton/, file);
+  }
   assert.doesNotMatch(mail, /Gmail first'|Gmail-first native app|native Gmail client|native Gmail experience/);
   assert.match(mail, /import survey from '..\/data\/mail-survey\.json'/);
   assert.match(mail, /survey\.open && [\s\S]{0,200}href="\/mail\/survey"/);
@@ -139,8 +143,8 @@ test('joining the waitlist offers the survey without tracking', () => {
 
 test('every new Mail page sentence has a ledger row', () => {
   // Lines reworded later are recorded in the later ledger.
-  const ledger = read('docs/website-mail-claims-2026-11-12.md') + read('docs/website-mail-claims-2026-11-17.md') + read('docs/website-mail-offers-2026-11-20.md');
-  for (const line of [...PROTON_LINES, SURVEY_LINK, WAITLIST_INVITE]) assert.ok(ledger.includes(line), line);
+  const ledger = read('docs/website-mail-claims-2026-11-12.md') + read('docs/website-mail-claims-2026-11-17.md') + read('docs/website-mail-offers-2026-11-20.md') + read('docs/website-mail-no-proton-2026-11-24.md');
+  for (const line of [...PROVIDER_LINES, SURVEY_LINK, WAITLIST_INVITE]) assert.ok(ledger.includes(line), line);
   assert.ok(ledger.includes('What would you want?'));
   assert.ok(ledger.includes('This survey has closed. Thank you to everyone who answered.'));
 });
