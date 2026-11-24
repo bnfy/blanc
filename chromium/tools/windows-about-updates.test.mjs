@@ -38,7 +38,7 @@ test('on the Windows beta, Chromium\'s update status shows and a button checks a
   assert.match(html, /\?hidden="\$\{!this\.windowsUpdater_ \|\| !this\.shouldShowIcons_\(\)\}"/, 'the status icon');
   assert.match(html, /\?hidden="\$\{!this\.windowsUpdater_ \|\| !this\.showUpdateStatus_\}"/, 'the status message');
   assert.match(html, /id="blancWindowsCheck"[\s\S]*@click="\$\{this\.onBlancWindowsCheckClick_\}"[\s\S]*Check for Updates…/);
-  assert.doesNotMatch(html, /support\.google\.com/, 'no new link to Google\'s help');
+  assert.ok(!html.includes('support.google.com'), 'no new link to Google\'s help');
   const ts = added('chrome/browser/resources/settings/about_page/about_page.ts');
   assert.match(ts, /windowsUpdater_ = loadTimeData\.getBoolean\('blancWindowsUpdater'\)/);
   assert.match(ts, /onBlancWindowsCheckClick_\(\)[\s\S]*this\.aboutBrowserProxy_\.refreshUpdateStatus\(\)/);

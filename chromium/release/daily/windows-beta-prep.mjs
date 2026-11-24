@@ -60,8 +60,13 @@ export function prepareRelease({io, records, ledger, nights = NIGHTS, draft = CA
   // folder holds it, this file does, so a lost take or an interrupted prep can be undone.
   const owner = newOwner();
   const recovery = path.join(records, PREP_HOLD);
-  if (fs.existsSync(recovery)) stop(`an earlier prep left a hold owner in ${recovery}; release that hold (draft-hold.mjs release) and remove the file first`);
-  fs.writeFileSync(recovery, JSON.stringify({owner, draft, at: new Date().toISOString()}) + '\n', {mode: 0o600, flag: 'wx'});
+  // 'wx' refuses an existing file, so the check and the write are one step.
+  try {
+    fs.writeFileSync(recovery, JSON.stringify({owner, draft, at: new Date().toISOString()}) + '\n', {mode: 0o600, flag: 'wx'});
+  } catch (error) {
+    if (error.code === 'EEXIST') stop(`an earlier prep left a hold owner in ${recovery}; release that hold (draft-hold.mjs release) and remove the file first`);
+    throw error;
+  }
   let apiUrl;
   try { ({apiUrl} = acquireHold(io, 'release', 'Windows beta release prep', draft, owner)); } catch {
     let undone = false;

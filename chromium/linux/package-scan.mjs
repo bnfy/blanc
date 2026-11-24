@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {gunzipSync} from 'node:zlib';
+import {pipeSync} from './pipe.mjs';
 
 const forbiddenText = ['dl.google.com', 'google.com/linux', '/opt/chromium.org', '/opt/google', 'chromium-browser'];
 const forbiddenNames = new Set(['chromium', 'chromium-browser', 'chromium-browser.desktop', 'google-chrome',
@@ -86,11 +87,27 @@ function inspectText(text, label, fingerprint, home, findings) {
   }
 }
 
+// The whole file, read through the descriptor that read its header, so the
+// header and the bytes inspected are the same file.
+function readWhole(fd) {
+  const bytes = Buffer.alloc(fs.fstatSync(fd).size);
+  let offset = 0;
+  while (offset < bytes.length) {
+    const read = fs.readSync(fd, bytes, offset, bytes.length - offset, offset);
+    if (!read) break;
+    offset += read;
+  }
+  return bytes.subarray(0, offset);
+}
+
 function scanFile(file, name, fingerprint, home, findings) {
-  const header = Buffer.alloc(4096);
   const fd = fs.openSync(file, 'r');
-  let count;
-  try { count = fs.readSync(fd, header); } finally { fs.closeSync(fd); }
+  try { scanOpenFile(fd, name, fingerprint, home, findings); } finally { fs.closeSync(fd); }
+}
+
+function scanOpenFile(fd, name, fingerprint, home, findings) {
+  const header = Buffer.alloc(4096);
+  const count = fs.readSync(fd, header, 0, header.length, 0);
   if (!count) return;
   const prefix = header.subarray(0, count);
   // OpenPGP old/new packet headers: public/secret primary key. The packet
@@ -102,14 +119,14 @@ function scanFile(file, name, fingerprint, home, findings) {
     : [2, 3, 5, 1][first & 3];
   if (((first & 0x80) && (tag === 5 || tag === 6) && [3, 4, 5, 6].includes(prefix[body])) ||
       prefix.subarray(8, 12).equals(Buffer.from('KBXf'))) {
-    inspectKey(fs.readFileSync(file), name, fingerprint, home, findings);
+    inspectKey(readWhole(fd), name, fingerprint, home, findings);
     return;
   }
   if (prefix[0] === 0x1f && prefix[1] === 0x8b && /\.gz$/.test(name)) {
-    const plain = gunzipSync(fs.readFileSync(file));
+    const plain = gunzipSync(readWhole(fd));
     if (!plain.subarray(0, 4096).includes(0)) inspectText(plain.toString(), name, fingerprint, home, findings);
   } else if (!prefix.includes(0)) {
-    inspectText(fs.readFileSync(file, 'utf8'), name, fingerprint, home, findings);
+    inspectText(readWhole(fd).toString('utf8'), name, fingerprint, home, findings);
   }
 }
 
@@ -129,7 +146,7 @@ export function scanPackage(packagePath, {fingerprint, noticesDir = path.resolve
     } else if (pkg.endsWith('.rpm')) {
       const scripts = run('rpm', ['-qp', '--scripts', '--triggers', '--filetriggers', pkg]);
       inspectText(scripts, 'RPM scriptlets and triggers', fingerprint, home, findings);
-      run('bash', ['-o', 'pipefail', '-c', 'rpm2cpio "$1" | cpio --quiet -id --no-absolute-filenames', 'scan-rpm', pkg], {cwd: root});
+      pipeSync(['rpm2cpio', [pkg]], ['cpio', ['--quiet', '-id', '--no-absolute-filenames']], {cwd: root});
     } else {
       throw new Error('Expected a .deb or .rpm package');
     }
