@@ -205,10 +205,12 @@ const heroShot = {
       envelope.style.removeProperty('--my');
     };
     // Off screen, the envelope needs no light: skip the work and let it rest.
+    // The first time a third of it is in view, the light sweeps across it once.
     new IntersectionObserver(([entry]) => {
       inView = entry.isIntersecting;
       if (!inView) settle();
-    }).observe(envelope);
+      else if (entry.intersectionRatio >= 0.33) envelope.dataset.lit = '';
+    }, { threshold: [0, 0.33] }).observe(envelope);
     document.addEventListener('pointermove', (event) => {
       if (still.matches || !inView || event.pointerType !== 'mouse') return;
       cancelAnimationFrame(frame);

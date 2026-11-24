@@ -287,7 +287,10 @@
 .mail-hallmark .mail-hallmark-lip{background:#fff2c4b3;transform:translateY(1.5px)}
 .mail-hallmark .mail-hallmark-cut{background:linear-gradient(180deg,#2e1f07,#6a4c19)}
 @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
-  .mail-envelope-face::after { animation: mail-envelope-sweep 2600ms cubic-bezier(.45,.05,.2,1) 500ms both; }
+  /* The sweep waits until the envelope is first in view (data-lit, set by
+     mail.astro's script): it closes the page now, so on load it would play
+     unseen. */
+  .mail-envelope[data-lit] .mail-envelope-face::after { animation: mail-envelope-sweep 2600ms cubic-bezier(.45,.05,.2,1) 250ms both; }
 }
 @keyframes mail-envelope-sweep { from { background-position: -80% 0; } to { background-position: 230% 0; } }
 @media (prefers-reduced-motion: reduce), (pointer: coarse) {
