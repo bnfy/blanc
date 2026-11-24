@@ -147,8 +147,8 @@ try {
   await call(app, 'destroyUtilitySheetContents');
   await press('settings', ',', ['control'], 'chrome');
   await sheetReady();
-  await press('history', 'Y', ['control'], 'sheet');
-  await wait(() => call(app, 'utilitySurface'), value => value.ready && value.url.startsWith('blanc://history/'), 'History alias');
+  await press('history', 'H', ['control'], 'sheet');
+  await wait(() => call(app, 'utilitySurface'), value => value.ready && value.url.startsWith('blanc://history/'), 'History from Settings');
   await press('downloads', 'J', ['control', 'shift'], 'sheet');
   await wait(() => call(app, 'utilitySurface'), value => value.ready && value.url.startsWith('blanc://downloads/'), 'Downloads alias');
   await call(app, 'closeUtilitySurface');

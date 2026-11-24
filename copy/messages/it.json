@@ -9573,6 +9573,10 @@
     "message": "Interrompi il caricamento",
     "source": "sha256:7afd60900cf4554c372a6974840bee623d3a7ad10fa18559cd951051493b6ba8"
   },
+  "ios.island.closePrivateTab": {
+    "message": "Chiudi scheda privata",
+    "source": "sha256:70725014f209df31a338d0133337aa4c726cd266766537da8e08786bfad6b054"
+  },
   "ios.island.pageActions": {
     "message": "Azioni della pagina",
     "source": "sha256:0b926606bca19deecf9e0d633786f8643b649905978b53d66a1453980a9215f7"
@@ -9582,8 +9586,8 @@
     "source": "sha256:ab5674348d6cbc0f0e6397f7be9b29a93ebebdff3030e6407f5bb74b573a381b"
   },
   "ios.palette.placeholder": {
-    "message": "Cerca, inserisci un indirizzo o un /comando",
-    "source": "sha256:e0ba598be2d25b91629b28568d437a2bf5cfc137f9adda1e32015dc3c6ad766c"
+    "message": "Cerca, inserisci un URL o / per i comandi",
+    "source": "sha256:fc9b9cf5467ef76a900cd05905a523e7bf5f9a05bd0814e586f19c0ba9ee00fe"
   },
   "ios.palette.clear": {
     "message": "Cancella la ricerca",
@@ -9865,6 +9869,30 @@
     "note": "Android Settings → Island position: the Island sits at the bottom of the screen.",
     "source": "sha256:206e35c0a394e6a73d39040dd0cab63b48af03b1d6d0ed533d44b3af8f709528"
   },
+  "android.settings.autofill.title": {
+    "message": "Compila le password",
+    "source": "sha256:de81fec134e9003c5f6758bbe9d1bc03eeeb2610a8ca0f960a732333a07669a6"
+  },
+  "android.settings.autofill.summary": {
+    "message": "Il gestore di password che scegli in Android, come Bitwarden, Proton Pass o 1Password, può inserire le password in Blanc e compilare gli altri moduli che supporta. Il Gestore delle password di Google non compila i moduli in Blanc.",
+    "source": "sha256:d9659b94ad570ed82c70aa4f3b974a638554d68de10687b1d6cc5f4508ee848c"
+  },
+  "android.settings.autofill.managed": {
+    "message": "La tua organizzazione gestisce questa impostazione.",
+    "source": "sha256:ffe729844b53b712b64b7ef0e0f62111204900169bb47a35e59f4ad1096b984f"
+  },
+  "android.settings.autofill.choose": {
+    "message": "Scegli il gestore di password",
+    "source": "sha256:4100ca7b229cbe8a2a16c61a7e89731170f4d1dfcf50c60ca456d5b86c1a83f1"
+  },
+  "android.settings.autofill.chooseSummary": {
+    "message": "La modifica avrà effetto al prossimo avvio di Blanc.",
+    "source": "sha256:1a6b58d50536e2a456f657a610b8561561e22cac67a35571f1b79836220cb686"
+  },
+  "android.settings.autofill.restart": {
+    "message": "Riavvia Blanc per applicare la modifica",
+    "source": "sha256:5543fb10333442eec51936d21b7267bf0bdfc0adb2d90850f19e2727ac77d16a"
+  },
   "android.settings.openSourceLicenses": {
     "message": "Licenze open source",
     "note": "Android Settings → About: row opening the list of open-source licenses.",
@@ -10046,5 +10074,13 @@
   "start.mahjong.play": {
     "message": "Gioca a Blanc Mahjong",
     "source": "sha256:9b62eba2e07c169ab3ee5415185da568ca0fd436fd6cc8730fe661830c6ed9d7"
+  },
+  "android.contextMenu.privateTab": {
+    "message": "Apri in una scheda privata",
+    "source": "sha256:48a5da257ddfeccb9a6f1d16e4effa493a14e3210f8fe55b689455aebdafa78b"
+  },
+  "android.contextMenu.newBlancTab": {
+    "message": "Apri in una nuova scheda di Blanc",
+    "source": "sha256:bae530101e3c873c6fd7a7af7cbbcca3fdf632b1fec7677da23d3937a37aaba0"
   }
 }

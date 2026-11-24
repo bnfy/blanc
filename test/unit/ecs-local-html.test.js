@@ -134,6 +134,16 @@ test('a file that grows while it is read is refused as changed', async () => fix
 }));
 
 // Review of #1630: every extension Blanc registers for must open.
+// Review of #1630 on Linux: a FIFO named *.html handed over on the command
+// line must be refused at once, not hold a libuv thread waiting for a writer.
+test('a FIFO named like an HTML file is refused without waiting for a writer', { skip: process.platform === 'win32' }, async () => fixture(async ({ dir }) => {
+  const fifo = path.join(dir, 'pipe.html');
+  require('node:child_process').execFileSync('mkfifo', [fifo]);
+  const timeout = new Promise((_, reject) => { const t = setTimeout(() => reject(new Error('blocked on the FIFO')), 2000); t.unref(); });
+  await assert.rejects(Promise.race([snapshotLocalHtml(fifo), timeout]),
+    error => error.localHtmlRefusal === 'unreadable');
+}));
+
 test('preview accepts every HTML extension Blanc registers for', async () => fixture(async ({ dir }) => {
   for (const ext of HTML_EXTENSIONS) {
     const file = path.join(dir, `page${ext.toUpperCase()}`);

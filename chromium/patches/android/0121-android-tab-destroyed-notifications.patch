@@ -1,7 +1,7 @@
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tab/TabWebContentsObserver.java b/chrome/android/java/src/org/chromium/chrome/browser/tab/TabWebContentsObserver.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/tab/TabWebContentsObserver.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/tab/TabWebContentsObserver.java
-@@ -429,29 +429,32 @@
+@@ -434,29 +434,32 @@
          }
  
          void updateNotificationsForTab() {

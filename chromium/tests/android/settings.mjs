@@ -16,13 +16,16 @@ import {execFileSync} from 'node:child_process';
 const PACKAGE = 'me.bnfy.blanc.dev';
 const SETTINGS = `${PACKAGE}/org.chromium.chrome.browser.settings.SettingsActivity`;
 // In order, top to bottom, down the root.
-const ROWS = ['Blanc', 'Browsing', 'Search engine', 'Default browser', 'Appearance', 'Theme', 'Island position',
+const ROWS = ['Blanc', 'Browsing', 'Search engine', 'Default browser',
+  'Autofill passwords', 'Choose password manager', 'Appearance', 'Theme', 'Island position',
   'Privacy', 'Blanc Blocker', 'Allowed sites', 'Clear cookies, cache & site data', 'Measure usage', 'Sync', 'More',
   'Site settings', 'Notifications', 'Downloads', 'Language', 'About', 'Version', 'Website', 'Privacy policy', 'Support',
   'Open-source licenses', 'Show the welcome again'];
 const BANNED = [/\bChrome\b/, /\bGoogle\b/, /Sign in/, /Safety/, /Homepage/];
 // DuckDuckGo, Google, Bing, Brave Search and Kagi are engine names, not Google wording.
 const ENGINE_NAMES = /^(Google|DuckDuckGo|Bing|Brave Search|Kagi)$/;
+const AUTOFILL_SUMMARY = 'Lets the password manager you choose in Android, like Bitwarden, Proton Pass or 1Password, '
+  + "fill passwords in Blanc, and other forms where it supports them. Google Password Manager doesn't fill in Blanc.";
 
 const bounds = (xml, text) => {
   const escaped = text.replace(/&/g, '&amp;').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -95,7 +98,9 @@ function main(argv) {
   adb('logcat', '-b', 'crash', '-c');
   adb('root');
   adb('shell', 'cmd', 'uimode', 'night', 'no');
-  open();
+  adb('shell', 'am', 'start', '-a', 'android.intent.action.APPLICATION_PREFERENCES',
+    '-c', 'android.intent.category.APP_BROWSER', '-c', 'android.intent.category.PREFERENCE', '-p', PACKAGE);
+  sleep(4);
   shot('root-top');
 
   // The root: every row in order, nothing from Chrome's Google side.
@@ -108,8 +113,11 @@ function main(argv) {
     scroll(true);
   }
   shot('root-bottom');
+  check("Android's app preferences link shows Blanc's autofill switch and summary",
+    seen.includes('Autofill passwords') && everything.includes(AUTOFILL_SUMMARY) ? [] : ['missing autofill switch or summary']);
   check('the root lists Blanc\'s rows in order', JSON.stringify(seen) === JSON.stringify(ROWS) ? [] : [`saw ${JSON.stringify(seen)}`]);
-  check('no Chrome or Google wording on the root', everything.filter(t => BANNED.some(b => b.test(t)) && !ENGINE_NAMES.test(t))
+  check('no unexpected Chrome or Google wording on the root', everything.filter(t =>
+    BANNED.some(b => b.test(t)) && !ENGINE_NAMES.test(t) && t !== AUTOFILL_SUMMARY)
     .map(t => `"${t}"`));
 
   check('Settings has no search box (it would find the Chromium pages Blanc hides)', everything.includes('Search settings') ? ['"Search settings" is on screen'] : []);

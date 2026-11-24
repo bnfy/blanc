@@ -4132,6 +4132,8 @@ Open: DEP-11 metadata before the 158.0.8127.37 update; the 158.0.8127.37 Linux b
 build server moves to .37; the ship note to the release-notes list (owner).
 
 ## Android
+Betas and stable on Play, once production exists: `docs/android/channels.md` (nightly, weekly beta, four-weekly stable, security releases).
+
 Plan: `docs/superpowers/plans/2026-11-03-android-port.md` (design and plan in
 [PR #1333](https://github.com/bnfy/blanc/pull/1333)). Milestones: **A0
 Foundation**, 5 of 6 exit gates passed on the emulator, and **A1 Island and
@@ -4139,7 +4141,9 @@ pages**, **A2 Tabs, groups, palette and tab grid** and **A3 Blocking**, every
 emulator gate passed (below); the Pixel runs wait for the device. **A4 Sync** is in three PRs; A4a (the runner, keys, pairing and Profile Sync) is below. Owner approved the download and cold builds on 2026-11-03.
 
 - **Lane:** Chrome stable for Android 156.0.8078.79, chromium
-  `a21ce95c24ce3964416f09ae1862f53f319eb4d0` (chromiumdash, 2026-11-03).
+  `a21ce95c24ce3964416f09ae1862f53f319eb4d0` (chromiumdash, 2026-11-03). Rebased to
+  159.0.8154.18, chromium `ee456dcc432646f3d9941126a2c0730fa223e098`, on 2026-11-23
+  (`chromium/android/rebase-ledger.json`).
   Patches: `patches/android/0101` (identity, icon) and `0102` (Google
   background services and first run off). No shared patches at A0: they wire
   desktop Blanc into `chrome/browser`, which Android also compiles.

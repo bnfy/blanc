@@ -16,7 +16,8 @@
 #include "components/password_manager/core/common/password_manager_features.h"
 #include "components/password_manager/services/csv_password/csv_password_parser_impl.h"
 #include "components/password_manager/services/csv_password/public/mojom/csv_password_parser.mojom.h"
-#include "components/private_ai/oak_session_service/oak_session_service.h"  // nogncheck
+#include "components/private_ai/oak_session_service/oak_session_service.h"
+#include "components/private_ai/oak_session_service/oak_tls_session_service.h"
 #include "components/safe_browsing/buildflags.h"
 #include "components/services/patch/file_patcher_impl.h"
 #include "components/services/patch/public/mojom/file_patcher.mojom.h"
@@ -39,23 +40,26 @@
 #endif  // BUILDFLAG(IS_ANDROID)
 
 #if BUILDFLAG(IS_WIN)
+#include "base/win/win_util.h"
 #include "chrome/services/system_signals/win/win_system_signals_service.h"
 #include "chrome/services/util_win/processor_metrics.h"
+#include "chrome/services/util_win/public/mojom/uia_element_probe.mojom.h"
 #include "chrome/services/util_win/public/mojom/util_read_icon.mojom.h"
 #include "chrome/services/util_win/public/mojom/util_win.mojom.h"
+#include "chrome/services/util_win/uia_element_probe_impl.h"
 #include "chrome/services/util_win/util_read_icon.h"
 #include "chrome/services/util_win/util_win_impl.h"
 #include "components/device_signals/core/common/mojom/system_signals.mojom.h"  // nogncheck
 #include "components/services/quarantine/public/mojom/quarantine.mojom.h"  // nogncheck
 #include "components/services/quarantine/quarantine_impl.h"  // nogncheck
-#include "services/proxy_resolver/public/mojom/proxy_resolver.mojom.h"
+#include "services/proxy_resolver/public/mojom/system_proxy_resolver.mojom.h"
 #include "services/proxy_resolver_win/windows_system_proxy_resolver_impl.h"
 #endif  // BUILDFLAG(IS_WIN)
 
 #if BUILDFLAG(IS_MAC)
 #include "chrome/services/mac_notifications/mac_notification_provider_impl.h"
 #include "chrome/services/system_signals/mac/mac_system_signals_service.h"
-#include "services/proxy_resolver/public/mojom/proxy_resolver.mojom.h"
+#include "services/proxy_resolver/public/mojom/system_proxy_resolver.mojom.h"
 #include "services/proxy_resolver_mac/mac_system_proxy_resolver_impl.h"
 #endif  // BUILDFLAG(IS_MAC)
 
@@ -203,6 +207,12 @@ auto RunWindowsIconReader(
   return std::make_unique<UtilReadIcon>(std::move(receiver));
 }
 
+auto RunUiaElementProbe(
+    mojo::PendingReceiver<chrome::mojom::UiaElementProbe> receiver) {
+  base::win::EnableHighDPISupport();
+  return std::make_unique<UiaElementProbeImpl>(std::move(receiver));
+}
+
 auto RunWindowsSystemProxyResolver(
     mojo::PendingReceiver<proxy_resolver::mojom::SystemProxyResolver>
         receiver) {
@@ -247,6 +257,12 @@ auto RunSystemSignalsService(
 auto RunOakSessionService(
     mojo::PendingReceiver<private_ai::mojom::OakSession> receiver) {
   return std::make_unique<private_ai::OakSessionService>(std::move(receiver));
+}
+
+auto RunOakTlsSessionService(
+    mojo::PendingReceiver<private_ai::mojom::OakTlsSession> receiver) {
+  return std::make_unique<private_ai::OakTlsSessionService>(
+      std::move(receiver));
 }
 
 #if !BUILDFLAG(IS_ANDROID)
@@ -503,6 +519,7 @@ void RegisterMainThreadServices(mojo::ServiceFactory& services) {
   services.Add(ContentBookmarkParser);
   services.Add(RunPassageEmbeddingsService);
   services.Add(RunOakSessionService);
+  services.Add(RunOakTlsSessionService);
 
 #if BUILDFLAG(IS_ANDROID)
   services.Add(RunReadAloudPlaybackControllerFactory);
@@ -528,6 +545,7 @@ void RegisterMainThreadServices(mojo::ServiceFactory& services) {
   services.Add(RunQuarantineService);
   services.Add(RunWindowsUtility);
   services.Add(RunWindowsIconReader);
+  services.Add(RunUiaElementProbe);
 #endif  // BUILDFLAG(IS_WIN)
 
 #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX)

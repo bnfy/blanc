@@ -24,3 +24,6 @@ if grep -rqs 'azure\.archive\.ubuntu\.com' /etc/apt/apt-mirrors.txt /etc/apt/sou
   exit 1
 fi
 echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/80-blanc-retries >/dev/null
+# IPv4 only: on November 23, 2026 runners got kernel.org's IPv6 address and
+# no IPv6 route ("Network is unreachable"), and apt gave up on every package.
+echo 'Acquire::ForceIPv4 "true";' | sudo tee /etc/apt/apt.conf.d/80-blanc-ipv4 >/dev/null

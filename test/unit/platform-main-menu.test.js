@@ -191,10 +191,11 @@ test('Downloads and Settings live in File rather than View', () => {
 
 test('Tabs exposes the last-active-tab chord only on macOS', () => {
   const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
-  assert.match(
-    main,
-    /const LAST_ACTIVE_TAB_ACCELERATOR = process\.platform === 'darwin'\s*\? 'Cmd\+Alt\+Z'\s*: null;/
-  );
+  const { menuAccelerator } = require('../../src/main/menu-accelerators');
+  assert.equal(menuAccelerator('switch-last-active-tab', 'darwin'), 'Cmd+Alt+Z');
+  assert.equal(menuAccelerator('switch-last-active-tab', 'win32'), null);
+  assert.equal(menuAccelerator('switch-last-active-tab', 'linux'), null);
+  assert.match(main, /const LAST_ACTIVE_TAB_ACCELERATOR = menuAccelerator\('switch-last-active-tab'\);/);
   assert.match(
     main,
     /id: 'switch-last-active-tab',[\s\S]*?label: t\('menu\.switchLastTab'\),[\s\S]*?LAST_ACTIVE_TAB_ACCELERATOR[\s\S]*?enabled: !!lastActiveTabId\(runtime\),[\s\S]*?click: bound\(switchToLastActiveTab\)/
@@ -204,10 +205,11 @@ test('Tabs exposes the last-active-tab chord only on macOS', () => {
 
 test('Edit exposes the copy-clean-link chord only on macOS', () => {
   const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
-  assert.match(
-    main,
-    /const COPY_CLEAN_LINK_ACCELERATOR = process\.platform === 'darwin'\s*\? 'Cmd\+Alt\+Shift\+C'\s*: null;/
-  );
+  const { menuAccelerator } = require('../../src/main/menu-accelerators');
+  assert.equal(menuAccelerator('copy-clean-link', 'darwin'), 'Cmd+Alt+Shift+C');
+  assert.equal(menuAccelerator('copy-clean-link', 'win32'), null);
+  assert.equal(menuAccelerator('copy-clean-link', 'linux'), null);
+  assert.match(main, /const COPY_CLEAN_LINK_ACCELERATOR = menuAccelerator\('copy-clean-link'\);/);
   assert.match(
     main,
     /command\('copy-link'\),\s*\{\s*id: 'copy-clean-link',[\s\S]*?label: mn\(t\('menu\.copyCleanLink'\)\),[\s\S]*?COPY_CLEAN_LINK_ACCELERATOR[\s\S]*?copyCleanBrowserCommandLink\(target\)/

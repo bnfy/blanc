@@ -51,6 +51,31 @@ const search = async (page, text) => {
   await page.waitForFunction((q) => document.querySelector('[data-view]')?.dataset.query === q, text);
 };
 
+// Waits for the list to show exactly this many rows, then checks again after
+// the search box's 120 ms delay so a late reset straight afterwards fails too.
+// When the count never arrives, the failure says what the page thought: its
+// own count line, the query and view it last rendered, and whether Show more
+// was still offered (a bare count told us nothing when this test failed once
+// in CI, run 45213296585 on #1731).
+const rowCount = (page) => page.locator('#bangs-rows li:not([hidden])').count();
+const expectRows = async (page, count) => {
+  try {
+    await page.waitForFunction((n) => document.querySelectorAll('#bangs-rows li:not([hidden])').length === n, count, { timeout: 5000 });
+  } catch (error) {
+    if (error.name !== 'TimeoutError') throw error;
+    const state = await page.evaluate(() => ({
+      rows: document.querySelectorAll('#bangs-rows li:not([hidden])').length,
+      showing: document.getElementById('bangs-showing')?.textContent.trim(),
+      query: document.querySelector('[data-view]')?.dataset.query,
+      view: document.querySelector('[data-view]')?.dataset.view,
+      moreHidden: document.getElementById('bangs-more')?.hidden,
+    }));
+    assert.fail(`expected ${count} visible rows; the page has ${JSON.stringify(state)}`);
+  }
+  await page.waitForTimeout(150);
+  assert.equal(await rowCount(page), count, `the list changed straight after reaching ${count} rows`);
+};
+
 test('the page leads with its headline, search and the popular bangs', async () => {
   const { context, page } = await open();
   try {
@@ -163,13 +188,14 @@ test('clearing the search brings the cards back and resets the list', async () =
   const { context, page } = await open();
   try {
     await search(page, 'a');
+    await expectRows(page, 50);
     await page.locator('#bangs-more').click();
-    assert.equal(await visibleRows(page).count(), 100);
+    await expectRows(page, 100);
     await search(page, '');
     assert.equal(await page.locator('#bangs-cards').isVisible(), true);
     assert.equal(await page.locator('#bangs-list').isVisible(), false);
     await search(page, 'a');
-    assert.equal(await visibleRows(page).count(), 50);
+    await expectRows(page, 50);
   } finally { await context.close(); }
 });
 

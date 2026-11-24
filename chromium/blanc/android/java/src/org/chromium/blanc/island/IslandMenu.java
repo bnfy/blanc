@@ -17,6 +17,8 @@ import java.util.Objects;
 @NullMarked
 public final class IslandMenu {
     public enum Kind {
+        /** First on a private tab, now that the Island has no Private chip (#1682). */
+        CLOSE_PRIVATE_TAB,
         CUSTOMIZE_START_PAGE,
         BLOCKING,
         BLOCKING_SETTINGS,
@@ -33,6 +35,8 @@ public final class IslandMenu {
         PAGE_ZOOM,
         /** Request Desktop Website, or Request Mobile Website once it was asked for (#1445). */
         DESKTOP_SITE,
+        /** While a page loads, since Stop holds New tab's place on the Island (#1682). */
+        NEW_TAB,
         NEW_PRIVATE_TAB,
         /** Blanc's Settings, always last (#1463). */
         SETTINGS
@@ -112,6 +116,7 @@ public final class IslandMenu {
 
     public static List<Item> items(Context c) {
         List<Item> items = new ArrayList<>();
+        if (c.privateTab) items.add(Item.of(Kind.CLOSE_PRIVATE_TAB));
         if (c.startPage) items.add(Item.of(Kind.CUSTOMIZE_START_PAGE));
         // Wherever it's asked: a page the blocker stopped never commits, so the tab isn't on a web page.
         if (c.blockingUnavailable) items.add(Item.of(Kind.BLOCKING_UNAVAILABLE));
@@ -128,6 +133,7 @@ public final class IslandMenu {
             items.add(Item.of(Kind.PAGE_ZOOM));
             items.add(Item.desktopSite(c.desktopSite));
         }
+        if (c.loading) items.add(Item.of(Kind.NEW_TAB));
         items.add(Item.of(Kind.NEW_PRIVATE_TAB));
         items.add(Item.of(Kind.SETTINGS));
         return items;

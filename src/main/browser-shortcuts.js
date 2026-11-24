@@ -16,7 +16,9 @@ const COMMANDS = Object.freeze({
   // Chrome does, and go back and forward with Alt+Left/Right.
   back: { labelKey: 'pill.back', primary: 'CmdOrCtrl+[', desktopPrimary: 'Alt+Left' },
   forward: { labelKey: 'pill.forward', primary: 'CmdOrCtrl+]', desktopPrimary: 'Alt+Right' },
-  history: { labelKey: 'menu.showHistory', primary: 'CmdOrCtrl+Y', desktopPrimary: 'Ctrl+H', aliases: ['Ctrl+Y'] },
+  // Windows and Linux leave Ctrl+Y to the page and Edit → Redo, as Chrome does
+  // (owner, November 23, 2026); History is Ctrl+H there.
+  history: { labelKey: 'menu.showHistory', primary: 'CmdOrCtrl+Y', desktopPrimary: 'Ctrl+H' },
   downloads: { labelKey: 'menu.downloads', primary: 'CmdOrCtrl+Shift+J', desktopPrimary: 'Ctrl+J', aliases: ['Ctrl+Shift+J'] },
   settings: { labelKey: 'menu.settings', primary: 'CmdOrCtrl+,' },
   // Ctrl+Tab follows Settings → Switch tabs with Ctrl+Tab (most recent use or

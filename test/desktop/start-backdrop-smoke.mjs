@@ -71,19 +71,27 @@ try {
     args: [path.resolve('.'), `--user-data-dir=${profile}`],
     env: { ...env, BLANC_TEST: '1', BLANC_TEST_UNCAUGHT_LOG: path.join(root, 'uncaught.log') },
   });
+  // The band plays the launch Sunrise only for its first seconds, so watch for
+  // it from the moment the window's own document exists rather than after
+  // the page, the test hook and the resize below: on a slow runner those
+  // took long enough that the sky had come and gone before anyone looked.
+  const chrome = await waitForValue(async () => (await app.windows()).find((p) => p.url().startsWith('blanc-chrome://index')), Boolean, 'the window chrome', 15_000);
+  await chrome.evaluate(() => {
+    const record = () => {
+      const sky = document.querySelector('#bandBackdrop .band-sunrise');
+      if (window.__bandSunriseSeen || !sky || sky.hidden) return;
+      window.__bandSunriseSeen = { animations: sky.getAnimations().map((a) => a.animationName).sort() };
+    };
+    new MutationObserver(record).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'style'] });
+    record();
+  });
   const page = await waitForValue(async () => (await app.windows()).find((p) => p.url() === 'blanc://newtab/'), Boolean, 'new tab');
   await page.waitForLoadState('domcontentloaded');
   await waitForValue(() => app.evaluate(() => typeof globalThis.__blancCall === 'function'), Boolean, 'the test hook');
   await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setContentSize(1280, 800));
 
   // The launch Sunrise: its sky plays over the band too, then goes.
-  const sunrise0 = await waitForValue(async () => {
-    const chrome = (await app.windows()).find((p) => p.url().startsWith('blanc-chrome://index'));
-    return chrome?.evaluate(() => {
-      const sky = document.querySelector('#bandBackdrop .band-sunrise');
-      return sky && !sky.hidden ? { animations: sky.getAnimations().map((a) => a.animationName).sort() } : null;
-    });
-  }, Boolean, 'the Sunrise sky over the band');
+  const sunrise0 = await waitForValue(() => chrome.evaluate(() => window.__bandSunriseSeen || null), Boolean, 'the Sunrise sky over the band');
   assert.deepEqual(sunrise0.animations, ['band-sunrise-out', 'band-sunrise-sky']);
   await page.waitForFunction(() => !document.getElementById('launchSunrise'), null, { timeout: 10_000 });
   await waitForValue(async () => {

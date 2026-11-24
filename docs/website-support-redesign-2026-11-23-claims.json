@@ -1,0 +1,739 @@
+{
+  "scope": "Support page (/support), redesigned November 23, 2026 (docs/superpowers/specs/2026-11-23-support-page-redesign-design.md): product tabs for Blanc for desktop, iPhone & iPad, Blanc Beta and Mail; the page's own labels; and the new iPhone & iPad and Blanc Beta answers. Not re-recorded here: the 35 desktop guides and answers, unchanged and recorded in earlier ledgers (website-revamp-claims-v1.27, v1.32–v1.43, arc-switching v1.38), and the Mail tab's questions, which are /mail's own published copy rendered from the shared site/src/data/mail-questions.mjs. iPhone and iPad answers describe App Store version 1.1 (November 22, 2026); Blanc Beta answers describe the current public betas and name no version number. No claim about protected video playing in Blanc Beta, about production Sync in Blanc Beta, or about default browser on iPad.",
+  "publicRelease": "v1.52.0",
+  "iosRelease": "1.1",
+  "betaReleases": [
+    "chromium-beta-2.0.0-beta.9",
+    "chromium-beta-windows-158.0.8127.907",
+    "chromium-beta-linux-158.0.8127.909"
+  ],
+  "approvedOn": "2026-11-23",
+  "ownerDecisions": [
+    "Product tabs on one page for Blanc for desktop, iPhone & iPad, Blanc Beta and Mail; starter answers for iPhone & iPad and Blanc Beta; contact at the bottom as Still need help? (owner, 2026-11-23).",
+    "Look 1 of three mock-ups: a night hero like Privacy & Security's with the gold Sunrise export of assets/sunrise-mark.svg (owner, 2026-11-23).",
+    "Every new string in this ledger approved by the owner on 2026-11-23.",
+    "Review fixes after approval (2026-11-23): the Beta Sync caveat now covers every platform with the release notes’ “don’t rely on it yet”; the Linux requirement carries the Linux ledger’s tested-systems and KDE/x64 sentences word for word; Get the app links /download#iphone; new copy uses curly apostrophes. Wording changes are confined to these corrections."
+  ],
+  "evidenceGroups": {
+    "iosRelease": {
+      "qualification": "Blanc for iPhone and iPad release notes as published on the App Store (newest: 1.1, November 22, 2026), recorded by the site's iOS changelog data.",
+      "evidence": [
+        "site/src/data/ios-releases.json"
+      ]
+    },
+    "iosLedgers": {
+      "qualification": "Owner-approved iPhone and iPad website claims (requirements, App Store and TestFlight availability, pairing).",
+      "evidence": [
+        "docs/website-ipad-1.0.3-claims.json",
+        "site/src/data/ios-availability.json"
+      ]
+    },
+    "iosListing": {
+      "qualification": "The App Store description (Sync, Shared Spaces, Send a tab), approved for 1.0.",
+      "evidence": [
+        "docs/ios/app-store-listing.md"
+      ]
+    },
+    "desktopPairing": {
+      "qualification": "Desktop Settings → Sync → Connect your iPhone, shipped since Blanc 1.45 (current public v1.52.0).",
+      "evidence": [
+        "copy/messages/en.json",
+        "docs/website-ipad-1.0.3-claims.json"
+      ]
+    },
+    "betaLedgers": {
+      "qualification": "Owner-approved Blanc Beta claims for the current Mac (2.0.0-beta.9), Windows (158.0.8127.907) and Linux (158.0.8127.909) releases.",
+      "evidence": [
+        "docs/website-blanc-beta-2.0.0-beta.9-claims.json",
+        "docs/website-blanc-beta-windows-158.0.8127.907-claims.json",
+        "docs/website-blanc-beta-linux-158.0.8127.909-claims.json"
+      ]
+    },
+    "betaNotes": {
+      "qualification": "Published Blanc Beta release notes (Mac 2.0.0-beta.2 and beta.7: own data folder, own signed updates, Check for Updates; Windows 158.0.8127.902 and .904: Blanc's updater, About shows whether it's up to date; Linux 158.0.8127.906: own data folder, repository).",
+      "evidence": [
+        "site/src/data/beta-releases.json"
+      ]
+    },
+    "pageLabel": {
+      "qualification": "Navigation and section labels on the Support page; they make no product claim.",
+      "evidence": [
+        "site/src/pages/support.astro",
+        "site/src/data/support-products.json"
+      ]
+    }
+  },
+  "claims": [
+    {
+      "id": "support-1123-001",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Blanc Support — Help for Blanc on every device",
+      "evidenceGroups": [
+        "pageLabel",
+        "iosLedgers",
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-002",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Answers for Blanc on Mac, Windows and Linux, Blanc for iPhone and iPad, Blanc Beta and Blanc Mail: import bookmarks, pair your iPhone, set up 1Password, and get in touch.",
+      "evidenceGroups": [
+        "pageLabel",
+        "iosLedgers",
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-003",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Answers for Blanc on your computer, iPhone and iPad, Blanc Beta and Blanc Mail.",
+      "evidenceGroups": [
+        "pageLabel",
+        "iosLedgers",
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-004",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Try bookmarks, pairing or 1Password",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-005",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Popular",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-006",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Bring your bookmarks",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-007",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Update Blanc",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-008",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Pair your iPhone",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-009",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Set up 1Password",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-010",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Activate Patron",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-011",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Contact us",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-012",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Choose a product",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-013",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "Still need help?",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-014",
+      "source": "site/src/pages/support.astro",
+      "exactWording": "No matching answers. Try a different word, or get in touch below.",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-015",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Blanc for desktop",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-016",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "iPhone & iPad",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-017",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Blanc Beta",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-018",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Mail",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-019",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Get started",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-020",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "The Island & commands",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-021",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Tabs, Spaces & windows",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-022",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Sync & devices",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-023",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Passwords & privacy",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-024",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Sites & compatibility",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-025",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "About Blanc",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-026",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Using Blanc",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-027",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Updates & feedback",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-028",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "Before launch",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-029",
+      "source": "site/src/data/support-products.json",
+      "exactWording": "The Mac app",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-030",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "How do I get Blanc for iPhone and iPad?",
+      "evidenceGroups": [
+        "iosLedgers"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-031",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc for iPhone and iPad is free on the App Store. It needs iOS or iPadOS 18.4 or later.",
+      "evidenceGroups": [
+        "iosLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-032",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc for iPhone and iPad is available on Apple’s App Store, and as a beta through Apple’s TestFlight, where new builds arrive first.",
+      "evidenceGroups": [
+        "iosLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-033",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Get the app or join the beta →",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-034",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "How do I pair my iPhone or iPad with Blanc on my computer?",
+      "evidenceGroups": [
+        "desktopPairing",
+        "iosLedgers"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-035",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "On your computer, open Blanc’s Settings → Sync → Connect your iPhone. Open Blanc on your iPhone or iPad, choose Pair with your Blanc in Settings → Sync, and point it at the code on your computer.",
+      "evidenceGroups": [
+        "desktopPairing",
+        "iosLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-036",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Pairing needs Blanc 1.45 or later on your computer.",
+      "evidenceGroups": [
+        "desktopPairing",
+        "iosLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-037",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "What comes over from my computer?",
+      "evidenceGroups": [
+        "iosListing",
+        "iosLedgers"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-038",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Your Favorites and your other devices’ tabs come with you, under their groups, and you can open any of them on your iPhone or iPad.",
+      "evidenceGroups": [
+        "iosListing",
+        "iosLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-039",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Turn on Shared Spaces and the Spaces you choose stay the same on your computer and your iPhone or iPad: open, close or move a tab on one, and the other follows. It’s off until you turn it on.",
+      "evidenceGroups": [
+        "iosListing",
+        "iosLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-040",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "You can also send the page you’re reading to another of your Blanc devices, and find pages sent to you waiting there. Sync is end-to-end encrypted: Blanc stores only data it can’t read.",
+      "evidenceGroups": [
+        "iosListing",
+        "iosLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-041",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "How does the Island work on iPhone and iPad?",
+      "evidenceGroups": [
+        "iosRelease"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-042",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "The Island is only as wide as what’s in it: Back, the site’s icon and the site, and New Tab.",
+      "evidenceGroups": [
+        "iosRelease"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-043",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Tap the site and the Island grows into a panel just above the keyboard. It starts with the page’s address: tap it to edit, hold it to copy the link.",
+      "evidenceGroups": [
+        "iosRelease"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-044",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Does Blanc for iPhone and iPad have private tabs?",
+      "evidenceGroups": [
+        "iosRelease"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-045",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Yes. In a private tab the Island turns dark, and Close Private Tab is first in the page menu.",
+      "evidenceGroups": [
+        "iosRelease"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-046",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Can I make Blanc my default browser on iPhone?",
+      "evidenceGroups": [
+        "iosRelease"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-047",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Yes. Since Blanc for iPhone 1.0.1, you can make Blanc your default browser.",
+      "evidenceGroups": [
+        "iosRelease"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-048",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "What does Blanc do on iPad?",
+      "evidenceGroups": [
+        "iosRelease"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-049",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Since version 1.0.3, Blanc runs on iPad: full screen in every orientation, with Split View, Glance, windows of their own, and keyboard shortcuts like ⌘L and ⌘T.",
+      "evidenceGroups": [
+        "iosRelease"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-050",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "What is Blanc Beta?",
+      "evidenceGroups": [
+        "betaLedgers"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-051",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc Beta is Blanc built directly on Chromium, for Mac, Windows and Linux. It installs beside Blanc and never replaces it.",
+      "evidenceGroups": [
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-052",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Download Blanc Beta →",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-053",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Which computers can run Blanc Beta?",
+      "evidenceGroups": [
+        "betaLedgers"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-054",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "On a Mac: Apple Silicon Macs with macOS 13 or later. Intel Macs aren’t supported yet.",
+      "evidenceGroups": [
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-055",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "On Windows: x64 PCs. It’s tested on Windows 11.",
+      "evidenceGroups": [
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-056",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "On Linux: Debian, Ubuntu and Fedora, on x64 and arm64. Use the .deb on Debian and Ubuntu, the .rpm on Fedora. Install and update checks ran on Ubuntu 24.04, Debian 12 and Fedora 45, on x64 and arm64. KDE and x64 desktops haven’t been checked by hand.",
+      "evidenceGroups": [
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-057",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "How does Blanc Beta update?",
+      "evidenceGroups": [
+        "betaNotes",
+        "betaLedgers"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-058",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "On a Mac, beta updates come from blanc.day, signed with the beta’s own key, and the app menu has Check for Updates.",
+      "evidenceGroups": [
+        "betaNotes",
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-059",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "On Windows, Blanc Beta keeps itself up to date through Blanc’s own updater. Every update is signed with Blanc’s key and checked before it’s installed, and Settings → About Blanc Beta shows whether it’s up to date.",
+      "evidenceGroups": [
+        "betaNotes",
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-060",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "On Linux, installing the package adds Blanc’s own signed package repository. New betas are then offered with your system updates through apt or dnf.",
+      "evidenceGroups": [
+        "betaNotes",
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-061",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Does Blanc Beta change my regular Blanc?",
+      "evidenceGroups": [
+        "betaNotes"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-062",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "No. Blanc Beta has its own name and its own data folder. Your regular Blanc, its data and settings are left untouched, and beta updates never touch it.",
+      "evidenceGroups": [
+        "betaNotes"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-063",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "What isn’t in Blanc Beta yet?",
+      "evidenceGroups": [
+        "betaLedgers"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-064",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Protected video, such as Netflix or Spotify, doesn’t play yet. Sync hasn’t been checked against the live Sync service, so don’t rely on it yet. On Windows, some Blanc features still behave differently.",
+      "evidenceGroups": [
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-065",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Each release’s notes list what’s new and what’s still missing.",
+      "evidenceGroups": [
+        "betaLedgers"
+      ],
+      "verdict": "verified"
+    },
+    {
+      "id": "support-1123-066",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Blanc Beta release notes →",
+      "evidenceGroups": [
+        "pageLabel"
+      ],
+      "verdict": "verified",
+      "kind": "label"
+    },
+    {
+      "id": "support-1123-067",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "How do I report a problem with Blanc Beta?",
+      "evidenceGroups": [
+        "betaNotes"
+      ],
+      "verdict": "verified",
+      "kind": "question"
+    },
+    {
+      "id": "support-1123-068",
+      "source": "site/src/data/support-questions.json",
+      "exactWording": "Use Report a bug or Email Support below. Say that you’re using Blanc Beta, and include its version from Settings → About.",
+      "evidenceGroups": [
+        "betaNotes"
+      ],
+      "verdict": "verified"
+    }
+  ]
+}

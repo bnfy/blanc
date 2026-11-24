@@ -12,10 +12,11 @@ diff -ruN a/chrome/browser/bluetooth/android/java/src/org/chromium/chrome/browse
          } else if (ACTION_BLUETOOTH_UPDATE.equals(intent.getAction())) {
              int notificationId = intent.getIntExtra(NOTIFICATION_ID_EXTRA, Tab.INVALID_TAB_ID);
              int bluetoothType =
-@@ -123,6 +123,33 @@
+@@ -122,6 +122,33 @@
+         mSharedPreferences.removeKey(ChromePreferenceKeys.BLUETOOTH_NOTIFICATION_IDS);
      }
  
-     /**
++    /**
 +     * Blanc (patch 0123): the deferred startup task that clears the notifications left from the
 +     * last run. A page opened at a cold start can already have one by then, so a notification this
 +     * run posted stays, with its saved id; only the ones left from the last run go.
@@ -42,10 +43,9 @@ diff -ruN a/chrome/browser/bluetooth/android/java/src/org/chromium/chrome/browse
 +        }
 +    }
 +
-+    /**
+     /**
       * Updates the existing notification or creates one if none exist for the provided
       * notificationId and bluetoothType.
-      * @param notificationId Unique id of the notification.
 diff -ruN a/chrome/browser/usb/android/java/src/org/chromium/chrome/browser/usb/UsbNotificationManager.java b/chrome/browser/usb/android/java/src/org/chromium/chrome/browser/usb/UsbNotificationManager.java
 --- a/chrome/browser/usb/android/java/src/org/chromium/chrome/browser/usb/UsbNotificationManager.java
 +++ b/chrome/browser/usb/android/java/src/org/chromium/chrome/browser/usb/UsbNotificationManager.java
@@ -60,10 +60,11 @@ diff -ruN a/chrome/browser/usb/android/java/src/org/chromium/chrome/browser/usb/
          } else if (ACTION_USB_UPDATE.equals(intent.getAction())) {
              int notificationId = intent.getIntExtra(NOTIFICATION_ID_EXTRA, Tab.INVALID_TAB_ID);
              boolean isConnected = intent.getBooleanExtra(NOTIFICATION_IS_CONNECTED, false);
-@@ -98,6 +98,33 @@
+@@ -97,6 +97,33 @@
+         mSharedPreferences.removeKey(ChromePreferenceKeys.USB_NOTIFICATION_IDS);
      }
  
-     /**
++    /**
 +     * Blanc (patch 0123): the deferred startup task that clears the notifications left from the
 +     * last run. A page opened at a cold start can already have one by then, so a notification this
 +     * run posted stays, with its saved id; only the ones left from the last run go.
@@ -90,7 +91,6 @@ diff -ruN a/chrome/browser/usb/android/java/src/org/chromium/chrome/browser/usb/
 +        }
 +    }
 +
-+    /**
+     /**
       * Destroy the existing notification if it exists and creates one if isConnected is true for the
       * provided notificationId.
-      * @param notificationId Unique id of the notification.

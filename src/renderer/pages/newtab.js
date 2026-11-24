@@ -117,6 +117,8 @@ document.getElementById('obIslandHint').replaceChildren(
     key.className = 'ob-kbd';
     key.id = 'obIslandShortcut';
     key.textContent = part.text;
+    // A glyph like ⌘L read as its name; a labelled span needs a role, or screen readers may skip the label.
+    key.setAttribute('role', 'img');
     key.setAttribute('aria-label', isMac ? t('onboarding.island.shortcutMac') : t('onboarding.island.shortcut'));
     return key;
   }));

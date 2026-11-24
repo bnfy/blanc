@@ -67,23 +67,39 @@ test("the October 2 transparency answers survive consolidation verbatim", () => 
 test("release evidence, audit status and known Sync findings stay visible outside disclosures", () => {
   const original = baseline("site/src/pages/features/security.astro");
   const evidence = read("site/src/components/ReleaseEvidence.astro");
+  // Re-checked against public v1.52.0 on November 23, 2026. Each reviewed
+  // change in docs/website-trust-v1.52-claims.json must find its exact prior
+  // text in one of the two sections, so no stale exception lingers.
+  const updates = JSON.parse(
+    read("docs/website-trust-v1.52-claims.json"),
+  ).releaseEvidenceUpdates.map(({ before, after }) => ({
+    before: comparisonText(before),
+    after: comparisonText(after),
+  }));
+  const used = new Set();
   for (const id of ["release-verification-title", "security-audit-title"]) {
     const section = original.match(
       new RegExp(`<section[^>]*aria-labelledby="${id}"[\\s\\S]*?</section>`),
     )[0];
+    let reviewed = comparisonText(
+      section
+        .replaceAll("v1.26.0", "v1.27.0")
+        .replaceAll("October 2, 2026", "October 3, 2026")
+        // Removed with the other filler eyebrows on October 8, 2026.
+        .replace('<p class="section-kicker">independent review</p>', ""),
+    );
+    for (const update of updates) {
+      if (!reviewed.includes(update.before)) continue;
+      reviewed = reviewed.replaceAll(update.before, update.after);
+      used.add(update);
+    }
     assert.ok(
-      comparisonText(evidence).includes(
-        comparisonText(
-          section
-            .replaceAll("v1.26.0", "v1.27.0")
-            .replaceAll("October 2, 2026", "October 3, 2026")
-            // Removed with the other filler eyebrows on October 8, 2026.
-            .replace('<p class="section-kicker">independent review</p>', ""),
-        ),
-      ),
+      comparisonText(evidence).includes(reviewed),
       `${id} loses reviewed evidence`,
     );
   }
+  for (const update of updates)
+    assert.ok(used.has(update), `obsolete reviewed change: ${update.before}`);
   const page = read("site/src/pages/trust.astro");
   assert.match(page, /<ReleaseEvidence \/>/);
   assert.doesNotMatch(evidence, /<details/);

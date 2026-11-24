@@ -45,4 +45,14 @@ public class SheetPlacementTest {
         assertEquals(SheetPlacement.CORNER, SheetPlacement.of(24, 0, 0, 0).corner, 0);
         assertEquals(SheetPlacement.CORNER, SheetPlacement.of(24, 0, 0, 20).corner, 0);
     }
+
+    // #1682: with the Island at the top, the sheet hangs from there.
+    @Test
+    public void withTheIslandAtTheTopItHangsFromTheTop() {
+        SheetPlacement p = SheetPlacement.atTop();
+        assertEquals(8, p.side, 0);
+        assertEquals(8, p.top, 0);
+        assertEquals(0, p.padding, 0);
+        assertEquals(SheetPlacement.CORNER, p.corner, 0);
+    }
 }

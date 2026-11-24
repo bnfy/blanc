@@ -140,6 +140,11 @@ final class StartPageBridge: NSObject, WKScriptMessageHandler {
             return .value(manager.favoritesPayload(fetchingIcons: !isPrivate))
         case "topSites":
             if isPrivate { return .value(.array([])) }
+            #if DEBUG
+            // The App Store images' Start Page is the clock alone: the seed's
+            // history would leave a single stray shortcut (owner, 2026-11-21).
+            if UITestSeed.appStore { return .value(.array([])) }
+            #endif
             var offset = 0, limit = 48
             if !args.isEmpty {
                 guard args.count == 2, let o = StartPageStore.int(args[0]), let l = StartPageStore.int(args[1]),
@@ -160,7 +165,13 @@ final class StartPageBridge: NSObject, WKScriptMessageHandler {
         case "focusGroup": return .value(.bool(false))
         // A private Start Page gets nothing from other devices, as on desktop.
         case "remoteDevices": return .value(isPrivate ? .array([]) : manager.remoteDevicesPayload())
-        case "sentItems": return .value(isPrivate ? .array([]) : manager.sentItemsPayload())
+        case "sentItems":
+            #if DEBUG
+            // The App Store images' Start Page is the clock alone; the seed's
+            // sent pages show in the palette's shot instead.
+            if UITestSeed.appStore { return .value(.array([])) }
+            #endif
+            return .value(isPrivate ? .array([]) : manager.sentItemsPayload())
         case "openSent" where args.count == 1, "dismissSent" where args.count == 1:
             guard !isPrivate, let id = text(0) else { return .value(.bool(false)) }
             return .value(.bool(manager.handleSent(method: method, id: id)))

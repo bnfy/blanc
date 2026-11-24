@@ -86,10 +86,10 @@ Then('a group result {string} is listed above any tab results', function (name) 
 });
 
 When('I choose the group result {string}', function (name) {
-  const xml = this.device.dump();
-  // The row's title, not the field holding the same text.
-  const after = xml.slice(xml.search(/class="android\.widget\.EditText"/));
-  this.device.tapAt(this.device.find({text: name}, after.slice(after.indexOf('<node', 1))));
+  // The row's title, not the field holding the same text. The list sits above the field or below
+  // it, by where the Island is (#1693), so the field's node is left out rather than read past.
+  const xml = this.device.dump().replace(/<node\b[^>]*class="android\.widget\.EditText"[^>]*>/, '');
+  this.device.tapAt(this.device.find({text: name}, xml));
 });
 
 Then('the active tab is one of the tabs in {string}', function (name) {

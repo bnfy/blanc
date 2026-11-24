@@ -1,14 +1,18 @@
+---
+import PlatformLogo from "./PlatformLogo.astro";
+---
+
 <section
   class="release-verification"
   aria-labelledby="release-verification-title"
 >
-  <p class="section-kicker">public v1.27.0 · October 3, 2026</p><h2
+  <p class="section-kicker">public v1.52.0 · November 21, 2026</p><h2
     id="release-verification-title"
   >
     Verify the package for your platform.
   </h2>
   <table role="table">
-    <caption>Authentication evidence for the official v1.27.0 downloads</caption
+    <caption>Authentication evidence for the official v1.52.0 downloads</caption
     ><thead role="rowgroup"
       ><tr role="row"
         ><th role="columnheader" scope="col">Platform</th><th role="columnheader" scope="col">What is checked</th><th role="columnheader"
@@ -17,50 +21,50 @@
       ></thead
     ><tbody role="rowgroup">
       <tr role="row"
-        ><th role="rowheader" scope="row">macOS</th><td role="cell"
+        ><th role="rowheader" scope="row"><PlatformLogo platform="apple" />macOS</th><td role="cell"
           >Developer ID signature, notarization, Gatekeeper assessment and the
           app’s stapled ticket.</td
         ><td role="cell"
-          ><a href="https://github.com/bnfy/blanc/releases/tag/v1.27.0"
+          ><a href="https://github.com/bnfy/blanc/releases/tag/v1.52.0"
             >Official DMG</a
           > · <a
-            href="https://github.com/bnfy/blanc/blob/v1.27.0/docs/release-verification.md"
+            href="https://github.com/bnfy/blanc/blob/v1.52.0/docs/release-verification.md"
             >Mac verification steps</a
           > · <a
-            href="https://github.com/bnfy/blanc/blob/7ca557b04dc723ca6158cce3ef4ea8aeb29f03da/docs/release-incidents/2026-10-03-v1.27.0.md#publication-and-independent-verification"
-            >v1.27.0 verification record</a
+            href="https://github.com/bnfy/blanc/blob/06783061d06555c241980ae4d7d82c00be9864fe/docs/release-incidents/2026-11-21-v1.52.0.md#independent-verification"
+            >v1.52.0 verification record</a
           ></td
         ></tr
       >
       <tr role="row"
-        ><th role="rowheader" scope="row">Windows</th><td role="cell"
+        ><th role="rowheader" scope="row"><PlatformLogo platform="windows" />Windows</th><td role="cell"
           >Valid, timestamped Authenticode signature with the exact expected
           publisher; installer digest bound to windows-signature.json.</td
         ><td role="cell"
-          ><a href="https://github.com/bnfy/blanc/releases/tag/v1.27.0"
+          ><a href="https://github.com/bnfy/blanc/releases/tag/v1.52.0"
             >Official installer and signature report</a
           > · <a
-            href="https://github.com/bnfy/blanc/blob/v1.27.0/docs/release-verification.md"
+            href="https://github.com/bnfy/blanc/blob/v1.52.0/docs/release-verification.md"
             >Windows verification steps</a
           > · <a
-            href="https://github.com/bnfy/blanc/blob/7ca557b04dc723ca6158cce3ef4ea8aeb29f03da/docs/release-incidents/2026-10-03-v1.27.0.md#publication-and-independent-verification"
-            >v1.27.0 native checks</a
+            href="https://github.com/bnfy/blanc/blob/06783061d06555c241980ae4d7d82c00be9864fe/docs/release-incidents/2026-11-21-v1.52.0.md#independent-verification"
+            >v1.52.0 native checks</a
           ></td
         ></tr
       >
       <tr role="row"
-        ><th role="rowheader" scope="row">Linux</th><td role="cell"
+        ><th role="rowheader" scope="row"><PlatformLogo platform="linux" />Linux</th><td role="cell"
           >AppImage checksum authenticated by the Sigstore-signed SHA256SUMS
           manifest. Linux has no equivalent OS-level publisher signature here.</td
         ><td role="cell"
-          ><a href="https://github.com/bnfy/blanc/releases/tag/v1.27.0"
+          ><a href="https://github.com/bnfy/blanc/releases/tag/v1.52.0"
             >Official AppImage, manifest and Sigstore bundle</a
           > · <a
-            href="https://github.com/bnfy/blanc/blob/v1.27.0/docs/release-verification.md"
+            href="https://github.com/bnfy/blanc/blob/v1.52.0/docs/release-verification.md"
             >Manifest verification steps</a
           > · <a
-            href="https://github.com/bnfy/blanc/blob/7ca557b04dc723ca6158cce3ef4ea8aeb29f03da/docs/release-incidents/2026-10-03-v1.27.0.md#publication-and-independent-verification"
-            >v1.27.0 public-download checks</a
+            href="https://github.com/bnfy/blanc/blob/06783061d06555c241980ae4d7d82c00be9864fe/docs/release-incidents/2026-11-21-v1.52.0.md#independent-verification"
+            >v1.52.0 public-download checks</a
           ></td
         ></tr
       >
@@ -70,7 +74,7 @@
     These checks authenticate the publisher and downloaded bytes. They do not
     establish that the application is free of security flaws or provide an
     independent review of its architecture. The release record distinguishes
-    hosted checks, physical-machine confirmations and owner waivers.
+    hosted checks, physical-machine confirmations and owner approvals.
   </p>
 </section>
 <section class="feature-copy-grid" aria-labelledby="security-audit-title">
@@ -92,8 +96,7 @@
       <h3>Known work belongs in the scope</h3><p>
         Sync v1 encrypts data, but possession of its account locator authorizes
         ciphertext retrieval, replacement and deletion. Concurrent writes and
-        deletion can race. Merged request-size limits are not yet deployed.
-        These unresolved findings remain part of the <a
+        deletion can race. These unresolved findings remain part of the <a
           href="https://github.com/bnfy/blanc/blob/main/docs/security-assessment.md"
           >public maintainer assessment</a
         >.

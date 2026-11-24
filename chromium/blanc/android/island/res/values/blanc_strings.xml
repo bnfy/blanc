@@ -5,7 +5,9 @@
     <string name="blanc_ios_island_search_or_switch">Search or switch tabs, %1$s</string>
     <string name="blanc_ios_island_show_all_tabs">Show all tabs</string>
     <string name="blanc_ios_island_stop">Stop loading</string>
-    <string name="blanc_ios_palette_placeholder">Search, enter address, or / command</string>
+    <string name="blanc_ios_island_close_private_tab">Close Private Tab</string>
+    <string name="blanc_tab_private_label">Private tab</string>
+    <string name="blanc_ios_palette_placeholder">Search, enter URL or / for commands</string>
     <string name="blanc_ios_tabs_start_page">Start Page</string>
     <string name="blanc_pages_nav_bookmarks">Favorites</string>
     <string name="blanc_pages_nav_history">History</string>
@@ -15,7 +17,6 @@
     <string name="blanc_pill_back">Back</string>
     <string name="blanc_pill_forward">Forward</string>
     <string name="blanc_pill_placeholder">Search or type URL</string>
-    <string name="blanc_pill_private_title">Leave private mode — closes this tab</string>
     <string name="blanc_tab_new">New tab</string>
     <string name="blanc_menu_new_private_tab">New Private Tab</string>
     <string name="blanc_share_picker_share">Share</string>
@@ -233,6 +234,12 @@
     <string name="blanc_android_settings_more">More</string>
     <string name="blanc_android_settings_open_source_licenses">Open-source licenses</string>
     <string name="blanc_ios_settings_about">About</string>
+    <string name="blanc_android_settings_autofill_title">Autofill passwords</string>
+    <string name="blanc_android_settings_autofill_summary">Lets the password manager you choose in Android, like Bitwarden, Proton Pass or 1Password, fill passwords in Blanc, and other forms where it supports them. Google Password Manager doesn\'t fill in Blanc.</string>
+    <string name="blanc_android_settings_autofill_managed">Your organization manages this setting.</string>
+    <string name="blanc_android_settings_autofill_choose">Choose password manager</string>
+    <string name="blanc_android_settings_autofill_choose_summary">Takes effect the next time Blanc starts.</string>
+    <string name="blanc_android_settings_autofill_restart">Restart Blanc to apply</string>
     <string name="blanc_ios_settings_add_site">Add site</string>
     <string name="blanc_ios_settings_blocker">Blanc Blocker</string>
     <string name="blanc_ios_settings_blocker_help">Block ads and trackers on websites. Turning this off disables protection on all tabs and reloads web pages.</string>
@@ -293,6 +300,9 @@
     <string name="blanc_android_default_browser_open">Set as default</string>
     <string name="blanc_settings_language_label">Language</string>
     <string name="blanc_settings_language_system">System (%1$s)</string>
+    <string name="blanc_android_context_menu_private_tab">Open in private tab</string>
+    <string name="blanc_android_context_menu_new_blanc_tab">Open in new tab in Blanc</string>
+    <string name="blanc_mini_open_in_blanc">Open in Blanc</string>
     <plurals name="blanc_shared_spaces_waiting_count">
         <item quantity="one">%d shared Space is waiting</item>
         <item quantity="other">%d shared Spaces are waiting</item>

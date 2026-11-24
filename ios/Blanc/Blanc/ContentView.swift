@@ -5,6 +5,7 @@ struct ContentView: View {
     let manager: TabsManager
     /// A pairing QR scanned with the Camera app (design 2026-10-28 §7.3).
     var pairLink: Binding<PairLinkRequest?> = .constant(nil)
+    @Namespace private var islandSpace
     @State private var askingPair: PairLinkRequest?
     @Environment(\.colorScheme) private var colorScheme
     private var isPrivate: Bool { manager.activeTab?.isPrivate ?? false }
@@ -183,7 +184,14 @@ struct ContentView: View {
             if manager.isSpacesMenuPresented { spacesMenu }
         }
         .overlay(alignment: islandAtTop ? .top : .bottom) {
-            if isPalettePanelOpen { palettePanel }
+            ZStack {
+                if isPalettePanelOpen { palettePanel.transition(.opacity) }
+            }
+            .animation(panelAnimation, value: isPalettePanelOpen)
+            // While it fades out it's already gone: what it opened (the Spaces
+            // card, a sheet) takes the next tap, not the fading panel.
+            .allowsHitTesting(isPalettePanelOpen)
+            .accessibilityHidden(!isPalettePanelOpen)
         }
         .onChange(of: manager.isPalettePresented) { _, presented in
             // The sheet runs this from its onDismiss; the panel has none.
@@ -250,7 +258,8 @@ struct ContentView: View {
         }
         .sheet(isPresented: paletteSheetPresented,
                onDismiss: { if !manager.isPalettePresented { paletteClosed() } }) {
-            PaletteSheet(manager: manager)
+            PaletteSheet(manager: manager, islandAtTop: islandAtTop)
+                .environment(\.colorScheme, islandScheme)
         }
     }
 
@@ -288,15 +297,19 @@ struct ContentView: View {
     private var islandContainer: some View {
         VStack(spacing: 8) {
             if !islandAtTop { islandNotices }
-            islandPill
+            islandPill.frame(maxWidth: 600)
             if islandAtTop { islandNotices }
         }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
+            .centeredOnScreen(safeArea)
             .clearOfWindowControls(islandAtTop)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandHeight = $0 }
             .environment(\.colorScheme, islandScheme)
+            // Dark glass alone reads mid-gray over a light page; a private
+            // tab's Island is plainly dark.
+            .environment(\.islandGlassTint, isPrivate ? BrowserStyle.privateGlassTint : nil)
             .animation(.easeInOut(duration: 0.25), value: islandScheme)
     }
 
@@ -305,10 +318,16 @@ struct ContentView: View {
     /// Island is dark glass on a dark site, as the system's bars are; before
     /// that, and on a page with no solid background, they follow Blanc's theme.
     private var islandScheme: ColorScheme {
-        if isPrivate { return .dark }
-        if #available(iOS 26, *), let tab = manager.activeTab, let page = ColorScheme(tab.pageStyle) { return page }
-        return colorScheme
+        let glass: Bool
+        if #available(iOS 26, *) { glass = true } else { glass = false }
+        return IslandScheme.resolve(isPrivate: isPrivate, pageScheme: manager.activeTab.flatMap { ColorScheme($0.pageStyle) },
+                                    appScheme: colorScheme, glass: glass)
     }
+
+    private var panelAnimation: Animation {
+        reduceMotion ? .easeOut(duration: 0.2) : Self.swipeSpring
+    }
+
     private var islandStyle: BrowserStyle { BrowserStyle(scheme: islandScheme) }
 
     @ViewBuilder private var islandNotices: some View {
@@ -327,7 +346,9 @@ struct ContentView: View {
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { islandBand = $0 + 20 }
             // The panel takes the Island's place; hidden, not removed, so
             // the page's inset never changes under it.
+            .islandGeometry(in: islandSpace, isSource: !isPalettePanelOpen, reduceMotion: reduceMotion)
             .opacity(isPalettePanelOpen ? 0 : 1)
+            .animation(panelAnimation, value: isPalettePanelOpen)
             .allowsHitTesting(!isPalettePanelOpen)
             .accessibilityHidden(isPalettePanelOpen)
             .simultaneousGesture(DragGesture(minimumDistance: 12)
@@ -375,6 +396,7 @@ struct ContentView: View {
                 }))
                 .frame(maxWidth: 600)
                 .padding(.horizontal, 16)
+                .centeredOnScreen(safeArea)
                 .padding(islandAtTop ? .top : .bottom, islandHeight - 4)
                 .transition(.move(edge: islandAtTop ? .top : .bottom).combined(with: .opacity))
             Button("") { withAnimation(.snappy) { manager.isSpacesMenuPresented = false } }
@@ -382,27 +404,40 @@ struct ContentView: View {
                 .opacity(0)
                 .accessibilityHidden(true)
         }
+        // It opens from the palette panel while the panel's keyboard is still
+        // going down; it sits at the Island's edge from the start rather than
+        // riding the keyboard down.
+        .ignoresSafeArea(.keyboard)
     }
 
-    /// Duo-1: the palette growing from the Island, at its width, over the
-    /// page (not dimmed, as desktop's ⌘L panel). A tap outside or Escape closes it.
+    /// The palette growing from the Island in its place, at the Island's edge
+    /// and above the keyboard, over the page (not dimmed, as desktop's ⌘L
+    /// panel). A tap outside, a drag toward the Island or Escape closes it.
     private var palettePanel: some View {
-        ZStack(alignment: islandAtTop ? .top : .bottom) {
-            Color.black.opacity(0.001)
-                .ignoresSafeArea()
+        let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
+        return ZStack(alignment: islandAtTop ? .top : .bottom) {
+            Color.clear
+                .contentShape(Rectangle())
+                .ignoresSafeArea(.container)
                 .onTapGesture { manager.isPalettePresented = false }
                 .accessibilityHidden(true)
-            PaletteSheet(manager: manager, placement: .panel)
-                .frame(maxHeight: 520)
-                .clipShape(RoundedRectangle(cornerRadius: 22))
-                .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(style.border.opacity(0.7), lineWidth: 0.5))
-                .shadow(color: .black.opacity(style.scheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
+            PaletteSheet(manager: manager, placement: .panel, islandAtTop: islandAtTop)
+                .environment(\.colorScheme, islandScheme)
                 .frame(maxWidth: 600)
+                // The shape goes on the panel itself, which hugs its rows,
+                // not on the 520 pt room it may grow into.
+                .clipShape(shape)
+                .overlay(shape.strokeBorder(islandStyle.border.opacity(0.7), lineWidth: 0.5))
+                .shadow(color: .black.opacity(islandScheme == .dark ? 0.25 : 0.10), radius: 10, y: 4)
+                .islandGeometry(in: islandSpace, isSource: isPalettePanelOpen, reduceMotion: reduceMotion)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("palette.panel")
+                .frame(maxHeight: 520, alignment: islandAtTop ? .top : .bottom)
                 .padding(.horizontal, 16)
-                .padding(.top, islandAtTop ? 10 : 16)
-                .padding(.bottom, islandAtTop ? 16 : 10)
+                .centeredOnScreen(safeArea)
+                // Leave a tap target on the page even when the keyboard is up.
+                .padding(.top, islandAtTop ? 10 : 44)
+                .padding(.bottom, islandAtTop ? 44 : 10)
             Button("") { manager.isPalettePresented = false }
                 .keyboardShortcut(.cancelAction)
                 .opacity(0)
@@ -820,128 +855,100 @@ struct ContentView: View {
 
     private var islandButtons: IslandLayout.Buttons {
         layout.buttons(backForward: manager.settingsStore.islandBackForward,
+                       canGoForward: manager.activeTab?.canGoForward == true,
                        isLoading: manager.activeTab?.isLoading == true)
     }
 
-    /// The closed Island's height: a capsule, like the system's own floating
-    /// bars, a little taller than the 44 pt touch minimum (owner, 2026-11-11).
-    static let islandHeight: CGFloat = 52
+    /// The closed Island, in the desktop Island's resting shape: 44 pt, the
+    /// touch minimum, with 17 pt corners rather than a capsule, so it reads as
+    /// Blanc's Island and not a search field (owner, 2026-11-21).
+    static let islandHeight: CGFloat = 44
+    static let islandCornerRadius: CGFloat = 17
 
+    /// Back (or Reload), Forward when there's somewhere to go, the page menu,
+    /// the site, and New Tab (Stop while a page loads). No dividers, no tab
+    /// dots (owner, 2026-11-21: not useful on a phone, where the swipe moves
+    /// the page itself), and only as wide as what it holds.
     private var addressPill: some View {
         let buttons = islandButtons
+        let tab = manager.activeTab
+        let shape = RoundedRectangle(cornerRadius: Self.islandCornerRadius, style: .continuous)
         return HStack(spacing: 0) {
-            HStack(spacing: 0) {
-                islandMark
-                Rectangle().fill(islandDivider).frame(width: 1, height: 18)
+            if buttons.leading == .back { backButton } else { reloadButton }
+            if buttons.forward {
+                forwardButton.transition(reduceMotion ? .opacity : .move(edge: .leading).combined(with: .opacity))
             }
+            islandMark
+            // The Start Page has no site to show, so it invites a search,
+            // dimmed like a placeholder. VoiceOver still hears "Start Page".
+            // The site in SemiBold, as Safari draws its address, so it holds
+            // up over busy pages; the placeholder stays regular.
+            Text(onStartPage ? SyncCopy.text("pill.placeholder") : displayDomain)
+                .font(BrowserStyle.font(15, semibold: !onStartPage))
+                .tracking(0.15)
+                .lineLimit(1)
+                .truncationMode(onStartPage ? .tail : .middle)
+                .opacity(onStartPage ? 0.55 : 1)
+                .padding(.trailing, 4)
+                .frame(minWidth: 44, minHeight: Self.islandHeight)
+                .pointerHighlight()
+                .contentShape(Rectangle())
+                // A tap rather than a Button: a Button also fires when a sideways
+                // swipe on the Island lifts inside it, a tap fails once the finger moves.
+                .onTapGesture { manager.isPalettePresented = true }
+                .accessibilityElement(children: .ignore)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { manager.isPalettePresented = true }
+                .accessibilityLabel(SyncCopy.text("ios.island.searchOrSwitch", ["domain": displayDomain]))
+                .accessibilityValue(SyncCopy.plural("tabsMenu.header", count: manager.tabs.count))
+                .accessibilityIdentifier("pill.palette")
 
-            // A tap rather than a Button: a Button also fires when a sideways
-            // swipe on the Island lifts inside it, a tap fails once the finger moves.
-            HStack(spacing: 10) {
-                // The Start Page has no site to show, so it invites a search,
-                // dimmed like a placeholder. VoiceOver still hears "Start Page".
-                // The site in SemiBold, as Safari draws its address, so it holds
-                // up over busy pages; the placeholder stays regular.
-                Text(onStartPage ? SyncCopy.text("pill.placeholder") : displayDomain)
-                    .font(BrowserStyle.font(15, semibold: !onStartPage))
-                    .tracking(0.15)
-                    .lineLimit(1)
-                    .truncationMode(onStartPage ? .tail : .middle)
-                    .opacity(onStartPage ? 0.55 : 1)
-                Spacer(minLength: 0)
-            }
-            .padding(.leading, 12)
-            .frame(maxWidth: .infinity, minHeight: Self.islandHeight)
-            .pointerHighlight()
-            .contentShape(Rectangle())
-            .onTapGesture { manager.isPalettePresented = true }
-            .accessibilityElement(children: .ignore)
-            .accessibilityAddTraits(.isButton)
-            .accessibilityAction { manager.isPalettePresented = true }
-            .accessibilityLabel(SyncCopy.text("ios.island.searchOrSwitch", ["domain": displayDomain]))
-            .accessibilityValue(SyncCopy.plural("tabsMenu.header", count: manager.tabs.count))
-            .accessibilityIdentifier("pill.palette")
-
-            HStack(spacing: 0) {
-                if let tab = manager.activeTab, tab.isPrivate {
-                    // Leaving private mode closes the private tab, as on desktop.
-                    Button { manager.closeTab(tab.id) } label: {
-                        Text(SyncCopy.text("pill.private.chip"))
-                            .font(BrowserStyle.font(12, semibold: true))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .overlay(Capsule().stroke(islandStyle.text.opacity(0.4)))
-                            .frame(minHeight: Self.islandHeight)
-                            .contentShape(Rectangle())
-                            .pointerHighlight()
+            ZStack {
+                if buttons.trailing == .stop {
+                    Button { tab?.stop() } label: {
+                        Image(systemName: "xmark").frame(width: 44, height: Self.islandHeight).pointerHighlight()
                     }
-                    .accessibilityLabel(SyncCopy.text("pill.private.title"))
-                    .accessibilityIdentifier("pill.private")
+                    .accessibilityLabel(SyncCopy.text("ios.island.stop"))
+                    .transition(.opacity)
+                } else {
+                    Button { manager.createTab() } label: {
+                        Image(systemName: "plus").frame(width: 44, height: Self.islandHeight).pointerHighlight()
+                    }
+                    .accessibilityLabel(SyncCopy.text("tab.new"))
+                    .transition(.opacity)
                 }
-
-
-                if buttons.reload { reloadButton }
-
-                if buttons.history == .afterAddress { historyButtons }
-
-                Rectangle().fill(islandDivider).frame(width: 1, height: 18)
-                Button { manager.createTab() } label: {
-                    Image(systemName: "plus").frame(width: 44, height: Self.islandHeight)
-                        .pointerHighlight()
-                }
-                .accessibilityLabel(SyncCopy.text("tab.new"))
             }
+            .animation(reduceMotion ? .easeOut(duration: 0.2) : Self.swipeSpring, value: buttons.trailing)
         }
-        // Room inside the capsule's round ends for the mark and New Tab.
         .padding(.horizontal, 4)
         .font(.system(size: 15, weight: .semibold))
         // Not .plain: over Liquid Glass on iOS 26, plain buttons took no taps
-        // at all, while the site's tap still
-        // worked; borderless ones do, and draw in the row's ink all the same
-        // (CI and an iOS 26.5 simulator, 2026-11-03).
+        // at all, while the site's tap still worked; borderless ones do, and
+        // draw in the row's ink all the same (CI and an iOS 26.5 simulator,
+        // 2026-11-03).
         .buttonStyle(.borderless)
         .foregroundStyle(islandStyle.text)
         .overlay {
-            if let tab = manager.activeTab {
+            if let tab {
                 IslandProgress(tab: tab, tint: islandStyle.text.opacity(0.55))
                     .frame(maxHeight: .infinity, alignment: islandAtTop ? .top : .bottom)
-                    .clipShape(Capsule())
+                    .clipShape(shape)
             }
         }
-        .islandSurface(islandStyle, in: Capsule())
+        .islandSurface(islandStyle, in: shape)
         // A tab dragged from another window's grid or palette moves here.
         .tabDrop(into: manager)
-        .frame(maxWidth: 600)
+        .animation(reduceMotion ? nil : Self.swipeSpring, value: displayDomain)
+        .animation(reduceMotion ? nil : Self.swipeSpring, value: buttons.forward)
     }
 
-    /// The Island's dividers, in its own ink, faded: on glass they follow the
-    /// text over any page; on the solid surface they match the old hairline.
-    private var islandDivider: Color { islandStyle.text.opacity(0.13) }
-
-    /// Back and Forward: on the unfolded Island, or on the iPhone's when the
-    /// setting is on. Dimmed by hand, since the Island's own ink overrides a
-    /// disabled button's. The edge swipe still works.
-    private var historyButtons: some View {
-        HStack(spacing: 0) {
-            backButton
-            forwardButton
-        }
-    }
-
-    /// Reload, or Stop while the page loads.
     private var reloadButton: some View {
-        Button {
-            if manager.activeTab?.isLoading == true {
-                manager.activeTab?.stop()
-            } else {
-                manager.activeTab?.reload()
-            }
-        } label: {
-            Image(systemName: manager.activeTab?.isLoading == true ? "xmark" : "arrow.clockwise")
+        Button { manager.activeTab?.reload() } label: {
+            Image(systemName: "arrow.clockwise")
                 .frame(width: 44, height: Self.islandHeight)
                 .pointerHighlight()
         }
-        .accessibilityLabel(SyncCopy.text(manager.activeTab?.isLoading == true ? "ios.island.stop" : "ios.island.reload"))
+        .accessibilityLabel(SyncCopy.text("ios.island.reload"))
     }
 
     private var backButton: some View {
@@ -956,24 +963,29 @@ struct ContentView: View {
         .accessibilityIdentifier("pill.back")
     }
 
+    /// Shown only while there's somewhere to go (`IslandLayout.buttons`).
     private var forwardButton: some View {
-        let tab = manager.activeTab
-        return Button { tab?.goForward() } label: {
+        Button { manager.activeTab?.goForward() } label: {
             Image(systemName: "chevron.right").frame(width: 44, height: Self.islandHeight)
-                .opacity(tab?.canGoForward == true ? 1 : 0.35)
                 .pointerHighlight()
         }
-        .disabled(tab?.canGoForward != true)
         .accessibilityLabel(SyncCopy.text("pill.forward"))
         .accessibilityIdentifier("pill.forward")
     }
 
-    /// The Sunrise mark: the page's actions, so the Island keeps only the
-    /// site, reload and New tab. Drawn in the theme's ink through the shipped
-    /// mark's alpha, as the interface always draws it.
+    /// The site's own icon on the page menu, the Sunrise on Blanc's pages, and
+    /// a globe until a site's icon is known.
+    private var menuGlyph: IslandMarkButton.Glyph {
+        guard let url = manager.activeTab?.currentURL, url.scheme != "blanc" else { return .sunrise }
+        if let image = manager.services.siteIcons.image(for: url) { return .favicon(image) }
+        return .globe
+    }
+
     private var islandMark: some View {
-        IslandMarkButton(image: Self.sunriseMark, tint: islandStyle.text, menu: islandMenuElements)
-            .frame(width: 48, height: Self.islandHeight)
+        IslandMarkButton(glyph: menuGlyph, tint: islandStyle.text,
+                         accessibilityValue: isPrivate ? SyncCopy.text("tab.privateLabel") : nil,
+                         menu: islandMenuElements)
+            .frame(width: 36, height: Self.islandHeight)
             .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { sunriseFrame = $0 }
     }
 
@@ -985,6 +997,11 @@ struct ContentView: View {
         }
         return IslandMenu.items(for: tab, manager: manager).compactMap { item -> UIMenuElement? in
             switch item {
+            case .closePrivateTab:
+                guard let tab else { return nil }
+                return UIMenu(options: .displayInline, children: [
+                    action("ios.island.closePrivateTab", "xmark.circle") { manager.closeTab(tab.id) },
+                ])
             case .customizeStartPage:
                 return action("newtab.customize.button", "slider.horizontal.3") { manager.customizeStartPage() }
             case .blocking(let on):
@@ -1043,6 +1060,8 @@ struct ContentView: View {
                               })
             case .closeGlance:
                 return action("menu.closeGlance", "xmark.rectangle") { manager.closeGlance() }
+            case .newTab:
+                return action("tab.new", "plus") { manager.createTab() }
             case .newPrivateTab:
                 return UIMenu(options: .displayInline, children: [
                     action("menu.newPrivateTab", "eye.slash") { manager.createTab(isPrivate: true) },
@@ -1073,10 +1092,6 @@ struct ContentView: View {
         presenter.present(sheet, animated: true)
     }
 
-    private static let sunriseMark: UIImage? = Bundle.main
-        .path(forResource: "sunrise-mark", ofType: "png", inDirectory: "pages")
-        .flatMap(UIImage.init(contentsOfFile:))
-
     private var onStartPage: Bool {
         guard let url = manager.activeTab?.currentURL else { return true }
         return url.scheme == "blanc" && url.host == "newtab"
@@ -1102,6 +1117,11 @@ struct ContentView: View {
 #Preview { ContentView(manager: TabsManager()) }
 
 private extension View {
+    @ViewBuilder func islandGeometry(in space: Namespace.ID, isSource: Bool, reduceMotion: Bool) -> some View {
+        if reduceMotion { self }
+        else { matchedGeometryEffect(id: "island", in: space, isSource: isSource) }
+    }
+
     /// An iPad window's close and resize controls sit in its top corner: at
     /// the top of a small window the Island starts after them.
     @ViewBuilder func clearOfWindowControls(_ atTop: Bool) -> some View {
@@ -1157,5 +1177,17 @@ struct SplitPaneLayout: Layout {
         let widths = SplitModel.paneWidths(ratio, width: inner.width, gap: gap)
         return [CGRect(x: inner.minX, y: inner.minY, width: widths.leading, height: inner.height),
                 CGRect(x: inner.minX + widths.leading + gap, y: inner.minY, width: widths.trailing, height: inner.height)]
+    }
+}
+
+private extension View {
+    /// Centered on the whole screen rather than its safe area: the unfolded
+    /// iPhone Duo keeps its status bar in a column down one side, which left
+    /// the Island off the page's center (owner, 2026-11-21). A shift of half
+    /// the difference between the side insets, so the view keeps its layout
+    /// (a list inside keeps its own margins); with equal or no side insets it
+    /// changes nothing.
+    func centeredOnScreen(_ insets: EdgeInsets) -> some View {
+        offset(x: (insets.trailing - insets.leading) / 2)
     }
 }

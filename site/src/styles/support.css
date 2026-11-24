@@ -1,0 +1,442 @@
+/* Support (redesign of November 23, 2026). The answer rows themselves
+   (.answer-topic, .answer-body) stay in reference.css, shared with the
+   Privacy & Security page's guides. */
+.support-body,
+.support-hero-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+.support-body {
+  padding-bottom: 100px;
+}
+.support-page :is(section, [id]) {
+  scroll-margin-top: 74px;
+}
+.support-page .section-kicker {
+  font-family: var(--font-brand-text);
+  letter-spacing: 0.09em;
+  font-size: 11px;
+}
+
+/* Hero: a night sky like Privacy & Security's, with the gold Sunrise rising
+   on the horizon line. It runs the full window width out of the centered
+   page; the clear header sits over it on wide windows (Header.astro). */
+.support-hero {
+  position: relative;
+  isolation: isolate;
+  padding: 72px 0 150px;
+  background:
+    radial-gradient(34% 58% at 76% 40%, rgb(240 176 96 / 0.5), rgb(226 150 72 / 0.16) 50%, transparent 72%),
+    radial-gradient(110% 85% at 50% 118%, rgb(240 150 60 / 0.85), rgb(196 100 38 / 0.45) 34%, rgb(96 46 20 / 0.2) 58%, transparent 76%),
+    radial-gradient(60% 50% at 8% 0%, rgb(120 86 48 / 0.35), transparent 70%),
+    linear-gradient(180deg, #0c0b0a 0%, #15110d 45%, #2d1b10 100%);
+  color: #f6f2ea;
+}
+@media (min-width: 921px) {
+  :root:has(.revamp-header[data-overlay-tone="dark"][data-overlay]) .support-hero {
+    padding-top: calc(72px + var(--site-header-h));
+  }
+}
+/* The horizon: one gold hairline where the glow meets the ground. */
+.support-hero::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 132px;
+  left: 0;
+  z-index: -1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(212 173 102 / 0.55) 30%, rgb(244 210 150 / 0.85) 50%, rgb(212 173 102 / 0.55) 70%, transparent);
+  box-shadow: 0 0 24px 2px rgb(232 170 90 / 0.35);
+}
+.support-hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 28px 48px;
+  align-items: center;
+}
+.support-hero-text,
+.support-hero-tools {
+  grid-column: 1;
+}
+.support-hero-tools {
+  max-width: 560px;
+}
+.support-hero-mark {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: end;
+  justify-self: center;
+  width: min(100%, 380px);
+  height: auto;
+  margin-bottom: -40px;
+  filter: drop-shadow(0 20px 40px rgb(0 0 0 / 0.45));
+}
+.support-hero .section-kicker {
+  color: var(--site-gold-on-dark);
+}
+.support-hero h1 {
+  font: 400 clamp(46px, 6.2vw, 80px) / 1.02 var(--site-font-display);
+  letter-spacing: 0;
+  margin: 18px 0 22px;
+  color: #f6f2ea;
+}
+.support-lede {
+  max-width: 460px;
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.65;
+  color: #b9b2a6;
+}
+.support-search > label {
+  display: block;
+  font-size: 12px;
+  color: #b9b2a6;
+  margin-bottom: 10px;
+}
+.support-search > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 13px 18px;
+  background: rgb(255 255 255 / 0.96);
+  color: var(--ink);
+}
+/* The box shows focus where :has() works; elsewhere the input keeps its own
+   outline. */
+@supports selector(:has(*)) {
+  .support-search > div:has(input:focus-visible) {
+    border-color: var(--gold);
+    outline: 2px solid var(--site-gold-on-dark);
+    outline-offset: 3px;
+  }
+  .support-search input:focus-visible {
+    outline: none;
+  }
+}
+.support-search svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  color: var(--dim);
+}
+.support-search input {
+  font: 400 15px/1.5 var(--font-brand-text);
+  background: none;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+}
+.support-search button {
+  background: none;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--gold);
+}
+.support-search > p {
+  min-height: 20px;
+  font-size: 12px;
+  margin: 8px 0 0;
+  color: #b9b2a6;
+}
+.support-shortcuts > p {
+  margin: 6px 0 10px;
+  font-size: 12px;
+  color: #b9b2a6;
+}
+.support-shortcuts ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.support-shortcuts a {
+  display: inline-block;
+  padding: 7px 13px;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.08);
+  color: #f2efe8;
+  font-size: 13px;
+  text-decoration: none;
+  transition: border-color 160ms, background-color 160ms;
+}
+.support-shortcuts a:hover {
+  border-color: rgb(244 210 150 / 0.7);
+  background: rgb(255 255 255 / 0.14);
+}
+.support-hero a:focus-visible {
+  outline-color: var(--site-gold-on-dark);
+}
+
+/* Product tabs: radios switch the panels in CSS; answers.js only preselects
+   and follows deep links. The radios sit inside their labels, out of sight
+   but focusable for the keyboard. */
+.support-product-radio {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.support-tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  margin: -40px 0 40px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--site-surface-raised);
+  box-shadow: 0 30px 60px -36px rgb(14 10 6 / 0.55);
+}
+.support-tabs label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border-radius: 11px;
+  font-size: 15px;
+  color: var(--dim);
+  cursor: pointer;
+  transition: background-color 160ms, color 160ms, box-shadow 160ms;
+}
+.support-tabs svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.support-tabs label:hover {
+  color: var(--ink);
+}
+.support-tabs label:has(:checked) {
+  background: var(--site-surface);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.support-tabs label:has(:focus-visible) {
+  outline: 2px solid var(--site-gold);
+  outline-offset: 2px;
+}
+.support-panel-label {
+  display: none;
+}
+/* Where :has() works, the checked tab's panel is the one that shows. Without
+   scripting, a link into another tab (/support#iphone-pair) shows that tab;
+   answers.js marks the products [data-scripted] and checks the radio itself. */
+@supports selector(:has(*)) {
+  .support-panel {
+    display: none;
+  }
+  .support-products:has(#support-product-desktop:checked) [data-panel="desktop"],
+  .support-products:has(#support-product-iphone:checked) [data-panel="iphone"],
+  .support-products:has(#support-product-beta:checked) [data-panel="beta"],
+  .support-products:has(#support-product-mail:checked) [data-panel="mail"] {
+    display: block;
+  }
+  /* The checked tab's rule matches by id, so only !important can hide it
+     here; this applies only without scripting. */
+  .support-products:not([data-scripted]):has(.support-panel :target) .support-panel:not(:has(:target)) {
+    display: none !important;
+  }
+  .support-products:not([data-scripted]) .support-panel:has(:target) {
+    display: block;
+  }
+}
+/* Without :has(), every product shows, each under its name, as in a search. */
+@supports not selector(:has(*)) {
+  .support-tabs {
+    display: none;
+  }
+  .support-panel-label {
+    display: block;
+    margin: 40px 0 0;
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+}
+/* While searching, every product's matches show, each under its name. */
+.support-products[data-searching] .support-tabs {
+  display: none;
+}
+.support-products[data-searching] {
+  padding-top: 8px;
+}
+.support-products[data-searching] .support-panel:not([hidden]) {
+  display: block;
+}
+.support-products[data-searching] .support-panel-label {
+  display: block;
+  margin: 40px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* Topic groups: a two-column list of headings and their answers. */
+.support-group {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: 0 48px;
+  margin: 0;
+  padding: 34px 0;
+  border-top: 1px solid var(--line);
+}
+.support-group:first-of-type {
+  border-top: 0;
+}
+.support-group > h2 {
+  grid-column: 1;
+  grid-row: 1 / span 40;
+  margin: 18px 0 0;
+  font: 400 28px/1.15 var(--site-font-display);
+  letter-spacing: 0;
+}
+.support-group > .answer-topic {
+  grid-column: 2;
+}
+.support-group > .answer-topic:first-of-type {
+  border-top: 0;
+}
+.support-group > .answer-topic:last-child {
+  border-bottom: 0;
+}
+
+.search-empty {
+  padding: 28px 0;
+  font-size: 15px;
+  color: var(--dim);
+}
+
+/* Still need help? */
+.support-contact {
+  margin-top: 64px;
+  padding: 44px 48px 48px;
+  border-radius: 24px;
+  background: var(--site-surface);
+}
+.support-contact h2 {
+  font: 400 38px/1.1 var(--site-font-display);
+  letter-spacing: 0;
+  margin: 0 0 14px;
+}
+.support-contact > p {
+  max-width: 590px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--dim);
+}
+.contact-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 56px;
+  margin-top: 28px;
+}
+.contact-groups h3 {
+  margin: 0 0 8px;
+  font: 400 12px/1.4 var(--font-brand-text);
+  letter-spacing: 0.06em;
+  color: var(--gold);
+}
+.contact-groups ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--line);
+}
+.contact-groups a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 0;
+  border-top: 1px solid var(--line);
+  color: inherit;
+  font-size: 15px;
+  text-decoration: none;
+}
+.contact-groups a:hover {
+  color: var(--gold);
+}
+.contact-groups svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--gold);
+}
+.contact-groups small {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+@media (max-width: 900px) {
+  .support-hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .support-hero-mark {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    width: 140px;
+    margin: 0;
+  }
+  .support-group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .support-group > h2 {
+    grid-row: auto;
+    margin: 0 0 8px;
+  }
+  .support-group > .answer-topic {
+    grid-column: 1;
+  }
+}
+@media (max-width: 760px) {
+  .support-body,
+  .support-hero-inner {
+    padding: 0 20px;
+  }
+  .support-body {
+    padding-bottom: 66px;
+  }
+  .support-hero {
+    padding: 32px 0 110px;
+  }
+  .support-hero::after {
+    bottom: 92px;
+  }
+  .support-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .support-tabs label {
+    justify-content: flex-start;
+    font-size: 14px;
+  }
+  .support-contact {
+    padding: 32px 22px 36px;
+  }
+  .contact-groups {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .support-tabs label,
+  .support-shortcuts a {
+    transition: none;
+  }
+}

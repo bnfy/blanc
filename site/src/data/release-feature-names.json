@@ -1,4 +1,5 @@
 {
+  "1.52.0": ["Spaces across profiles", "Open HTML files on Windows"],
   "1.51.0": ["Favorites in a tab, with editing", "Widgets on the Start Page", "Wallpaper behind the Island"],
   "1.50.0": ["Folders inside folders in Favorites", "Ask before reaching the local network", "Downloads without asking"],
   "1.49.1": ["Switch to an unused new tab"],

@@ -10,7 +10,9 @@ final class KeyboardShortcutsUITests: XCTestCase {
     try XCTSkipUnless(ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 27,
                       "hardware-keyboard shortcuts didn't reach the app on iOS 26 in CI")
     let app = XCUIApplication()
-    app.launchArguments = ["-BlancUITestTwoTabs"]
+    // Default settings: the search test expects DuckDuckGo, whatever engine
+    // this simulator was set to.
+    app.launchArguments = ["-BlancUITestTwoTabs", "-BlancUITestSettings", "-BlancUITestSettingsReset"]
     app.launch()
     XCTAssertTrue(app.buttons["pill.palette"].waitForExistence(timeout: 15))
     return app

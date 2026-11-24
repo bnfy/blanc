@@ -14,10 +14,14 @@ const ledger = JSON.parse(read(`docs/website-blanc-beta-${beta.version}-claims.j
 const feed = read(`site/public${beta.feed}`);
 const page = read('site/src/pages/download.astro');
 
+// The Blanc Beta panel's heading and sentence, then the Mac row (since
+// 2026-11-23 the three betas are rows of one panel; this ledger records the
+// panel's own text).
 const section = () => {
-  const start = page.indexOf('<article class="dl-tile dl-tile--beta" id="beta"');
-  assert.ok(start > 0, 'the Download page has the Blanc Beta tile');
-  return page.slice(start, page.indexOf('</article>', start));
+  const start = page.indexOf('<section class="dl-tile dl-tile--beta dl-betas" id="betas"');
+  const row = page.indexOf('<article class="dl-beta-row" id="beta"');
+  assert.ok(start > 0 && row > start, 'the Download page has the Blanc Beta panel and its Mac row');
+  return page.slice(start, page.indexOf('</article>', row));
 };
 const releaseDay = new Date(`${beta.published}T00:00:00Z`)
   .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
@@ -80,5 +84,6 @@ test('the beta is never one of the platform choices, and leads the tiles', () =>
   assert.doesNotMatch(chooser, /Blanc Beta/);
   assert.doesNotMatch(chooser, /dl\/beta/);
   const tiles = page.slice(page.indexOf('id="download-more"'));
-  assert.ok(tiles.indexOf('id="beta"') < tiles.indexOf('id="iphone"'), 'Blanc Beta is the first tile');
+  assert.ok(tiles.indexOf('id="betas"') > 0 && tiles.indexOf('id="betas"') < tiles.indexOf('id="beta-iphone"'), 'Blanc Beta is the first tile');
+  assert.ok(tiles.indexOf('id="beta"') < tiles.indexOf('id="beta-windows"'), 'the Mac row leads');
 });

@@ -3,12 +3,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import MailAppFeatures from '../components/MailAppFeatures.astro';
 import MailBar from '../components/MailBar.astro';
+import MailShot from '../components/MailShot.astro';
 import MailTeaser from '../components/MailTeaser.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import survey from '../data/mail-survey.json';
 import reservations from '../data/mail-reservations.json';
 import MailSurveyInvite from '../components/MailSurveyInvite.astro';
 import { checkoutHrefFor, priceFor, productFor } from '../data/mail-commerce.mjs';
+import { mailQuestions as questions, mailSupportTopics as support } from '../data/mail-questions.mjs';
 import '../styles/mail.css';
 import '../styles/mail-overview.css';
 
@@ -23,110 +25,88 @@ const addressSteps = [
 const { open: reservationsOpen, endings } = reservations;
 const exampleAddress = `mira@${endings[0]}`;
 const addressPremium = (productFor('mail-address-annual').amount - productFor('mail-annual').amount) / 100;
-const plans = [
-  {
-    key: 'mail', name: 'Blanc Mail', periods: ['monthly', 'annual'],
-    benefits: ['The Mac app for your existing email accounts', '14-day local app trial', 'No payment card needed for the trial'],
-  },
-  {
-    key: 'mail-address', name: 'Blanc Mail + Address', periods: ['annual'],
-    benefits: ['Everything in Blanc Mail', 'Your own Blanc address with 15 GB for mail and attachments', `$${addressPremium} more per year than the app alone`],
-  },
-  {
-    key: 'suite', name: 'Blanc Bundle', periods: ['monthly', 'annual'],
-    benefits: ['The Mac app and a 15 GB Blanc mailbox', 'Blanc Browser Patron on desktop',
-      { name: 'Nodding Off', href: 'https://noddingoffapp.com/', detail: ', bedtime stories for iPhone' }],
-  },
-] as const;
-const questions = [
-  { title: 'Do I need a new email address?', answer: 'You can keep your current address. Connect a Google account directly, or a Proton account through Proton Mail Bridge on your Mac. You can also use a Blanc address on its own.' },
-  { title: 'Which tools help me keep up with mail?', answer: 'Bring up to five Gmail accounts into one inbox. Snooze a conversation, reuse a reply template, or schedule a message to go out when Blanc Mail is running and online on your Mac.' },
-  { title: 'How can I keep conversations off my screen?', answer: 'Ghost Mode hides a conversation or Gmail label and locks it again on a timer. Touch ID or your password brings it back into view. Ghost Mode controls what appears on screen.' },
-  { title: 'What does reserving a name get me?', answer: 'A confirmed reservation holds your name across the Blanc endings until 30 days after addresses open. Use the email you reserved with to claim it. The mailbox starts when you claim the address with an eligible paid plan.' },
-  { title: 'Can I try the Mac app first?', answer: 'At launch the Mac app will have a 14-day local trial. You can start it without a payment card.' },
-  { title: 'What is encrypted in a Blanc mailbox?', answer: 'Messages and attachments in your Blanc mailbox are encrypted where they are stored, with a key made on your Mac. Blanc keeps only a copy of the key locked with your password, which stays on your Mac. Senders, recipients, subjects and dates remain visible. The server can read mail as it arrives and as it is sent.' },
-  { title: 'What if I forget my mailbox password?', answer: 'A code sent to your backup email gets you back into your account. On a new Mac, a forgotten password means you cannot open mail you received before recovery.' },
-  { title: 'What happens if my subscription ends?', answer: 'In the Mac app you can still read, search and export mail. Composing and sending resume when you renew. A Blanc mailbox keeps receiving mail for 30 days after your subscription lapses. Before deleting a mailbox, Blanc emails you instructions for exporting your mail.' },
-  { title: 'I’m a Browser Patron. How will the Bundle work?', answer: 'At launch, you can upgrade through Polar on the same billing period. Your existing Browser key keeps working. Patron and founding benefits apply to Browser, and its free features stay free.' },
-];
-const support = [
-  { title: 'Accounts and data', html: 'Blanc Mail connects to Gmail with Google Sign-In. Removing an account clears its local cache after any pending draft recovery is resolved. You can also revoke the app’s access from your <a href="https://myaccount.google.com/permissions">Google Account permissions</a>.' },
-  { title: 'Uninstalling', html: 'Quit the app and move Blanc Mail to the Trash. To erase local settings and recovery data too, first resolve any drafts you need, then remove the app’s data under your Mac’s Application Support folder. Renaming the app does not erase an existing test install’s local data or Keychain credentials.' },
-  { title: 'Updates and licensing', html: 'After launch, Check for Updates in the app will use its signed Sparkle feed. New subscriptions will be handled by Polar. Existing beta keys will continue to work. To have a previous key sent again, email <!--email_off--><a href="mailto:support@blanc.day">support@blanc.day</a><!--/email_off--> from the address you bought it with.' },
-];
+// One plan on the page (owner, November 24, 2026). The address is an annual add-on
+// sold as the Blanc Mail + Address product, and Blanc Bundle is the upgrade for
+// Browser Patrons, named under the card rather than as a plan of its own.
+const plan = {
+  key: 'mail', name: 'Blanc Mail',
+  benefits: ['The Mac app for your existing email accounts', '14-day local app trial', 'No payment card needed for the trial'],
+};
+const addressCheckout = checkoutHrefFor('mail-address-annual');
+// The hero's window: Blanc Mail's light capture of its demo inbox (sample mail
+// only), taken with the Mail repository's capture-public-shots.sh. The alt
+// text describes what the image shows; update it with each recapture.
+const heroShot = {
+  name: 'hero-light',
+  width: 2200,
+  height: 1455,
+  alt: 'Blanc Mail on a Mac in the light appearance, showing sample mail: the Inbox with Work, Family, Finance and Shopping groups, a list of eight conversations, and Theo Lindqvist’s “Spring lookbook: final selects” thread open, with a photo of a white ceramic vase and two cups.',
+};
 ---
-<BaseLayout title="Blanc Mail — A little less inbox" description="A mail app for Mac, coming soon. Bring your Gmail or Proton Mail account, or add a Blanc address of your own. Compare Blanc Mail, Mail + Address, and Blanc Bundle." path="/mail" header="solid">
+<BaseLayout title="Blanc Mail — A little less inbox" description="A mail app for Mac, coming soon. Bring your Gmail account, or add a Blanc address of your own. Planned at $4.99 a month or $49.99 a year." path="/mail" header="solid">
   <MailBar />
   <main id="main-content" class="mail-overview">
+    <!-- The hero (owner, November 24, 2026): one primary action, then the real
+         app. While reservations are open that action is Reserve your address and
+         the waitlist is a quiet link; once they close, the waitlist leads. The
+         window is a capture of the signed demo build (Mail repository,
+         capture-public-shots.sh main, the light scene), refreshed whenever the app's UI changes. -->
     <section class="offer-hero" aria-labelledby="offer-title">
-      <div class="offer-opening">
-        <p class="mail-eyebrow">Blanc Mail · for Mac · Coming soon</p>
-        <h1 id="offer-title"><span class="mail-gold-text">A little less inbox.</span></h1>
-        <p class="offer-intro">A mail app for Mac. Bring your Gmail or Proton Mail account, or add a Blanc address of your own.</p>
-        <div class="envelope-stage" aria-hidden="true">
-          <!-- The Mail icon as an object: a gold envelope, its flap and folds
-               engraved, the Sunrise stamped where the flap meets. Decorative. -->
-          <div class="mail-envelope" data-mail-envelope>
-            <div class="mail-envelope-face">
-              <svg class="mail-envelope-folds" viewBox="0 0 800 500" preserveAspectRatio="none">
-                <path class="mail-groove" d="M0 0 L400 290 L800 0" />
-                <path class="mail-groove-lip" d="M0 2 L400 292 L800 2" />
-                <path class="mail-groove" d="M0 500 L330 248 M800 500 L470 248" />
-                <path class="mail-groove-lip" d="M0 502 L330 250 M800 502 L470 250" />
-              </svg>
-              <span class="mail-hallmark"><BrandMark class="mail-hallmark-lip" /><BrandMark class="mail-hallmark-cut" /></span>
-            </div>
-          </div>
+      <p class="mail-eyebrow">Blanc Mail · for Mac · Coming soon</p>
+      <h1 id="offer-title"><span class="mail-gold-text">A little less inbox.</span></h1>
+      <p class="offer-intro">A mail app for Mac. Bring your Gmail account, or add a Blanc address of your own.</p>
+      {reservationsOpen ? (
+        <div class="offer-actions">
+          <a class="offer-action" href="/mail/reserve">Reserve your address</a>
+          <p class="offer-note">Reserving a name like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong> is free. The address and its 15 GB mailbox come with a paid plan at launch.</p>
+          <details class="offer-signup">
+            <summary class="offer-link">Keeping your Gmail? Join the waitlist</summary>
+            <MailWaitlistForm />
+          </details>
         </div>
-      </div>
-      <div class="offer-paths">
-        <div class="offer-path">
-          <h2>Keep your email address</h2>
-          <p>Connect Gmail directly, or use your Proton Mail account through Proton Mail Bridge on your Mac.</p>
+      ) : (
+        <div class="offer-actions">
           <details class="offer-signup">
             <summary class="offer-action">Join the app waitlist</summary>
             <MailWaitlistForm />
           </details>
+          <p class="offer-note">Choose an address like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong>. The address and its 15 GB mailbox come with a paid plan at launch.</p>
+          <a class="offer-link" href="#address">Explore Blanc addresses</a>
         </div>
-        <div class="offer-path">
-          <h2>Get a Blanc address</h2>
-          <p>{reservationsOpen ? 'Reserve a name like ' : 'Choose an address like '}<strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong>{reservationsOpen ? ' for free. ' : '. '}The 15 GB mailbox comes with a paid plan at launch.</p>
-          <a class="offer-action" href={reservationsOpen ? '/mail/reserve' : '#address'}>{reservationsOpen ? 'Reserve your address' : 'Explore Blanc addresses'}</a>
-        </div>
-      </div>
-      <a class="offer-jump" href="#pricing">Compare plans <span aria-hidden="true">↓</span></a>
+      )}
       {survey.open && <p class="mail-survey-link"><a href="/mail/survey">Help shape Blanc Mail: tell us what you’d want, anonymously.</a></p>}
+      <MailShot class="offer-shot" name={heroShot.name} alt={heroShot.alt} width={heroShot.width} height={heroShot.height} eager priority sizes="(max-width: 1180px) 100vw, 1120px" />
     </section>
 
     <section id="pricing" class="overview-section pricing-section" aria-labelledby="plans-title">
-      <h2 id="plans-title"><span class="mail-gold-text">Compare plans</span></h2>
+      <h2 id="plans-title"><span class="mail-gold-text">Pricing</span></h2>
       <p class="section-intro">Planned pricing at launch. Purchases are not open yet.</p>
-      <ul class="offer-plans" role="list">
-        {plans.map(plan => (
-          <li class="offer-plan">
-            <h3>{plan.name}</h3>
-            <div class="offer-prices">
-              <p><strong class="mail-gold-text">{priceFor(`${plan.key}-annual`)}</strong> / year</p>
-              <p>{plan.periods.length === 2 ? <>or <strong class="mail-gold-text">{priceFor(`${plan.key}-monthly`)}</strong> / month</> : 'Annual billing only'}</p>
-            </div>
-            <div>
-              <ul class="plan-benefits" role="list">
-                {plan.benefits.map(benefit => <li>{typeof benefit === 'string' ? benefit : <><a href={benefit.href}>{benefit.name}</a>{benefit.detail}</>}</li>)}
-              </ul>
-              {plan.periods.map(period => {
-                const href = checkoutHrefFor(`${plan.key}-${period}`);
-                return href && <a class="plan-checkout" href={href}>Choose {plan.name} — {period}</a>;
-              })}
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div class="offer-plan">
+        <h3>{plan.name}</h3>
+        <div class="offer-prices">
+          <p><strong class="mail-gold-text">{priceFor(`${plan.key}-annual`)}</strong> / year</p>
+          <p>or <strong class="mail-gold-text">{priceFor(`${plan.key}-monthly`)}</strong> / month</p>
+        </div>
+        <ul class="plan-benefits" role="list">
+          {plan.benefits.map(benefit => <li>{benefit}</li>)}
+        </ul>
+        {['annual', 'monthly'].map(period => {
+          const href = checkoutHrefFor(`${plan.key}-${period}`);
+          return href && <a class="plan-checkout" href={href}>Choose {plan.name} — {period}</a>;
+        })}
+        <div class="plan-addon">
+          <h4>Add a Blanc address</h4>
+          <p>${addressPremium} more a year, {priceFor('mail-address-annual')} in all. Your own Blanc address with 15 GB for mail and attachments. Annual billing only.</p>
+          {addressCheckout && <a class="plan-checkout" href={addressCheckout}>Choose Blanc Mail + Address — annual</a>}
+        </div>
+      </div>
+      <p class="plan-upgrade">Browser Patrons can upgrade to Blanc Bundle for {priceFor('suite-annual')} a year or {priceFor('suite-monthly')} a month. It adds Blanc Mail, a Blanc address and <a href="https://noddingoffapp.com/">Nodding Off</a>, bedtime stories for iPhone.</p>
     </section>
 
     <section id="address" class="overview-section address-section" aria-labelledby="address-title">
       <div class="address-intro">
         <h2 id="address-title"><span class="mail-gold-text">A private mailbox of your own.</span></h2>
-        <p>Choose an address like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong> when addresses open. A mailbox comes with Blanc Mail + Address and Blanc Bundle.</p>
+        <p>Choose an address like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong> when addresses open. Add a mailbox to Blanc Mail for ${addressPremium} more a year.</p>
       </div>
       <ul id="address-features" class="address-features" aria-label="Blanc mailbox features">
         <li>
@@ -182,6 +162,22 @@ const support = [
 
     <section id="download" class="overview-section signup-spread" aria-labelledby="download-title">
       <div>
+        <div class="envelope-stage" aria-hidden="true">
+          <!-- The Mail icon as an object: a gold envelope, its flap and folds
+               engraved, the Sunrise stamped where the flap meets. Decorative.
+               It closes the page since the hero shows the app (November 24, 2026). -->
+          <div class="mail-envelope" data-mail-envelope>
+            <div class="mail-envelope-face">
+              <svg class="mail-envelope-folds" viewBox="0 0 800 500" preserveAspectRatio="none">
+                <path class="mail-groove" d="M0 0 L400 290 L800 0" />
+                <path class="mail-groove-lip" d="M0 2 L400 292 L800 2" />
+                <path class="mail-groove" d="M0 500 L330 248 M800 500 L470 248" />
+                <path class="mail-groove-lip" d="M0 502 L330 250 M800 502 L470 250" />
+              </svg>
+              <span class="mail-hallmark"><BrandMark class="mail-hallmark-lip" /><BrandMark class="mail-hallmark-cut" /></span>
+            </div>
+          </div>
+        </div>
         <h2 id="download-title"><span class="mail-gold-text">Get Blanc Mail at launch.</span></h2>
         <p>For macOS 14 or later on an Apple Silicon or Intel Mac. Join the waitlist for an email when the Mac app is ready to download.</p>
         <p class="mail-legal"><a href="/mail/privacy">Privacy</a> · <a href="/mail/terms">Terms</a></p>
@@ -209,10 +205,12 @@ const support = [
       envelope.style.removeProperty('--my');
     };
     // Off screen, the envelope needs no light: skip the work and let it rest.
+    // The first time a third of it is in view, the light sweeps across it once.
     new IntersectionObserver(([entry]) => {
       inView = entry.isIntersecting;
       if (!inView) settle();
-    }).observe(envelope);
+      else if (entry.intersectionRatio >= 0.33) envelope.dataset.lit = '';
+    }, { threshold: [0, 0.33] }).observe(envelope);
     document.addEventListener('pointermove', (event) => {
       if (still.matches || !inView || event.pointerType !== 'mouse') return;
       cancelAnimationFrame(frame);

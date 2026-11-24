@@ -15,8 +15,8 @@ const ledger = JSON.parse(read(`docs/website-blanc-beta-windows-${win.version}-c
 const page = read('site/src/pages/download.astro');
 
 const section = () => {
-  const start = page.indexOf('<article class="dl-tile dl-tile--beta dl-tile--beta-win" id="beta-windows"');
-  assert.ok(start > 0, 'the Download page has the Blanc Beta for Windows tile');
+  const start = page.indexOf('<article class="dl-beta-row" id="beta-windows"');
+  assert.ok(start > 0, 'the Download page has the Blanc Beta for Windows row');
   return page.slice(start, page.indexOf('</article>', start));
 };
 const releaseDay = new Date(`${win.published}T00:00:00Z`)
@@ -71,12 +71,12 @@ test('it follows the Mac beta and is never one of the platform choices', () => {
   assert.doesNotMatch(chooser, /beta-win|Blanc Beta for Windows/);
   const tiles = page.slice(page.indexOf('id="download-more"'));
   assert.ok(tiles.indexOf('id="beta"') < tiles.indexOf('id="beta-windows"'));
-  assert.ok(tiles.indexOf('id="beta-windows"') < tiles.indexOf('id="iphone"'));
+  assert.ok(tiles.indexOf('id="beta-windows"') < tiles.indexOf('id="beta-iphone"'));
 });
 
-test('the Mac beta tile no longer lists Windows as missing', () => {
-  const start = page.indexOf('<article class="dl-tile dl-tile--beta" id="beta"');
+test('the Mac beta tile no longer lists Windows (or Linux) as missing', () => {
+  const start = page.indexOf('<article class="dl-beta-row" id="beta"');
   const mac = page.slice(start, page.indexOf('</article>', start));
-  assert.doesNotMatch(mac, /Windows/);
-  assert.match(mac, /Intel Macs and Linux\./);
+  assert.doesNotMatch(mac, /Windows|Linux/);
+  assert.match(mac, /<li>Intel Macs\.<\/li>/);
 });

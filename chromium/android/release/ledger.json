@@ -27,6 +27,41 @@
       "state": "uploaded",
       "date": "2026-11-16T18:53:30.041Z",
       "note": "Verified local Android handoff; release/device evidence pending."
+    },
+    {
+      "versionCode": 4,
+      "versionName": "1.0.0-beta.4",
+      "tag": "android-v1.0.0-beta.4-4",
+      "commit": "402d8ec60646676b4b3fd1b64ee353fb00d56a0d",
+      "state": "uploaded",
+      "date": "2026-11-22T00:34:41.700Z",
+      "note": "Verified local Android handoff; release/device evidence pending."
+    },
+    {
+      "versionCode": 5,
+      "versionName": "1.0.0-beta.5",
+      "tag": "android-v1.0.0-beta.5-5",
+      "commit": "c03aecfed3349b5043fb795cffd9d54825e81daa",
+      "state": "uploaded",
+      "date": "2026-11-22T03:04:08.427Z",
+      "note": "Verified local Android handoff; release/device evidence pending."
+    },
+    {
+      "versionCode": 6,
+      "versionName": "1.0.0-beta.6",
+      "tag": "android-v1.0.0-beta.6-6",
+      "commit": "16742ddf0815456930c7bceda9efc61a2860e49e",
+      "state": "uploaded",
+      "date": "2026-11-23T23:06:48.718Z",
+      "note": "Verified local Android handoff; release/device evidence pending.",
+      "published": [
+        {
+          "track": "alpha",
+          "status": "completed",
+          "date": "2026-11-24T00:44:28.351Z",
+          "editId": "10002286477570989624"
+        }
+      ]
     }
   ]
 }

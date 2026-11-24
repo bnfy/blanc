@@ -38,12 +38,9 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import com.google.android.material.appbar.AppBarLayout;
 
-import org.chromium.base.Callback;
-import org.chromium.base.CallbackUtils;
 import org.chromium.base.DeviceInfo;
 import org.chromium.base.Log;
 import org.chromium.base.metrics.RecordHistogram;
-import org.chromium.base.supplier.MonotonicObservableSupplier;
 import org.chromium.base.supplier.ObservableSuppliers;
 import org.chromium.base.supplier.OneshotSupplierImpl;
 import org.chromium.build.annotations.NullMarked;
@@ -170,7 +167,7 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
     // This is only used on automotive.
     private @Nullable MissingDeviceLockLauncher mMissingDeviceLockLauncher;
 
-    // Refers the instance only when SettingsMultiColumn is enabled.
+    // Null in standalone mode.
     private @Nullable MultiColumnSettings mMultiColumnSettings;
 
     // Used to manage and show new intents;
@@ -187,10 +184,6 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
     private @Nullable OnKeyDownHandler mMainFragmentKeyDownHandler;
     private @Nullable OnKeyDownHandler mBottomSheetKeyDownHandler;
 
-    // Update handler of the Settings activity title. mTitleUpdater is used (i.e. nonnull)
-    // in multi-column mode is disabled, and mMultiColumnTitleUpdater is used iff
-    // multi-column mode is enabled.
-    private @Nullable TitleUpdater mTitleUpdater;
     private @Nullable MultiColumnTitleUpdater mMultiColumnTitleUpdater;
 
     // Used to record the Settings activity usage duration in ms. This is recorded at |onDestroy|
@@ -229,16 +222,18 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
         AuxiliarySearchControllerFactory.getInstance()
                 .setIsTablet(DeviceFormFactor.isNonMultiDisplayContextOnTablet(this));
 
-        if (savedInstanceState == null && isMultiColumnSettingEnabled()) {
-            mInitialBreadcrumbPath =
-                    SettingsBreadcrumbUtil.getInitialBreadcrumbPath(
-                            /* context= */ this,
-                            assertNonNull(mProfile),
-                            getIntent().getStringExtra(EXTRA_SHOW_FRAGMENT),
-                            getIntent().getBundleExtra(EXTRA_SHOW_FRAGMENT_ARGUMENTS));
-        } else if (savedInstanceState != null) {
-            mInitialBreadcrumbPath =
-                    SettingsBreadcrumbUtil.getInitialBreadcrumbPath(savedInstanceState);
+        if (!mStandalone) {
+            if (savedInstanceState == null) {
+                mInitialBreadcrumbPath =
+                        SettingsBreadcrumbUtil.getInitialBreadcrumbPath(
+                                /* context= */ this,
+                                assertNonNull(mProfile),
+                                getIntent().getStringExtra(EXTRA_SHOW_FRAGMENT),
+                                getIntent().getBundleExtra(EXTRA_SHOW_FRAGMENT_ARGUMENTS));
+            } else {
+                mInitialBreadcrumbPath =
+                        SettingsBreadcrumbUtil.getInitialBreadcrumbPath(savedInstanceState);
+            }
         }
 
         // Register fragment lifecycle callbacks before calling super.onCreate() because it may
@@ -279,7 +274,7 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
         // recreated and super.onCreate() has already recreated the fragment.
         if (savedInstanceState == null) {
             // In standalone mode, we shouldn't have multi column.
-            if (!mStandalone && isMultiColumnSettingEnabled()) {
+            if (!mStandalone) {
                 // Do NOT set MAIN_FRAGMENT_TAG in this case, so page-title updating,
                 // setting the padding depending on window size, and metrics are temporarily
                 // disabled for development.
@@ -304,20 +299,10 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
         }
 
         if (!mStandalone) {
-            if (isMultiColumnSettingEnabled()) {
-                assert mMultiColumnSettings != null;
-                mMultiColumnSettings.addObserver(this);
-                createMultiColumnTitleUpdater(savedInstanceState);
-                createSearchCoordinator(savedInstanceState);
-            } else {
-                mTitleUpdater = new TitleUpdater();
-                fragmentManager.registerFragmentLifecycleCallbacks(
-                        mTitleUpdater, /* recursive= */ true);
-                // We need search only on MainSettings in single column mode.
-                if (getIntent().getStringExtra(EXTRA_SHOW_FRAGMENT) == null) {
-                    createSearchCoordinator(savedInstanceState);
-                }
-            }
+            assert mMultiColumnSettings != null;
+            mMultiColumnSettings.addObserver(this);
+            createMultiColumnTitleUpdater(savedInstanceState);
+            createSearchCoordinator(savedInstanceState);
         }
 
         maybeCreateAppHeaderCoordinator(savedInstanceState);
@@ -470,11 +455,8 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
         mMultiColumnSettings.addObserver(mMultiColumnTitleUpdater);
     }
 
+    @RequiresNonNull("mMultiColumnSettings")
     private void createSearchCoordinator(@Nullable Bundle savedState) {
-        Callback<Integer> updateFirstVisibleTitle =
-                isMultiColumnSettingEnabled()
-                        ? this::updateFirstVisibleTitle
-                        : CallbackUtils.emptyCallback();
         Toolbar actionBar = findViewById(R.id.action_bar);
         mSearchCoordinator =
                 new SettingsSearchCoordinator(
@@ -482,24 +464,19 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
                         actionBar,
                         this::isTwoColumnSettingsVisible,
                         mMultiColumnSettings,
-                        mContainmentHelper.getItemDecorations(),
+                        mContainmentHelper,
                         mProfile,
-                        updateFirstVisibleTitle,
+                        this::updateFirstVisibleTitle,
                         getModalDialogManagerSupplier(),
                         /* shownInTab= */ false);
-        if (mMultiColumnSettings != null) {
-            if (savedState != null) {
-                // Title text view gets temporarily hidden while restoring the
-                // search UI to avoid flickering. See https://crbug.com/482952320.
-                assumeNonNull(ToolbarUtils.getTitleTextView(actionBar))
-                        .setVisibility(View.INVISIBLE);
-            }
-            mMultiColumnSettings.setOnCreateViewRunnable(
-                    () -> assumeNonNull(mSearchCoordinator).initializeSearchUi(savedState));
-            mMultiColumnSettings.addObserver(mSearchCoordinator);
-        } else {
-            mSearchCoordinator.initializeSearchUi(savedState);
+        if (savedState != null) {
+            // Title text view gets temporarily hidden while restoring the
+            // search UI to avoid flickering. See https://crbug.com/482952320.
+            assumeNonNull(ToolbarUtils.getTitleTextView(actionBar)).setVisibility(View.INVISIBLE);
         }
+        mMultiColumnSettings.setOnCreateViewRunnable(
+                () -> assumeNonNull(mSearchCoordinator).initializeSearchUi(savedState));
+        mMultiColumnSettings.addObserver(mSearchCoordinator);
     }
 
     private void updateFirstVisibleTitle(int index) {
@@ -510,11 +487,6 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
         if (mSearchCoordinator != null) mSearchCoordinator.onTitleTapped(entryName);
     }
 
-    /** Returns true if the SettingsMultiColumn feature is enabled. */
-    private static boolean isMultiColumnSettingEnabled() {
-        return ChromeFeatureList.sSettingsMultiColumn.isEnabled();
-    }
-
     @Override
     public void onPreferencesUpdated(PreferenceFragmentCompat fragment) {
         mContainmentHelper.postUpdateContainmentOnLayout(fragment);
@@ -523,9 +495,7 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
     /** Returns true if two-column mode is visible. */
     @Override
     public boolean isTwoColumnSettingsVisible() {
-        return isMultiColumnSettingEnabled()
-                && mMultiColumnSettings != null
-                && mMultiColumnSettings.isTwoColumn();
+        return mMultiColumnSettings != null && mMultiColumnSettings.isTwoColumn();
     }
 
     @Override
@@ -537,10 +507,6 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
     @Override
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-
-        // This callback is called only when the settings UI is operating in the single activity
-        // mode.
-        assert ChromeFeatureList.sSettingsSingleActivity.isEnabled();
 
         if (mStandalone) {
             // A standalone activity attempted to launch a non-standalone activity, but the intent
@@ -669,26 +635,27 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
 
         checkForMissingDeviceLockOnAutomotive();
 
-        if (ChromeFeatureList.sSettingsSingleActivity.isEnabled()) {
-            if (mPendingPopBackCount > 0) {
-                RecordHistogram.recordCount100Histogram(
-                        "Android.Settings.PendingPopBackWorked", mPendingPopBackCount);
-                FragmentManager fragmentManager =
-                        mMultiColumnSettings == null
-                                ? getSupportFragmentManager()
-                                : mMultiColumnSettings.getChildFragmentManager();
-                if (fragmentManager.getBackStackEntryCount() <= mPendingPopBackCount) {
-                    finish();
+        if (mPendingPopBackCount > 0) {
+            RecordHistogram.recordCount100Histogram(
+                    "Android.Settings.PendingPopBackWorked", mPendingPopBackCount);
+            FragmentManager fragmentManager =
+                    mMultiColumnSettings == null
+                            ? getSupportFragmentManager()
+                            : mMultiColumnSettings.getChildFragmentManager();
+            if (fragmentManager.getBackStackEntryCount() <= mPendingPopBackCount) {
+                if (mMultiColumnSettings != null && mMultiColumnSettings.canBeBackToMain()) {
+                    mMultiColumnSettings.showMainSettings();
                 } else {
-                    var entry =
-                            fragmentManager.getBackStackEntryAt(
-                                    fragmentManager.getBackStackEntryCount()
-                                            - mPendingPopBackCount);
-                    fragmentManager.popBackStack(
-                            entry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    finish();
                 }
-                mPendingPopBackCount = 0;
+            } else {
+                var entry =
+                        fragmentManager.getBackStackEntryAt(
+                                fragmentManager.getBackStackEntryCount() - mPendingPopBackCount);
+                fragmentManager.popBackStack(
+                        entry.getId(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
             }
+            mPendingPopBackCount = 0;
         }
         // If there is a pending intent to process from onNewIntent, process it now.
         if (mPendingNewIntent != null) {
@@ -706,11 +673,6 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
                     .addToBackStack(null)
                     .commit();
         }
-        if (mMultiColumnSettings == null && mSearchCoordinator != null) {
-            // In single-column settings, refresh the search UI layout as it can have been
-            // cluttered while showing other settings activities on top.
-            mSearchCoordinator.updateSingleColumnSearchUiWidth();
-        }
         mStartTimeSaved = false;
     }
 
@@ -721,7 +683,7 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
         }
 
         // The fragment is not yet migrated with auditing. Fallback to the legacy animation type.
-        Log.w(TAG, "Non-migrated Settings fragment is found: " + fragment.getClass().getName());
+        Log.w(TAG, "Non-migrated Settings fragment is found: %s", fragment.getClass().getName());
         return SettingsFragment.AnimationType.TWEEN;
     }
 
@@ -777,9 +739,7 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
             assert mMultiColumnSettings != null;
             mMultiColumnSettings.removeObserver(mMultiColumnTitleUpdater);
         }
-        if (mTitleUpdater != null) {
-            getSupportFragmentManager().unregisterFragmentLifecycleCallbacks(mTitleUpdater);
-        }
+        mContainmentHelper.unregisterCallbacks(getSupportFragmentManager());
         if (mSearchCoordinator != null) {
             if (mMultiColumnSettings != null) {
                 mMultiColumnSettings.removeObserver(mSearchCoordinator);
@@ -818,12 +778,15 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
         if (mMultiColumnSettings == null) {
             return getSupportFragmentManager().findFragmentById(R.id.settings_content);
         }
+        if (!mMultiColumnSettings.isAdded()) {
+            return null;
+        }
         return mMultiColumnSettings
                 .getChildFragmentManager()
                 .findFragmentById(R.id.preferences_detail);
     }
 
-    /** Returns the MultiColumnSettings if it is running in SettingsMultiColumn mode. */
+    /** Returns the MultiColumnSettings if not in standalone mode. */
     @Override
     @VisibleForTesting
     public @Nullable MultiColumnSettings getMultiColumnSettings() {
@@ -928,15 +891,15 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
 
     private void registerMainFragmentBackPressHandler() {
         Fragment activeFragment = getMainFragment();
-        if (activeFragment instanceof BackPressHandler) {
+        if (activeFragment instanceof BackPressHandler backPressHandler) {
             // We do not support embeddable fragments to implement BackPressHandler as it requires
             // keeping track of the main fragment while there is no real use case for it.
-            assert !ChromeFeatureList.sSettingsSingleActivity.isEnabled() || mStandalone;
+            assert mStandalone;
             mMainFragmentKeyDownHandler =
                     BackPressHelper.create(
                             activeFragment.getViewLifecycleOwner(),
                             getOnBackPressedDispatcher(),
-                            (BackPressHandler) activeFragment);
+                            backPressHandler);
         }
     }
 
@@ -1035,22 +998,26 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
 
         mFinishedMainFragment = new WeakReference<>(fragment);
 
-        if (ChromeFeatureList.sSettingsSingleActivity.isEnabled()) {
-            FragmentManager fragmentManager =
-                    mMultiColumnSettings == null
-                            ? getSupportFragmentManager()
-                            : mMultiColumnSettings.getChildFragmentManager();
-            if (fragmentManager.getBackStackEntryCount() == 0) {
-                finish();
-            } else {
+        FragmentManager fragmentManager =
+                mMultiColumnSettings == null
+                        ? getSupportFragmentManager()
+                        : mMultiColumnSettings.getChildFragmentManager();
+        if (fragmentManager.getBackStackEntryCount() == 0) {
+            if (mMultiColumnSettings != null && mMultiColumnSettings.canBeBackToMain()) {
                 if (fragmentManager.isStateSaved()) {
                     ++mPendingPopBackCount;
                 } else {
-                    fragmentManager.popBackStack();
+                    mMultiColumnSettings.showMainSettings();
                 }
+            } else {
+                finish();
             }
         } else {
-            finish();
+            if (fragmentManager.isStateSaved()) {
+                ++mPendingPopBackCount;
+            } else {
+                fragmentManager.popBackStack();
+            }
         }
     }
 
@@ -1064,8 +1031,9 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
      * directly.
      */
     void executePendingNavigations() {
-        if (ChromeFeatureList.sSettingsSingleActivity.isEnabled()) {
-            getSupportFragmentManager().executePendingTransactions();
+        getSupportFragmentManager().executePendingTransactions();
+        if (mMultiColumnSettings != null && mMultiColumnSettings.isAdded()) {
+            mMultiColumnSettings.getChildFragmentManager().executePendingTransactions();
         }
     }
 
@@ -1082,34 +1050,6 @@ public class SettingsActivity extends ChromeBaseAppCompatActivity
         }
 
         SettingsBreadcrumbUtil.saveInitialBreadcrumbPath(outState, mInitialBreadcrumbPath);
-    }
-
-    // TODO(crbug.com/521895796): Extract to a shared class so it can be reused by
-    // SettingsPageFragmentDelegateImpl.
-    private class TitleUpdater extends FragmentManager.FragmentLifecycleCallbacks {
-        private final Callback<String> mSetTitleCallback =
-                (title) -> {
-                    if (title == null) {
-                        title = "";
-                    }
-                    setTitle(title);
-                };
-
-        private @Nullable MonotonicObservableSupplier<String> mCurrentPageTitle;
-
-        @Override
-        public void onFragmentStarted(FragmentManager fragmentManager, Fragment fragment) {
-            assert mMultiColumnSettings == null;
-
-            // TitleUpdater is enabled only when the fragment implements EmbeddableSettingsPage.
-            if (fragment instanceof EmbeddableSettingsPage settingsFragment) {
-                if (mCurrentPageTitle != null) {
-                    mCurrentPageTitle.removeObserver(mSetTitleCallback);
-                }
-                mCurrentPageTitle = settingsFragment.getPageTitle();
-                mCurrentPageTitle.addSyncObserverAndCallIfNonNull(mSetTitleCallback);
-            }
-        }
     }
 
     @Override

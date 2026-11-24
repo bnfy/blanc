@@ -25,6 +25,9 @@ public final class SheetPlacement {
     /** The gap from the screen's bottom to the sheet's. */
     public final float bottom;
 
+    /** With the Island at the top: the gap from the status bar to the sheet's top. */
+    public final float top;
+
     /** Room inside the sheet's bottom, for the gesture bar it floats over. */
     public final float padding;
 
@@ -32,8 +35,13 @@ public final class SheetPlacement {
     public final float corner;
 
     private SheetPlacement(float side, float bottom, float padding, float corner) {
+        this(side, bottom, 0, padding, corner);
+    }
+
+    private SheetPlacement(float side, float bottom, float top, float padding, float corner) {
         this.side = side;
         this.bottom = bottom;
+        this.top = top;
         this.padding = padding;
         this.corner = corner;
     }
@@ -50,5 +58,13 @@ public final class SheetPlacement {
         // Concentric with the screen: its corner less the gap.
         float corner = Math.max(CORNER, screenCorner - INSET);
         return new SheetPlacement(INSET, INSET, Math.max(0, navigation - INSET), corner);
+    }
+
+    /**
+     * With the Island at the top the sheet hangs from there (#1682), 8 below the status bar and
+     * with its own 22 corners; the keyboard shortens its list instead of moving it.
+     */
+    public static SheetPlacement atTop() {
+        return new SheetPlacement(INSET, 0, INSET, 0, CORNER);
     }
 }

@@ -13,6 +13,7 @@ adb shell touch /data/local/tmp/blanc-walkthrough-off && adb shell chmod 644 /da
 mkdir -p "$EVIDENCE"
 failed=()
 source "$(dirname "${BASH_SOURCE[0]}")/gate-lib.sh"
+gate_accessibility_on
 run() { local name=$1; shift; gate_wants "$name" || return 0; echo "== $name"; if "$@" > "$EVIDENCE/$name.log" 2>&1; then echo pass; else echo FAIL; failed+=("$name"); fi; tail -2 "$EVIDENCE/$name.log"; }
 run sync node "$TREE/chromium/tests/android/sync.mjs" --apk "$APK" --evidence "$EVIDENCE/sync"
 run spaces node "$TREE/chromium/tests/android/spaces.mjs" --apk "$APK" --evidence "$EVIDENCE/spaces"

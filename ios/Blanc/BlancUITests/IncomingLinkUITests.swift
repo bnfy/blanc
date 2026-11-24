@@ -22,7 +22,7 @@ final class IncomingLinkUITests: XCTestCase {
     XCTAssertTrue(app.otherElements["tabs.grid"].waitForNonExistence(timeout: 5), "the grid closes")
     let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS 'example.org'"), object: site)
     XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 10), .completed, "the link's tab is current")
-    XCTAssertFalse(app.buttons["pill.private"].exists, "the link's tab isn't private")
+    XCTAssertNotEqual(app.buttons["island.menu"].value as? String, "Private tab", "the link's tab isn't private")
   }
 
   func testLinkOpensBlancFromAColdLaunch() {

@@ -50,10 +50,15 @@ final class BrowserServices {
         #if DEBUG
         // The App Store images show the Island without Back and Forward
         // (owner, 2026-11-11), and the Start Page clock in solid color, which
-        // reads more strongly in a screenshot than Liquid Glass (2026-11-12).
+        // reads more strongly in a screenshot than Liquid Glass (2026-11-12),
+        // over the sunrise wallpaper (2026-11-21).
         if UITestSeed.appStore {
             settingsStore.update(islandBackForward: false)
             _ = try? appearance.writeClock(["newtabClockStyle": "solid"])
+            if let sunrise = Bundle.main.url(forResource: "start-page-sunrise", withExtension: "png", subdirectory: "start"),
+               let data = try? Data(contentsOf: sunrise) {
+                try? appearance.seedAppStorePhoto(data)
+            }
         }
         #endif
         sessionStore = SessionStore(directory: sessionDirectory)

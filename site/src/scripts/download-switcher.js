@@ -3,7 +3,8 @@
 // markup); this only preselects the visitor's own system. iPadOS asks for
 // desktop sites with a Mac user agent, so touch decides it is an iPad. Nothing
 // is stored or sent. Android preselects the Android tab, which leads only to
-// the beta signup until Blanc for Android is released.
+// the beta signup until Blanc for Android is released. An address naming a
+// panel (#iphone) opens that panel instead.
 
 export function detectSystem(userAgent, maxTouchPoints = 0) {
   if (/Windows/i.test(userAgent)) return 'win';
@@ -14,10 +15,18 @@ export function detectSystem(userAgent, maxTouchPoints = 0) {
   return null;
 }
 
+// A link to a panel's id (the site navigation's /download#iphone) opens that
+// panel instead of the visitor's own system.
+function systemFromAddress(view, chooser) {
+  const hash = view.location?.hash ?? '';
+  if (!/^#[a-z][\w-]*$/.test(hash)) return null;
+  return chooser.querySelector(`.dl-panel[id="${hash.slice(1)}"]`)?.dataset.os ?? null;
+}
+
 export function initDownloadSwitcher(view = window) {
   const chooser = view.document.querySelector('[data-download-chooser]');
   if (!chooser) return null;
-  const system = detectSystem(view.navigator.userAgent, view.navigator.maxTouchPoints);
+  const system = systemFromAddress(view, chooser) ?? detectSystem(view.navigator.userAgent, view.navigator.maxTouchPoints);
   const radio = system && chooser.querySelector(`input[name="dl-os"][value="${system}"]`);
   if (radio) radio.checked = true;
   return system;

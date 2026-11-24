@@ -28,9 +28,10 @@ test('board keeps every anchor, every tile is a tracked link, and all 16 guides 
     const tiles = await page.locator('[data-pop]').evaluateAll(as => as.map(a => ({
       tag: a.tagName, id: a.id, pop: a.dataset.pop, href: a.getAttribute('href'),
       track: a.dataset.track, feature: a.dataset.feature, position: a.dataset.ctaPosition })));
-    // 15 board tiles and 21 small ones: Bangs took Reopen closed tabs' board slot
-    // (October 17, 2026), and Reopen became a small tile.
-    assert.equal(tiles.length, 36);
+    // 15 board tiles and 30 small ones: Bangs took Reopen closed tabs' board slot
+    // (October 17, 2026), and Reopen became a small tile; nine small tiles for
+    // features from v1.39.0 to v1.51.0 joined on November 23, 2026.
+    assert.equal(tiles.length, 45);
     for (const t of tiles) {
       assert.equal(t.tag, 'A', t.id);
       assert.equal(t.pop, t.id);
@@ -39,10 +40,10 @@ test('board keeps every anchor, every tile is a tracked link, and all 16 guides 
     const reachable = new Set(await page.locator('a[href^="/features/"]').evaluateAll(as => as.map(a => a.getAttribute('href'))));
     for (const guide of guides) assert.ok(reachable.has(`/features/${guide}`), guide);
     assert.equal(await page.locator('.bento-tile').count(), 15);
-    assert.equal(await page.locator('.bento-small').count(), 21);
+    assert.equal(await page.locator('.bento-small').count(), 30);
     assert.equal(await page.locator('#bangs.bento-R3').count(), 1);
     assert.equal(await page.locator('#reopen-closed-tabs.bento-small').count(), 1);
-    assert.equal(await page.locator('h1').innerText(), 'Everything in Blanc.');
+    assert.equal(await page.locator('h1').innerText(), 'A quiet browser with a lot built in.');
   } finally { await context.close(); }
 });
 
@@ -292,7 +293,7 @@ test('tiles announce a popup only with script, and a popover open is tracked und
   const page = await context.newPage();
   try {
     await page.goto(`${baseURL}/features`);
-    assert.equal(await page.locator('[data-pop][aria-haspopup="dialog"]').count(), 36);
+    assert.equal(await page.locator('[data-pop][aria-haspopup="dialog"]').count(), 45);
     const seen = await page.evaluate(() => new Promise(resolve => {
       document.addEventListener('click', event => resolve(event.target.closest('[data-track]')?.dataset.track), { once: true });
       document.getElementById('glance').click();

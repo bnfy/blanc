@@ -1,18 +1,26 @@
 ---
 import topics from "../data/guide-topics.json";
+import TrustIcon from "./TrustIcon.astro";
 const components = import.meta.glob("./guides/*.astro", { eager: true });
-const { page } = Astro.props;
+// icons: optional { topicId: TrustIcon name } drawn before each label.
+// ids: optional list of this page's topic ids, rendered in that order
+// (the Support page groups its guides by topic).
+const { page, icons = {}, ids } = Astro.props;
+const pageTopics = topics.filter((topic) => topic.page === page);
+const shown = ids
+  ? ids.map((id) => pageTopics.find((topic) => topic.id === id)).filter(Boolean)
+  : pageTopics;
 ---
 
 {
-  topics
-    .filter((topic) => topic.page === page)
+  shown
     .map((topic) => {
       const Guide = components[`./guides/${topic.id}.astro`].default;
       return (
         <details class="answer-topic" id={topic.id} data-search-topic>
           <>
             <summary>
+              {icons[topic.id] && <TrustIcon name={icons[topic.id]} />}
               {topic.label}
               <span aria-hidden="true">+</span>
             </summary>

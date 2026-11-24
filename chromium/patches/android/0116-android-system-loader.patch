@@ -1,7 +1,7 @@
 diff -ruN a/chrome/android/chrome_public_apk_tmpl.gni b/chrome/android/chrome_public_apk_tmpl.gni
 --- a/chrome/android/chrome_public_apk_tmpl.gni
 +++ b/chrome/android/chrome_public_apk_tmpl.gni
-@@ -630,7 +630,10 @@
+@@ -562,7 +562,10 @@
      }
  
      # Chromium Linker used for shared relros.

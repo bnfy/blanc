@@ -1,7 +1,7 @@
 diff -ruN a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
-@@ -1856,6 +1856,11 @@
+@@ -2113,6 +2113,11 @@
    registry->RegisterBooleanPref("blanc.blocking.enabled", true);
    registry->RegisterListPref("blanc.blocking.exceptions");
    registry->RegisterDictionaryPref("blanc.blocking.week_stats");

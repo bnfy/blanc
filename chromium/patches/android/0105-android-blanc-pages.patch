@@ -15,7 +15,7 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tasks/ReturnToCh
 diff -ruN a/chrome/browser/flags/android/chrome_feature_list.cc b/chrome/browser/flags/android/chrome_feature_list.cc
 --- a/chrome/browser/flags/android/chrome_feature_list.cc
 +++ b/chrome/browser/flags/android/chrome_feature_list.cc
-@@ -797,7 +797,8 @@
+@@ -842,7 +842,8 @@
  BASE_FEATURE(kCacheIsMultiInstanceApi31Enabled, base::FEATURE_ENABLED_BY_DEFAULT);
  BASE_FEATURE(kCctTabResumption, base::FEATURE_DISABLED_BY_DEFAULT);
  BASE_FEATURE(kChangeUnfocusedPriority, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -28,15 +28,15 @@ diff -ruN a/chrome/browser/flags/android/chrome_feature_list.cc b/chrome/browser
 diff -ruN a/chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java b/chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java
 --- a/chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java
 +++ b/chrome/browser/flags/android/java/src/org/chromium/chrome/browser/flags/ChromeFeatureList.java
-@@ -1126,7 +1126,7 @@
-     public static final CachedFlag sCctTabSwitcherEnabledForEmbedderExperiment =
-             newCachedFlag(CCT_TAB_SWITCHER_ENABLED_FOR_EMBEDDER_EXPERIMENT, true);
+@@ -1193,7 +1193,7 @@
+     public static final CachedFlag sCctTabModalDialog = newCachedFlag(CCT_TAB_MODAL_DIALOG, true);
+     public static final CachedFlag sCctTabResumption = newCachedFlag(CCT_TAB_RESUMPTION, false);
      public static final CachedFlag sChromeNativeUrlOverriding =
 -            newCachedFlag(CHROME_NATIVE_URL_OVERRIDING, BuildConfig.IS_DESKTOP_ANDROID);
 +            newCachedFlag(CHROME_NATIVE_URL_OVERRIDING, true); // Blanc (patch 0105)
      public static final CachedFlag sClampAutomotiveScaling =
              newCachedFlag(CLAMP_AUTOMOTIVE_SCALING, true);
-     public static final CachedFlag sClankMiniOmnibox = newCachedFlag(CLANK_MINI_OMNIBOX, false);
+     public static final CachedFlag sClankOmniboxMinimization =
 diff -ruN a/chrome/browser/ui/webui/BUILD.gn b/chrome/browser/ui/webui/BUILD.gn
 --- a/chrome/browser/ui/webui/BUILD.gn
 +++ b/chrome/browser/ui/webui/BUILD.gn
@@ -48,7 +48,7 @@ diff -ruN a/chrome/browser/ui/webui/BUILD.gn b/chrome/browser/ui/webui/BUILD.gn
  import("//chrome/common/features.gni")
  import("//chrome/test/include_js_tests.gni")
  import("//chromeos/dbus/config/use_real_dbus_clients.gni")
-@@ -153,6 +154,10 @@
+@@ -172,6 +173,10 @@
        "//chrome/browser/ui/webui/notifications_internals",
        "//chrome/browser/ui/webui/webapks",
      ]
@@ -58,11 +58,11 @@ diff -ruN a/chrome/browser/ui/webui/BUILD.gn b/chrome/browser/ui/webui/BUILD.gn
 +    deps += [ "//blanc/android/pages_resources" ]
    }
  
-   if (safe_browsing_mode == 1) {
+   if (enable_webui_tabstrip_ntb) {
 diff -ruN a/chrome/browser/ui/webui/chrome_web_ui_configs.cc b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
 --- a/chrome/browser/ui/webui/chrome_web_ui_configs.cc
 +++ b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
-@@ -143,6 +143,7 @@
+@@ -146,6 +146,7 @@
  #include "chrome/browser/ui/webui/webui_gallery/webui_gallery_ui.h"
  #include "chrome/browser/ui/webui/webui_js_error/webui_js_error_ui.h"
  #else  // !BUILDFLAG(IS_ANDROID)
@@ -70,7 +70,7 @@ diff -ruN a/chrome/browser/ui/webui/chrome_web_ui_configs.cc b/chrome/browser/ui
  #include "chrome/browser/ui/webui/chrome_finds_internals/chrome_finds_internals_ui.h"
  #include "chrome/browser/ui/webui/feed_internals/feed_internals_ui.h"
  #include "chrome/browser/ui/webui/notifications_internals/notifications_internals_ui.h"
-@@ -344,6 +345,7 @@
+@@ -356,6 +357,7 @@
    map.AddWebUIConfig(std::make_unique<FeedInternalsUIConfig>());
    map.AddWebUIConfig(std::make_unique<NotificationsInternalsUIConfig>());
    map.AddWebUIConfig(std::make_unique<WebApksUIConfig>());

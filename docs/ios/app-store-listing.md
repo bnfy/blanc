@@ -54,9 +54,10 @@ entitlement on 2026-11-04).
 > pages sent to you waiting on your iPhone.
 >
 > ONE BAR, THE ISLAND
-> The Island at the bottom of the screen holds the page's address and your
-> tabs. Swipe it to switch tabs, or open the palette to search your tabs,
-> Favorites and History, or type a slash command such as /private or /find.
+> The Island at the bottom of the screen is only as wide as it needs to be:
+> Back, the site you're on and New Tab. Swipe it to switch tabs, or tap it
+> and it grows into a panel where you can search your tabs, Favorites and
+> History, or type a slash command such as /private or /find.
 >
 > BROWSING, THE WAY YOU EXPECT
 > Private tabs that keep no history, Favorites, History, Recently closed,
@@ -75,6 +76,16 @@ entitlement on 2026-11-04).
 **Support URL:** https://blanc.day/support
 
 **Marketing URL:** https://blanc.day
+
+**What's New in 1.1** (release notes; owner-approved 2026-11-21, with the
+Island section above):
+
+> • A new Island: smaller, shaped like Blanc's Island on the Mac, and only as
+> wide as what's in it: Back, the site's icon and the site, and New Tab.
+> • Tap the site and the Island grows into a panel just above the keyboard. It
+> starts with the page's address: tap it to edit, hold it to copy the link.
+> • In a private tab the Island turns dark, and Close Private Tab is first in
+> the page menu.
 
 **What's New in 1.0** (release notes):
 
@@ -130,6 +141,18 @@ Re-captured for **1.0.1** on 2026-11-07 against build 202611070455
 after #1402 removed the grid header, Done button and card focus border
 (screenshot 5 and the app preview). The iPhone Duo set (below) still shows
 the old grid and needs a manual re-capture.
+
+Re-captured for **1.1** on 2026-11-21, every set and the app preview, from
+`main` at `f631010dd` (the Island redesign #1682, the address pill #1691 and
+the Duo centering #1695), owner-approved the same day. The first screenshot's
+Start Page shows the sunrise artwork with the clock solid black and
+stretched (owner: the marketing clock is always solid black and stretched),
+and no shortcuts or Sent to this device card: the `-BlancUITestAppStore` seed
+hands the page the bundled `start-page-sunrise.png` as its photo
+(`StartAppearanceStore.seedAppStorePhoto`) and its Start Page answers no top
+sites or sent pages (`StartPageBridge`, DEBUG only). The scripts now reinstall
+the app before capturing, so an earlier run's Start Page never leaks in, and
+skip an on-the-hour status bar time, which `simctl status_bar` refuses.
 
 | # | Headline | Subtitle | The capture |
 |---|---|---|---|
@@ -193,7 +216,9 @@ them with the rest, sorting each artboard into a set by its size. The captures a
 `docs/ios/app-store/captures/duo-closed/` (from `AppStoreScreenshotsUITests`
 on an iPhone Duo simulator) and `duo-open/`. XCUITest screenshots of the
 unfolded inner display come out black, so those were taken with Device Hub's
-Screenshot button while the test waited (`BLANC_SHOTS_BY_HAND=1`). The
+Screenshot button while the test waited (`BLANC_SHOTS_BY_HAND=1`); for 1.1
+the Claude Code iOS Simulator tool's screenshot, which captures the inner
+display at 2853 × 2007, stood in for Device Hub. The
 unfolded "your computer's tabs" shot is left out: the test can't yet scroll
 the unfolded palette panel to the MacBook Pro's tabs.
 
@@ -344,3 +369,23 @@ submission waits for the owner.
    (`https://apps.apple.com/app/id6828027794?ppid=<page id>`); add a
    campaign token (`&ct=<channel>`) per place it's posted, so App Analytics
    can tell blanc.day, the desktop app and Reddit apart.
+
+**Version 2, for 1.1 (November 22, 2026).** Once 1.1 was on sale, each page got
+a new version through the API with its promotional text unchanged: the 1.1
+renders of its own 6.9" and 6.3" sets (#1698, in file order) and 1.1's ten Duo
+shots. 1.1 supports iPad, so App Review now requires a 13" iPad set on each
+page too; none exists per page, so each takes the default page's seven
+(`ipad-13/`), its own subject first (my call): Your computer's tabs, Private
+tabs, Spaces, then the rest in file order. Every upload was checked against
+the local files by checksum and order, and the three were submitted together
+on November 22, 2026 (review submission
+`19db3167-a1f8-4255-a191-95e82026eda6`). App Review approved all three by
+November 23, 2026, as the owner reported that day: each version 2 reads
+Approved and each version 1 Replaced with New Version, and all three pages are
+visible.
+
+| Page | Version 2 id |
+|---|---|
+| Blanc on your computer | `ccef8cc3-123b-40c3-903f-7c05e005adc4` |
+| Private browsing | `de92ade8-7977-45b2-b5b4-8cd3a1d4ff2d` |
+| Spaces and groups | `ac4e9552-87ef-4305-b432-575a7ee549eb` |

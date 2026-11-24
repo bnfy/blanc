@@ -1,7 +1,7 @@
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java b/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptureNotificationServiceImpl.java
-@@ -113,8 +113,8 @@
+@@ -114,8 +114,8 @@
      @Override
      public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
          if (intent == null || intent.getExtras() == null) {
@@ -13,9 +13,10 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptu
              String action = intent.getAction();
              int notificationId = intent.getIntExtra(NOTIFICATION_ID_EXTRA, Tab.INVALID_TAB_ID);
 @@ -180,6 +180,33 @@
+         mSharedPreferences.removeKey(ChromePreferenceKeys.MEDIA_WEBRTC_NOTIFICATION_IDS);
      }
  
-     /**
++    /**
 +     * Blanc (patch 0122): the deferred startup task that clears the notifications left from the
 +     * last run. A page opened at a cold start can already have one by then, so a notification this
 +     * run posted stays, with its saved id; only the ones left from the last run go.
@@ -42,7 +43,6 @@ diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/media/MediaCaptu
 +        }
 +    }
 +
-+    /**
+     /**
       * Updates the existing notification or creates one if none exist for the provided
       * notificationId and mediaTypes.
-      *

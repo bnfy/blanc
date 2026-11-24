@@ -66,9 +66,15 @@ cd "$root/ios/Blanc"
 xcodebuild build-for-testing -project Blanc.xcodeproj -scheme Blanc -destination "id=$udid" \
   -derivedDataPath "$derived" CODE_SIGNING_ALLOWED=NO -quiet
 shot_time="$(date -v+1M +%-I:%M)"
+# simctl refuses a status bar time on the hour ("5:00"); take the minute after.
+case "$shot_time" in *:00) shot_time="$(date -v+2M +%-I:%M)" ;; esac
 trap 'xcrun simctl status_bar "$udid" clear 2>/dev/null; rm -rf "$derived"' EXIT
 xcrun simctl status_bar "$udid" override --time "$shot_time" --dataNetwork wifi --wifiBars 3 \
   --batteryState charged --batteryLevel 100
+
+# A fresh install each time, so the seed's Start Page is what the page starts from.
+xcrun simctl uninstall "$udid" me.bnfy.blanc 2>/dev/null || true
+xcrun simctl install "$udid" "$derived/Build/Products/Debug-iphonesimulator/Blanc.app"
 
 mkdir -p "$out" && rm -f "$out"/*.png
 TEST_RUNNER_BLANC_SHOTS_DIR="$out" TEST_RUNNER_BLANC_SHOT_TIME="$shot_time" xcodebuild test-without-building \

@@ -1,0 +1,54 @@
+diff -ruN a/build/config/android/config.gni b/build/config/android/config.gni
+--- a/build/config/android/config.gni
++++ b/build/config/android/config.gni
+@@ -264,6 +264,11 @@
+     # The password for the keystore to use for signing builds.
+     android_keystore_password = default_android_keystore_password
+ 
++    # Blanc (patch 0126): forced versionCode and versionName, as before Chromium 159, so a
++    # release build carries Blanc's own version (chromium/android/release/record.mjs).
++    android_override_version_code = ""
++    android_override_version_name = ""
++
+     # Mark APKs as android:debuggable="true". Needed for debuggers and
+     # "adb shell run-as" on non-rooted devices, and for wrap.sh. Off by default
+     # because it makes ART slower and skips install-time dexopt.
+diff -ruN a/build/config/android/rules.gni b/build/config/android/rules.gni
+--- a/build/config/android/rules.gni
++++ b/build/config/android/rules.gni
+@@ -2360,10 +2360,20 @@
+       _version_code = android_default_version_code
+     }
+ 
++    # Blanc (patch 0126)
++    if (android_override_version_code != "") {
++      _version_code = android_override_version_code
++    }
++
+     if (defined(invoker.version_name)) {
+       _version_name = invoker.version_name
+     } else {
+       _version_name = android_default_version_name
++    }
++
++    # Blanc (patch 0126)
++    if (android_override_version_name != "") {
++      _version_name = android_override_version_name
+     }
+ 
+     if (defined(invoker.deps)) {
+diff -ruN a/chrome/android/chrome_public_apk_tmpl.gni b/chrome/android/chrome_public_apk_tmpl.gni
+--- a/chrome/android/chrome_public_apk_tmpl.gni	2026-11-23 05:24:04
++++ b/chrome/android/chrome_public_apk_tmpl.gni	2026-11-23 05:24:04
+@@ -172,6 +172,11 @@
+     _version_code = invoker.version_code
+   }
+ 
++  # Blanc (patch 0126): apply the override explicitly so it reaches the library version too.
++  if (android_override_version_code != "") {
++    _version_code = android_override_version_code
++  }
++
+   if (defined(invoker.manifest_package)) {
+     _manifest_package = invoker.manifest_package
+   } else if (_is_test) {

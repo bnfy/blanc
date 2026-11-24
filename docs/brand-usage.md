@@ -75,16 +75,16 @@ accents), followed by the unshipped blue-to-peach Dawn sky proposal.
 
 ### Sunrise palette for website and marketing
 
-The website carries the Sunrise icon's warmth through Blanc White backgrounds,
+The website carries the Sunrise icon's warmth through a light cream background,
 warm surfaces, and muted gold details. Keep the existing typography,
 near-black headings, dark primary buttons, and a white desktop masthead.
 These website and marketing tokens are separate from the released product palette:
 
-- page background, **Blanc White**: `#F8F2E8` (`--site-bg`);
-- section surfaces: `#F2EADE` (`--site-surface`);
+- page background, the website cream: `#FBF7F0` (`--site-bg`);
+- section surfaces: `#F5EFE5` (`--site-surface`);
 - raised surfaces and forms, the masthead and the footer: white `#FFFFFF`
   (`--site-surface-raised`);
-- decorative borders and dividers: `#E1D7C9` (`--site-border`);
+- decorative borders and dividers: `#E6DDD0` (`--site-border`);
 - muted text: `#6B6257` (`--site-text-dim`);
 - gold on light backgrounds: `#805D28` (`--site-gold`);
 - gold on dark backgrounds: `#D4AD66` (`--site-gold-on-dark`);
@@ -93,19 +93,31 @@ These website and marketing tokens are separate from the released product palett
 
 **Blanc White** is the brand name for `#F8F2E8` (owner decision, October 15,
 2026). Call it Blanc White, not ivory or cream, in briefs, creative and press
-material. On the same day the owner set the palette above: the page, surface,
-raised and border colours are the ones blanc.day was already serving, and the
+material. On the same day the owner set the website palette: the page, surface,
+raised and border colours were the ones blanc.day was already serving (the page,
+surface and border were lightened on November 23, 2026; see below), and the
 muted text and gold keep this guide's warmer `#6B6257` and `#805D28`, not the
 cooler `#696865` and `#7D653D` the site had been rendering. Blanc White is a shade
 lighter than `#F7F0E5`, the original sample from the Sunrise art, which the
 product's Sunrise surfaces (`--sunrise-bg`), the share cards, the press card
 and the media kit's icon tiles still use.
 
+**The website's lighter cream (owner, November 23, 2026).** The website's page,
+section and border colors moved one step lighter, to `#FBF7F0`, `#F5EFE5` and
+`#E6DDD0`, so pages read brighter. Only the website changed: **Blanc White stays
+`#F8F2E8`** and remains the brand color for creative, press, email and the
+app's Sunrise surfaces. Cream text hard-coded as `#F8F2E8` on the site's dark
+tiles stays Blanc White, while text that uses `--site-bg` or `--paper` on ink
+follows the website cream. "Cream" here names the website color only; the
+brand color is still called Blanc White. Muted text and gold measure 5.6:1 on the new page color and 5.2:1 on
+sections. `test/unit/site-cream.test.js` keeps `site.css`, `revamp.css` and
+`home.css` equal and checks that contrast.
+
 Use gold for eyebrows, section kickers, text-link arrows and interaction
 states, FAQ disclosure markers, navigation states, and the changelog's small
 new-feature dot. The pale background belongs only to selected mobile menu
 items. Keep underlines, focus outlines, and other state indicators alongside
-color. Gold and muted text meet 4.5:1 contrast on the specified Blanc White, section,
+color. Gold and muted text meet 4.5:1 contrast on the specified page, section,
 raised, and pale selection surfaces. Use the dark-background gold token on
 dark sections and navigation; it meets 4.5:1 on both the shared ink and the
 warm ink. The warm ink belongs to the Patron offer alone: the shared
@@ -156,7 +168,7 @@ replace the canonical Sunrise symbol with a letterform.
 The homepage offer pairs the monochrome Sunrise symbol with this display name
 on a warm ink (`--site-ink-warm`) section. The display name and the main price
 numeral are set in gold (`--site-gold-on-dark`); supporting copy, currency,
-billing labels, and the symbol stay Blanc White (`--site-bg`), and the filled gold
+billing labels, and the symbol take the website cream (`--site-bg`), and the filled gold
 button keeps its ink text. One radial gold light spill, anchored to the
 section's top edge at no more than about a quarter strength, is the section's
 only gradient; the symbol sits below its brightest point and is never backed
@@ -340,10 +352,12 @@ later (190 units in the Display cut, 240 in the Text cut). The word never
 appears without the icon, and it is never recoloured, re-spaced or stacked.
 
 - The website product bar alone uses the short form. `MailBar.astro` pairs
-  the gold app icon with “Mail” in white Blubird SemiBold Text, outlined in
-  `site/public/lockup/mail-word-small-white.svg`. The lettering is 19px
-  tall with a 9px gap beside the icon. The icon uses the full Text lockup’s
-  size and alignment. The link’s accessible name is “Blanc Mail”.
+  the gold app icon with “Mail” in white, using the original Text-cut
+  `mail-text.d` outline in `site/public/lockup/mail-word-small-white.svg`
+  (owner, November 24, 2026, replacing the SemiBold cut). It uses the
+  full Text lockup’s icon size and alignment, with a wider gap of 320 units
+  (about 8px at the bar's 19px) beside the icon. The link’s
+  accessible name is “Blanc Mail”.
 - The media kit offers it in ink and white, as SVG, a 3000px PNG and WebP
   previews (`site/public/press/blanc-mail-lockup-*`).
 - Its word outlines live in `assets/wordmark/blanc-mail-word-*`, which
@@ -385,13 +399,24 @@ the same function, so change them together. Copy follows
 
 ### Editorial website footer
 
-The shared website footer is warm ink (`#111`) on every page. It opens with
-the Display lockup (155×40px) as the home link, the tagline “A little less
-browser.” in Instrument Sans, and the newsletter field, then three link columns
-(Explore, Resources, Blanc) and a fine rule above the compact legal and social
-row. Links rest in a light warm grey (`#C0BCB5`) and turn near-white on hover;
-focus rings are gold on dark (`--site-gold-on-dark`). A page may put numbered
-method notes above the columns (the homepage's footnotes do).
+The shared website footer is a white band (`--site-surface-raised`), like the
+masthead (owner, November 23, 2026: the dark `#111` footer read heavy once the
+site moved to its lighter cream). The homepage keeps the dark footer, because
+it follows the page's dark closing section (owner, the same day): warm ink
+`#111`, the white word, links in a light warm grey (`#C0BCB5`) that turn
+near-white on hover, and gold-on-dark focus rings. Both looks come from the
+footer's `--footer-*` variables in `site/src/styles/revamp.css`; a page asks
+for the dark one with BaseLayout's `footer="dark"`. It opens with the Display
+lockup (155×40px, the ink word) as the home link, the tagline “A little less
+browser.” in Instrument Sans, and the newsletter field (a white field with a
+`--site-border` outline and an ink Subscribe pill), then three link columns
+(Explore, Resources, Blanc) and a fine `--site-border` rule above the compact
+legal row and the social icons (Simple Icons glyphs, named for screen readers,
+each with a 36 × 44px target; owner, November 23, 2026). Headings and the tagline are ink; links rest in
+`--site-text-dim` and turn ink on hover; focus rings are gold on light
+(`--site-gold`). With a mouse or trackpad the column links sit closer together;
+touch screens keep the taller rows. A page may put numbered method notes above
+the columns (the homepage's footnotes do).
 
 ### Horizon rule
 
@@ -406,9 +431,9 @@ on the glow; the footer's lockup sits below the line.
 
 The homepage opens on the gold Sunrise alone, with no wordmark, at
 `min(56vmin, 540px)`. Unless the visitor has asked for reduced motion, the
-sunrise plays once as the page opens (2.2 seconds, in one screen): it draws the
+sunrise plays once as the page opens (1.4 seconds, in one screen): it draws the
 horizon and its reflection, raises the disc, opens the rays and brings the sky
-from night to Blanc White, then shrinks the mark above the headline and brings
+from night to the website cream, then shrinks the mark above the headline and brings
 in the copy. It used to be driven by scrolling a stage 4.2 screens tall; the
 owner rejected that on October 15, 2026, because the first screen showed
 neither what Blanc is nor how to get it. The stage is cut from one export

@@ -4,8 +4,9 @@
 // connected mailbox). Mail has no public release, so docs/marketing-claims.md
 // requires every one to be labelled as a preview; this component is the only
 // way the Mail pages show a screenshot, so the label can't be left off.
-// Files: /mail/screens/<name>.webp, the capture as taken (1400px for the
-// rule editor, captured at 2x), and <name>-1100.webp, built from it by
+// Every capture uses the demo's made-up mail, and the caption says so.
+// Files: /mail/screens/<name>.webp, the capture as taken (2200px wide for a
+// window, 1400px for the rule editor), and <name>-1100.webp, built from it by
 // site/scripts/build-display-images.mjs.
 interface Props {
   name: string;
@@ -14,9 +15,11 @@ interface Props {
   height: number;
   class?: string;
   eager?: boolean;
+  // The page's largest image (the Mail hero): fetched first.
+  priority?: boolean;
   sizes?: string;
 }
-const { name, alt, width, height, class: className = '', eager = false, sizes = '(max-width: 1120px) 100vw, 1072px' } = Astro.props;
+const { name, alt, width, height, class: className = '', eager = false, priority = false, sizes = '(max-width: 1120px) 100vw, 1072px' } = Astro.props;
 ---
 <figure class={`mail-shot ${className}`}>
   <img
@@ -26,8 +29,9 @@ const { name, alt, width, height, class: className = '', eager = false, sizes = 
     alt={alt}
     width={width}
     height={height}
-    loading={eager ? 'eager' : 'lazy'}
+    loading={eager || priority ? 'eager' : 'lazy'}
+    fetchpriority={priority ? 'high' : undefined}
     decoding="async"
   />
-  <figcaption>Preview build</figcaption>
+  <figcaption>Preview build · sample mail</figcaption>
 </figure>

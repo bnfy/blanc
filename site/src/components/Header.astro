@@ -7,6 +7,14 @@ import { browserMenu, directLinks, pagePath } from "../data/navigation.mjs";
 const { current = null, variant = "solid" } = Astro.props;
 const minimal = variant === "minimal";
 const onHome = pagePath(Astro.url.pathname) === "/";
+// Pages whose first screen sits under a clear bar: the homepage's sunrise
+// (dark ink) and the night heroes of Privacy & Security and Support (light
+// ink, wide windows only; revamp.css).
+const overlayTone = onHome
+  ? "light"
+  : ["/trust", "/support"].includes(pagePath(Astro.url.pathname))
+    ? "dark"
+    : undefined;
 const mailPath = pagePath(Astro.url.pathname);
 const onMail = mailPath === "/mail" || mailPath.startsWith("/mail/");
 // The reservation banner shows on the full header only, and not on the Mail
@@ -19,7 +27,7 @@ const hrefFor = (href) =>
 
 <a class="skip-link" href="#main-content">Skip to content</a>
 {showReserveBanner && <MailReserveBanner />}
-<header class="site-header revamp-header" data-home-overlay={onHome ? "" : undefined}>
+<header class="site-header revamp-header" data-overlay-tone={overlayTone}>
   <nav class="site-nav revamp-nav" aria-label="Primary navigation">
     <a class="site-brand" href="/" aria-label="Blanc Browser home"
       ><span class="site-lockup site-lockup--small" aria-hidden="true"
@@ -55,7 +63,7 @@ const hrefFor = (href) =>
         <div class="site-browser-panel" id="site-browser-panel" hidden>
           <div class="site-browser-column">
             <p class="site-browser-label" id="site-browser-downloads">Download</p>
-            <ul aria-labelledby="site-browser-downloads">
+            <ul class="site-browser-downloads" aria-labelledby="site-browser-downloads">
               {
                 browserMenu.downloads.map((link) => (
                   <li>
@@ -81,7 +89,14 @@ const hrefFor = (href) =>
               {
                 browserMenu.more.map((link, index) => (
                   <li class={index === 0 ? "site-browser-more" : undefined}>
-                    <a href={hrefFor(link.href)}>{link.label}</a>
+                    {link.primary ? (
+                      <a class="site-browser-cta" href={hrefFor(link.href)}>
+                        {link.label}
+                        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8h9M9 4.5 12.5 8 9 11.5" /></svg>
+                      </a>
+                    ) : (
+                      <a href={hrefFor(link.href)}>{link.label}</a>
+                    )}
                   </li>
                 ))
               }
@@ -101,6 +116,7 @@ const hrefFor = (href) =>
         ))
       }
     </div>
+    <div class="site-nav-actions">
     <button class="site-search-trigger" type="button" data-site-search aria-label="Search Blanc" aria-keyshortcuts="Meta+K Control+K" aria-haspopup="dialog" aria-controls="site-search" aria-expanded="false" title="Search Blanc (⌘K / Ctrl+K)" hidden>
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
     </button>
@@ -126,16 +142,18 @@ const hrefFor = (href) =>
       aria-controls="site-menu"
       hidden>Menu</button
     >
+    </div>
     </>)}
   </nav>
 </header>
 {!minimal && <SiteSearch />}
 <script is:inline>
-  // On the homepage the bar starts clear over the sunrise and turns solid once
-  // the page scrolls (owner, November 19, 2026). Set here, before first paint,
-  // so without scripting the bar simply stays solid.
+  // On the homepage (owner, November 19, 2026) and Privacy & Security (owner,
+  // November 23, 2026) the bar starts clear over the first screen and turns
+  // solid once the page scrolls. Set here, before first paint, so without
+  // scripting the bar simply stays solid.
   (() => {
-    const header = document.querySelector(".revamp-header[data-home-overlay]");
+    const header = document.querySelector(".revamp-header[data-overlay-tone]");
     if (!header) return;
     header.dataset.overlay = "";
     let queued = false;
