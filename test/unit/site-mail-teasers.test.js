@@ -41,10 +41,10 @@ test('every teaser the Mail page names exists, with its 512px display copy', () 
   }
 });
 
-test('public Mail artwork contains only the address dialogs and the rule editor', () => {
+test('public Mail artwork contains only the address dialogs, the hero window and the rule editor', () => {
   const files = folder => fs.readdirSync(path.join(SITE, 'public/mail', folder)).sort();
   assert.deepEqual(files('teasers'), TEASERS.flatMap(name => [`${name}.webp`, `${name}-512.webp`]).sort());
-  assert.deepEqual(files('screens'), ['rule-editor-1100.webp', 'rule-editor.webp']);
+  assert.deepEqual(files('screens'), ['hero-light-1100.webp', 'hero-light.webp', 'rule-editor-1100.webp', 'rule-editor.webp']);
 });
 
 test('teaser images stay light enough for the page', () => {

@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import MailAppFeatures from '../components/MailAppFeatures.astro';
 import MailBar from '../components/MailBar.astro';
+import MailShot from '../components/MailShot.astro';
 import MailTeaser from '../components/MailTeaser.astro';
 import MailWaitlistForm from '../components/MailWaitlistForm.astro';
 import survey from '../data/mail-survey.json';
@@ -32,48 +33,49 @@ const plan = {
   benefits: ['The Mac app for your existing email accounts', '14-day local app trial', 'No payment card needed for the trial'],
 };
 const addressCheckout = checkoutHrefFor('mail-address-annual');
+// The hero's window: Blanc Mail's light capture of its demo inbox (sample mail
+// only), taken with the Mail repository's capture-public-shots.sh. The alt
+// text describes what the image shows; update it with each recapture.
+const heroShot = {
+  name: 'hero-light',
+  width: 2200,
+  height: 1455,
+  alt: 'Blanc Mail on a Mac in the light appearance, showing sample mail: the Inbox with Work, Family, Finance and Shopping groups, a list of eight conversations, and Theo Lindqvist’s “Spring lookbook: final selects” thread open, with a photo of a white ceramic vase and two cups.',
+};
 ---
 <BaseLayout title="Blanc Mail — A little less inbox" description="A mail app for Mac, coming soon. Bring your Gmail account, or add a Blanc address of your own. Planned at $4.99 a month or $49.99 a year." path="/mail" header="solid">
   <MailBar />
   <main id="main-content" class="mail-overview">
+    <!-- The hero (owner, November 24, 2026): one primary action, then the real
+         app. While reservations are open that action is Reserve your address and
+         the waitlist is a quiet link; once they close, the waitlist leads. The
+         window is a capture of the signed demo build (Mail repository,
+         capture-public-shots.sh main, the light scene), refreshed whenever the app's UI changes. -->
     <section class="offer-hero" aria-labelledby="offer-title">
-      <div class="offer-opening">
-        <p class="mail-eyebrow">Blanc Mail · for Mac · Coming soon</p>
-        <h1 id="offer-title"><span class="mail-gold-text">A little less inbox.</span></h1>
-        <p class="offer-intro">A mail app for Mac. Bring your Gmail account, or add a Blanc address of your own.</p>
-        <div class="envelope-stage" aria-hidden="true">
-          <!-- The Mail icon as an object: a gold envelope, its flap and folds
-               engraved, the Sunrise stamped where the flap meets. Decorative. -->
-          <div class="mail-envelope" data-mail-envelope>
-            <div class="mail-envelope-face">
-              <svg class="mail-envelope-folds" viewBox="0 0 800 500" preserveAspectRatio="none">
-                <path class="mail-groove" d="M0 0 L400 290 L800 0" />
-                <path class="mail-groove-lip" d="M0 2 L400 292 L800 2" />
-                <path class="mail-groove" d="M0 500 L330 248 M800 500 L470 248" />
-                <path class="mail-groove-lip" d="M0 502 L330 250 M800 502 L470 250" />
-              </svg>
-              <span class="mail-hallmark"><BrandMark class="mail-hallmark-lip" /><BrandMark class="mail-hallmark-cut" /></span>
-            </div>
-          </div>
+      <p class="mail-eyebrow">Blanc Mail · for Mac · Coming soon</p>
+      <h1 id="offer-title"><span class="mail-gold-text">A little less inbox.</span></h1>
+      <p class="offer-intro">A mail app for Mac. Bring your Gmail account, or add a Blanc address of your own.</p>
+      {reservationsOpen ? (
+        <div class="offer-actions">
+          <a class="offer-action" href="/mail/reserve">Reserve your address</a>
+          <p class="offer-note">Reserving a name like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong> is free. The address and its 15 GB mailbox come with a paid plan at launch.</p>
+          <details class="offer-signup">
+            <summary class="offer-link">Keeping your Gmail? Join the waitlist</summary>
+            <MailWaitlistForm />
+          </details>
         </div>
-      </div>
-      <div class="offer-paths">
-        <div class="offer-path">
-          <h2>Keep your email address</h2>
-          <p>Connect your Gmail account directly with Google Sign-In.</p>
+      ) : (
+        <div class="offer-actions">
           <details class="offer-signup">
             <summary class="offer-action">Join the app waitlist</summary>
             <MailWaitlistForm />
           </details>
+          <p class="offer-note">Choose an address like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong>. The address and its 15 GB mailbox come with a paid plan at launch.</p>
+          <a class="offer-link" href="#address">Explore Blanc addresses</a>
         </div>
-        <div class="offer-path">
-          <h2>Get a Blanc address</h2>
-          <p>{reservationsOpen ? 'Reserving a name like ' : 'Choose an address like '}<strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong>{reservationsOpen ? ' is free. ' : '. '}The address and its 15 GB mailbox come with a paid plan at launch.</p>
-          <a class="offer-action" href={reservationsOpen ? '/mail/reserve' : '#address'}>{reservationsOpen ? 'Reserve your address' : 'Explore Blanc addresses'}</a>
-        </div>
-      </div>
-      <a class="offer-jump" href="#pricing">See pricing <span aria-hidden="true">↓</span></a>
+      )}
       {survey.open && <p class="mail-survey-link"><a href="/mail/survey">Help shape Blanc Mail: tell us what you’d want, anonymously.</a></p>}
+      <MailShot class="offer-shot" name={heroShot.name} alt={heroShot.alt} width={heroShot.width} height={heroShot.height} eager priority sizes="(max-width: 1180px) 100vw, 1120px" />
     </section>
 
     <section id="pricing" class="overview-section pricing-section" aria-labelledby="plans-title">
@@ -160,6 +162,22 @@ const addressCheckout = checkoutHrefFor('mail-address-annual');
 
     <section id="download" class="overview-section signup-spread" aria-labelledby="download-title">
       <div>
+        <div class="envelope-stage" aria-hidden="true">
+          <!-- The Mail icon as an object: a gold envelope, its flap and folds
+               engraved, the Sunrise stamped where the flap meets. Decorative.
+               It closes the page since the hero shows the app (November 24, 2026). -->
+          <div class="mail-envelope" data-mail-envelope>
+            <div class="mail-envelope-face">
+              <svg class="mail-envelope-folds" viewBox="0 0 800 500" preserveAspectRatio="none">
+                <path class="mail-groove" d="M0 0 L400 290 L800 0" />
+                <path class="mail-groove-lip" d="M0 2 L400 292 L800 2" />
+                <path class="mail-groove" d="M0 500 L330 248 M800 500 L470 248" />
+                <path class="mail-groove-lip" d="M0 502 L330 250 M800 502 L470 250" />
+              </svg>
+              <span class="mail-hallmark"><BrandMark class="mail-hallmark-lip" /><BrandMark class="mail-hallmark-cut" /></span>
+            </div>
+          </div>
+        </div>
         <h2 id="download-title"><span class="mail-gold-text">Get Blanc Mail at launch.</span></h2>
         <p>For macOS 14 or later on an Apple Silicon or Intel Mac. Join the waitlist for an email when the Mac app is ready to download.</p>
         <p class="mail-legal"><a href="/mail/privacy">Privacy</a> · <a href="/mail/terms">Terms</a></p>

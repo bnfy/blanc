@@ -41,35 +41,43 @@ async function openBarWaitlist(page) {
   await page.waitForFunction(() => document.activeElement?.id === 'bar-waitlistEmail');
 }
 
-test('the hero shows both ways to use Mail with equal actions before pricing', async () => {
+test('the hero leads with one action, a quiet waitlist link and the real app before pricing', async () => {
   for (const width of [390, 1440]) {
     const { page, context } = await openPage('/mail', width, { viewport: { width, height: 844 } });
     try {
+      const hero = page.locator('.offer-hero');
       assert.equal(await page.locator('h1').innerText(), 'A little less inbox.');
-      assert.match(await page.locator('.mail-eyebrow').innerText(), /coming soon/i);
-      const paths = page.locator('.offer-path');
-      assert.deepEqual(await paths.locator('h2').allTextContents(), ['Keep your email address', 'Get a Blanc address']);
-      assert.match(await paths.first().innerText(), /Gmail/);
+      assert.match(await hero.locator('.mail-eyebrow').innerText(), /coming soon/i);
+      assert.match(await hero.locator('.offer-intro').innerText(), /Bring your Gmail account/);
       assert.doesNotMatch(await page.locator('main').innerText(), /Proton/);
       const open = JSON.parse(readFileSync(new URL('../../site/src/data/mail-reservations.json', import.meta.url))).open;
-      const address = paths.last().getByRole('link');
-      assert.equal(await address.getAttribute('href'), open ? '/mail/reserve' : '#address');
-      assert.equal(await address.innerText(), open ? 'Reserve your address' : 'Explore Blanc addresses');
-      assert.equal(/is free/i.test(await paths.last().innerText()), open);
-      const [wait, reserve] = await paths.locator('.offer-action').evaluateAll(actions => actions.map(action => action.getBoundingClientRect().toJSON()));
-      assert.equal(wait.height, reserve.height);
-      assert.equal(wait.width, reserve.width);
-      assert.ok(reserve.bottom <= 844);
-      if (width === 390) assert.ok(reserve.top > wait.bottom);
-      else assert.equal(wait.top, reserve.top);
-      assert.ok((await page.locator('#pricing').boundingBox()).y >= reserve.bottom);
-      assert.equal(await page.locator('.offer-jump').getAttribute('href'), '#pricing');
+      // One primary action: Reserve while reservations are open, the waitlist once they close.
+      const primary = hero.locator('.offer-action');
+      assert.equal(await primary.count(), 1);
+      assert.equal(await primary.innerText(), open ? 'Reserve your address' : 'Join the app waitlist');
+      if (open) assert.equal(await primary.getAttribute('href'), '/mail/reserve');
+      assert.equal(/is free/i.test(await hero.locator('.offer-note').innerText()), open);
+      const link = hero.locator('.offer-link');
+      assert.equal(await link.innerText(), open ? 'Keeping your Gmail? Join the waitlist' : 'Explore Blanc addresses');
+      const action = await primary.boundingBox();
+      assert.ok(action.y + action.height <= 844, 'the primary action is on the first screen');
+      // The real app, captioned as a preview with sample mail.
+      const shot = hero.locator('.mail-shot');
+      assert.equal(await shot.locator('figcaption').innerText(), 'Preview build · sample mail');
+      const img = shot.locator('img');
+      assert.equal(await img.getAttribute('loading'), 'eager');
+      assert.equal(await img.getAttribute('fetchpriority'), 'high');
+      assert.ok((await img.getAttribute('alt')).length > 40, 'the window is described');
+      if (width === 1440) assert.ok((await img.boundingBox()).y < 844, 'the window starts on the first screen');
+      assert.equal(await page.locator('.offer-paths, .offer-jump').count(), 0);
       assert.equal(await page.locator('.offer-hero + section').getAttribute('id'), 'pricing');
+      assert.ok((await page.locator('#pricing').boundingBox()).y >= action.y + action.height);
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       if (open) {
-        await address.click();
+        await primary.click();
         assert.equal(new URL(page.url()).pathname, '/mail/reserve');
       } else {
-        await address.click();
+        await link.click();
         assert.equal(new URL(page.url()).hash, '#address');
         assert.equal(await page.locator('main a[href="/mail/reserve"]').count(), 0);
       }
@@ -81,7 +89,7 @@ test('the example address shimmers in the hero and address section and stays gol
   const { page, context } = await openPage('/mail');
   try {
     const { endings } = JSON.parse(readFileSync(new URL('../../site/src/data/mail-reservations.json', import.meta.url)));
-    for (const section of ['.offer-paths', '#address']) {
+    for (const section of ['.offer-hero', '#address']) {
       const address = page.locator(section).getByText(`mira@${endings[0]}`, { exact: true });
       assert.ok(await address.isVisible());
       const { backgroundClip, backgroundImage, animationName } = await address.evaluate(el => {
@@ -115,16 +123,20 @@ test('the envelope holds still under reduced motion, and otherwise leans toward 
     return [m13, m23, m31, m32].some(v => Math.abs(v) > 1e-4);
   });
 
-  const reduced = await openPage('/mail');
+  // The envelope closes the page now (November 24, 2026), so each check
+  // scrolls the closing section into view first.
+  const reduced = await openPage('/mail#download');
   try {
+    await reduced.page.locator('.envelope-stage').scrollIntoViewIfNeeded();
     await reduced.page.mouse.move(40, 200);
     await reduced.page.waitForTimeout(400);
     assert.equal(await leaning(reduced.page), false, 'no lean');
     assert.equal(await reduced.page.evaluate(() => document.querySelector('.envelope-stage').getAnimations({ subtree: true }).length), 0, 'nothing animates');
   } finally { await reduced.context.close(); }
 
-  const full = await openPage('/mail', 1440, { reducedMotion: 'no-preference' });
+  const full = await openPage('/mail#download', 1440, { reducedMotion: 'no-preference' });
   try {
+    await full.page.locator('.envelope-stage').scrollIntoViewIfNeeded();
     await full.page.mouse.move(40, 200);
     await full.page.waitForFunction(() => getComputedStyle(document.querySelector('.mail-envelope')).getPropertyValue('--mx').trim() !== '0.5');
     await full.page.waitForTimeout(1000);
@@ -170,7 +182,10 @@ test('mailbox features and the reservation action are visible before opening a d
       assert.equal(await page.locator('#address-features + a[href="/mail/reserve"]').count(), open ? 1 : 0);
       assert.equal(await page.locator('.address-preview').getAttribute('open'), null);
       assert.equal(await page.locator('#pricing + section').getAttribute('id'), 'address');
-      assert.equal(await page.locator('main .mail-shot, #design, #island').count(), 0);
+      // The hero's window is the page's one screenshot.
+      assert.equal(await page.locator('main .mail-shot').count(), 1);
+      assert.equal(await page.locator('.offer-hero .mail-shot').count(), 1);
+      assert.equal(await page.locator('#design, #island').count(), 0);
       assert.equal(await page.getByRole('heading', { name: 'Inside Blanc Mail' }).count(), 0);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     } finally { await context.close(); }

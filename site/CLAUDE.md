@@ -245,6 +245,18 @@ law needs), and offers Patrons priority feature requests: requests emailed to
 support@blanc.day from the checkout address are read and answered first.
 Patron still unlocks no browser features.
 
+**Mail hero (`/mail`, owner, November 24, 2026):** centred copy, one primary
+action (Reserve your address while `mail-reservations.json` says `open`, the
+waitlist once it closes) with the waitlist as a quiet `<details>` link, then the
+real app: `<MailShot name="hero-light">`, captioned "Preview build · sample
+mail". The image is the Mail repository's `native/scripts/capture-public-shots.sh
+main` capture (the light scene) of its demo corpus (2200px, kept as taken in
+`public/mail/screens/`, its 1100px copy from `scripts/build-display-images.mjs`).
+It is the Mail pages' only screenshot (`test/unit/site-mail-screens.test.js`).
+Retake it whenever the app's visible UI changes, update `heroShot`'s alt text
+in `mail.astro`, and record it in `docs/website-mail-hero-2026-11-24.md` (or a
+newer ledger). The gold envelope closes the page above "Get Blanc Mail at launch."
+
 **Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail`, twice,
 and in the Mail bar) posts `{email, website}` to the same Worker's
 `/mail-waitlist` route. It is a separate double opt-in list under its own

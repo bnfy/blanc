@@ -203,6 +203,13 @@
     "height": 585
   },
   {
+    "source": "mail/screens/hero-light.webp",
+    "sourceSha256": "4b7b25a6e73ec63fb76bbe6095803511cd5d8868093dbe9112c0d864e2e9bfcd",
+    "output": "mail/screens/hero-light-1100.webp",
+    "width": 1100,
+    "height": 728
+  },
+  {
     "source": "mail/teasers/address-offer.webp",
     "sourceSha256": "f479caa4b690060faed24b27213a2ac04f91270232e33fb7ff39483693921b04",
     "output": "mail/teasers/address-offer-512.webp",
