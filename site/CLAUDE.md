@@ -256,6 +256,26 @@ It is the Mail pages' only screenshot (`test/unit/site-mail-screens.test.js`).
 Retake it whenever the app's visible UI changes, update `heroShot`'s alt text
 in `mail.astro`, and record it in `docs/website-mail-hero-2026-11-24.md` (or a
 newer ledger). The gold envelope closes the page above "Get Blanc Mail at launch."
+and its one light sweep starts when it first scrolls into view (`data-lit`, set
+by the page's envelope script). The bar's "Mail" word is the lighter Text-cut
+outline (owner, November 24, 2026) and its URL carries `?v=` plus the SVG's
+SHA-256 prefix, which `test/site/mail-bar.test.mjs` checks: change both
+together, because Cloudflare lets browsers keep a lockup for four hours.
+
+**Mail pricing and providers (owner, November 24, 2026):** the page shows one
+plan, Blanc Mail ($4.99 a month or $49.99 a year), with the Blanc address as an
+annual add-on inside its card (the Blanc Mail + Address product, $20 more a
+year) and Blanc Bundle as one line under it, the upgrade for Browser Patrons.
+The Mail pages name Gmail only, never Proton Mail: Proton accounts exist only in
+the Mail repository's owner Debug builds, and no customer build may contain
+them (`docs/website-mail-no-proton-2026-11-24.md`); the survey's Proton choice
+stays, as market evidence. Prices come from `src/data/mail-commerce.mjs`.
+
+**Running the site tests:** `test/site/*.test.mjs` default to
+`http://127.0.0.1:4322`, the port CI serves the build on. Locally, another
+worktree's dev server may already hold that port, so set `BLANC_SITE_URL` to the
+server for the checkout you changed (for example `http://localhost:4321`),
+or every page test fails or, worse, passes against the wrong branch.
 
 **Blanc Mail waitlist:** `components/MailWaitlistForm.astro` (on `/mail`, twice,
 and in the Mail bar) posts `{email, website}` to the same Worker's
