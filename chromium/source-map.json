@@ -866,7 +866,7 @@
     "blanc/third_party/sparkle/README.chromium": "2003e66319a8bad6aef7ad30665fdb380aaeceaf481464de186b3cc4a121800a",
     "blanc/third_party/sparkle/README.md": "417d8855bc37c6eeebedb80601968937f7fb44ba1e89200c28642654c166cd29",
     "blanc/third_party/sparkle/verify.py": "146fc2e1053deb0f3b1aad1d3719edc4d87d7b2fb6936fff717d5ea953a2312d",
-    "blanc/ui.gni": "098fac76ceebcbc01c2758c0067e291b2121ccd26ec1531eb89a8be668eef30a"
+    "blanc/ui.gni": "9bcdd22e178437a712931534ddb2ad2d71b53d0cd1de6d9e034c4681fcb32ec1"
   },
   "targetOwnership": "//blanc:ui routes to browser-boundary template target, respecting existing upstream visibility",
   "upstreamFiles": {
