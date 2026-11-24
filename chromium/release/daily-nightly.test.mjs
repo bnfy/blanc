@@ -104,6 +104,10 @@ test('the installer writes the job and its entry point, which brings nightly.mjs
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-nightly-')), base = path.join(home, 'Blanc'), bin = path.join(home, 'bin');
   fs.mkdirSync(path.join(base, 'repo'), { recursive: true }); fs.mkdirSync(bin);
   for (const name of ['launchctl', 'plutil']) fs.writeFileSync(path.join(bin, name), `#!/bin/sh\necho "${name} $*" >> "${home}/stub.log"\n`, { mode: 0o755 });
+  // The entry point asks pgrep whether a build or the runner is going. The real pgrep reads the
+  // whole machine, where an acceptance run, a build, or another copy of this test (whose pgrep
+  // carries the same pattern) answers yes, so the stub decides: nothing running unless STUB_BUSY.
+  fs.writeFileSync(path.join(bin, 'pgrep'), `#!/bin/sh\necho "pgrep $*" >> "${home}/stub.log"\n[ -n "$STUB_BUSY" ] && exit 0\nexit 1\n`, { mode: 0o755 });
   const env = { PATH: `${bin}:/usr/bin:/bin`, HOME: home, BLANC_STUDIO_BASE: base };
   const install = spawnSync('bash', [fileURLToPath(new URL('./daily/install-nightly.sh', import.meta.url))], { env, encoding: 'utf8' });
   assert.equal(install.status, 0, install.stderr);
@@ -117,8 +121,15 @@ test('the installer writes the job and its entry point, which brings nightly.mjs
   spawnSync('git', ['init', '-q', repo]); fs.writeFileSync(path.join(repo, 'work.txt'), 'unsaved');
   const boot = spawnSync('bash', [path.join(base, 'scripts/beta-nightly.sh')], { env, encoding: 'utf8' });
   assert.equal(boot.status, 0, boot.stderr);
-  assert.match(fs.readFileSync(path.join(base, 'records/nightly/skipped.log'), 'utf8'), /bootstrap skipped: uncommitted changes/);
+  const skipped = () => fs.readFileSync(path.join(base, 'records/nightly/skipped.log'), 'utf8').trim().split('\n').at(-1);
+  assert.match(skipped(), /bootstrap skipped: uncommitted changes/);
   assert.ok(fs.existsSync(path.join(repo, 'work.txt')));
+  // The stub, not the machine's process list, answered.
+  assert.match(fs.readFileSync(path.join(home, 'stub.log'), 'utf8'), /^pgrep -f siso ninja\|chromium\/tests\/runner\.mjs$/m);
+  // A build or the runner going comes first.
+  const busy = spawnSync('bash', [path.join(base, 'scripts/beta-nightly.sh')], { env: { ...env, STUB_BUSY: '1' }, encoding: 'utf8' });
+  assert.equal(busy.status, 0, busy.stderr);
+  assert.match(skipped(), /bootstrap skipped: a build or the runner is going/);
 });
 
 test('screenLocked reads the console session from ioreg', async () => {
@@ -150,4 +161,12 @@ test('a new candidate may rewrite the generated progress block; any change outsi
   assert.equal(onlyGeneratedProgress(committed, status('- notes', '| macOS | 635/667 |', 'tail')), false);
   assert.equal(onlyGeneratedProgress(committed, '# Status\n- notes\n'), false);
   assert.equal(onlyGeneratedProgress('# Status\n', '# Status\n'), false);
+});
+
+// `export { x } from` binds no local name, and this file's tests reach the
+// judge through that re-export, so they passed while every night stopped on a
+// ReferenceError as soon as its suite finished (2026-11-23).
+test('night() can call the judge: nightly.mjs imports it, not only re-exports it', () => {
+  const source = fs.readFileSync(new URL('./daily/nightly.mjs', import.meta.url), 'utf8');
+  assert.match(source, /^import \{[^}]*\bjudgeSuite\b[^}]*\} from '\.\/judge\.mjs';$/m);
 });

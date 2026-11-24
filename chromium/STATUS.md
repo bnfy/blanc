@@ -3854,6 +3854,283 @@ Favorites work's V30 step for "exactly one new tab opens" also matches the
 Patron checkout. Owner items: the D1 hand checks on a real Windows desktop, and
 whether Windows' caption buttons should come and go with the floating Island.
 
+### W3: Blanc's updater and the online installer (in progress, 2026-11-21)
+Plan `docs/superpowers/plans/2026-11-18-windows-fork-w3.md`. Runner proofs:
+N to N+1 through blanc.day (run 44555492612), a wrong-key package refused
+(44556972300) and a tampered one refused (44558579476), the signed, tagged
+online installer installing from blanc.day (44571648134), its Sunrise window
+(44601648672, 44601672625) and the staging gate (44609184611). Release stages:
+`chromium/release/windows-release.mjs` (not yet run for a release).
+
+Hand checks, 2026-11-21, on the owner's Windows 11 VM (Parallels on the
+MacBook Pro; Windows on Arm running the x64 beta under emulation), scripted
+inside the VM with `prlctl exec`, candidate `windows-x64-a9f301d5f9c2f316`
+(158.0.8127.902, signed in run 44883002621, package `6b5a497d…` signed by the
+owner):
+
+| Check | Result |
+| --- | --- |
+| The signed online installer alone installs the beta from blanc.day | Pass: signature Valid, Bananify Creative; setup exit 0; 158.0.8127.901 registered; Start menu entry **Blanc Beta** |
+| An update arriving (blanc.day switched to .902, updater woken) | Pass: 158.0.8127.902 registered, only the .902 folder left, `chrome.exe` names Bananify Creative and Blanc Beta |
+| A fresh profile's first page | Pass: `chrome://newtab/` (Blanc's Start Page); no Chromium welcome page |
+| Uninstall (the entry's own command) | Pass: exit 19 (success), program folder and Start menu entry gone, updater removed, Electron Blanc 1.51.0 untouched. Kept, as Chromium does: the beta's `User Data` folder (here only Crashpad) and an empty `Bananify` folder |
+| The installer window by eye | The owner ran the public setup (2026-11-21): the window is Blanc's, but its taskbar icon drew two suns (Chromium's installer badge, an alias of `IDI_APP`, is the Sunrise too). Fixed for the next Windows beta in patch 0105 (the window keeps its plain `IDI_APP` icon); the capture check now compares the window's `ICON_BIG` with `IDI_APP` and fails on the badge: the public .902 setup failed it (mean difference 58.9 per channel at 32 px, run 44910338564), candidate `windows-x64-919e6019e6e743fa` passed (0, run 44910774231) |
+| Start menu and taskbar (check 2), on the public .902 the owner installed | Pass: Start menu **Blanc Beta**; the window's AppUserModelID `BlancBeta.<SID hash>` equals the shortcut's, so it groups as its own taskbar button with the Sunrise, beside Electron Blanc |
+| Snap Layouts (check 3) | Pass: the Maximize button answers `WM_NCHITTEST` with `HTMAXBUTTON`, and hovering it opens Windows 11's Snap Layouts flyout (VM capture); Win+Left snaps the window to the left half and the layout reflows. Picking a layout with a scripted click did not land (the flyout closes when a script's console takes focus), so a person's click on a layout is the one part not seen |
+| Settings → Default apps (check 4) | Pass: listed as **Blanc Beta** with the Sunrise; **Set default** made it the default for http, https, .htm and .html (.pdf stays Edge's, as Windows leaves it), and a link opened by another app (ShellExecute) opened in Blanc Beta as a new tab. Electron Blanc was set back as the default browser afterwards (.htm and .html stay with Blanc Beta; .html had been Edge's). Seen: the registration's `ApplicationDescription` is still Chromium's product description, and the shortcut tooltip is Chromium's "Access the Internet" |
+| A passkey through Windows Hello (check 5), a brand-new Windows user (check 7) | Not done: both need a person (the Hello PIN or face, and signing in as a new user) |
+| Blanc's words on Windows (owner, 2026-11-21) | Patch 0098: the window title ends with the channel ("Example Domain - Blanc Beta"), the shortcut tooltip is "Browse the web" and the registered description "A minimal web browser with ad and tracker blocking built in". Candidate `windows-x64-6da9b880bec1c1e7` (with the installer-icon fix) installed over .902 in the owner's VM: its online installer's taskbar icon matched `IDI_APP` (difference 0 at 64 px), and the installed build showed all three. Seen on its relaunch: Chromium's own "Set Blanc as your default browser" dialog, with Chromium's logo, a Google Chrome screenshot and a sync claim Blanc doesn't make, shown when Blanc Beta isn't the default |
+| Chromium's default-browser dialog rebranded (patch 0109, owner 2026-11-21: "rebrand it") | `chrome://default-browser-modal` now shows the Sunrise (Chromium's `product_logo.svg` is the Sunrise from `assets/sunrise-mark-4096.png`, so every page that shows the product logo has it, on the Mac too), "Make Blanc Beta your default browser", "Links you open in other apps will open in Blanc Beta. In Windows Settings, select Set default next to Blanc Beta.", a Settings picture of Blanc Beta's Default apps page, Sunrise header art and buttons. Seen in the owner's VM on candidate `windows-x64-c013cb995442adef` (light theme; dark not seen). The "Restore pages?" bubble's Restore button takes the Sunrise accent too (patch 0110, shared with the Mac beta; seen in the VM on `windows-x64-42144a7c3bf6e688`, in light and dark: #d4ad66 with dark text on the dark bubble) |
+| Seen in dark mode, 2026-11-21 | Chromium's other default-browser prompt, the infobar "Pin Blanc to your taskbar to get to it quickly anytime", still shows Chromium's logo and a blue **Pin Blanc** button, and says Blanc rather than Blanc Beta. The rebranded dialog itself was not seen in dark (the prompt schedule showed the infobar, and `chrome://` addresses from the command line are refused) |
+| Island bars on Windows (fixed 2026-11-21) | Every Chromium bar on Windows kept Chromium's slate, logo and blue button: the Island's band color reached the native side after the bars themed, and `Widget::ThemeChanged()` didn't reach them again (two diagnostic builds in the owner's VM logged it). The bandColor handler now restyles each bar directly; patch 0085 also swaps dark mode's `kChromeProductIcon` for the Sunrise and gives a bar's prominent button the Sunrise accent, kept at 3:1 against the bar; on Windows the pin bar says "Pin Blanc Beta to your taskbar…" (0098). Seen in the VM on `chrome.dll` `e473448a…` with the unsupported-flag bar, dark (ink band, cream text) and light (Sunrise cream); the rebranded default-browser dialog seen in dark. Not seen yet: the pin bar itself on the new build (Chromium's prompt schedule decides when it shows). A multi-agent review with skeptics found two real issues (button contrast, weak tests), both fixed |
+
+**About on Windows (2026-11-21; shipped in .904):**
+Settings → About on the Windows beta shows Chromium's own update status
+(`version_updater_win` talks to Blanc's updater, W3) with a **Check for
+Updates…** button that runs the check again (patch 0111; Google's help link
+stays hidden), and shows the Electron import row only on the Mac, where the
+importer can read that app's data. The trust receipt names the platform it
+runs on, gives the Windows build number and checks `chrome.exe`'s Authenticode
+publisher against Bananify Creative with cached revocation data only
+(`trust_receipt.inc`). Seen in the owner's VM over a debugging port, on
+`chrome.dll` `b18ff9e1…` placed over the signed public .903: "Blanc is up to
+date"; pressing the button showed "Checking for updates" (button disabled) and
+then up to date again; Build 158.0.8127.903 (903), Platform Windows · x86_64,
+Publisher Verified locally — Bananify Creative; no import row. Seen too: typing
+`chrome://settings/help` in the Island's address field searches it instead of
+opening it.
+
+**No update toast (2026-11-21, after .904; ships with the next Windows beta):**
+updating .903 to .904 showed Chromium's non-milestone update toast, a dark
+inverse-surface toast with Chromium's product icon and the fixed text "Chrome
+was updated" (`IDS_NON_MILESTONE_UPDATE_TOAST_BODY`, not product-named). It runs
+when the saved `toast.non_milestone_update_toast_version` is the same major
+version and lower; the Mac beta never sees it because its Chromium version stays
+158.0.8127.2. Owner: turn it off. Patch 0112 makes `kNonMilestoneUpdateToast`
+disabled by default in Blanc builds. Seen in the owner's VM with a fresh profile
+whose Local State says .903: the signed .904 showed the toast; with `chrome.dll`
+`213bab3c…` placed over it, no toast in two captures 4 s apart.
+
+**Fourth Windows beta public, the first from a nightly (2026-11-23):** Blanc Beta
+158.0.8127.907, GitHub pre-release `chromium-beta-windows-158.0.8127.907` at
+`ed21560a7` (never latest; v1.52.0 stayed latest), published 13:20 UTC through
+`windows-beta-prep.mjs` and `windows-release.mjs`, all ten stages: night
+`20261123-0400` passed 635 suite cases on the first try (suite 45145367631, beta
+install 45145357992, capture 45145362651), signing run 45179328653
+(owner-approved), owner-signed package `7f0953a0…`, staging gate 45181495395,
+Sigstore-signed `SHA256SUMS`, verify-public 45182987084. Candidate
+`windows-x64-357453694e3d4366`. Its changes: no "Chrome was updated" toast (0112)
+and no Google AI Mode check, search prewarm or preconnects. blanc.day offers
+158.0.8127.907.
+
+**Third Windows beta public (2026-11-21):** Blanc Beta 158.0.8127.904, GitHub
+pre-release `chromium-beta-windows-158.0.8127.904` at `7721085b0` (never latest;
+v1.51.0 stayed latest), published 17:54 UTC through `windows-release.mjs`, all ten
+stages: signing run 44930878823 (owner-approved), owner-signed package `d9feaa40…`,
+staging gate 44931963974, Sigstore-signed `SHA256SUMS`, verify-public 44932619481.
+Candidate `windows-x64-24363262869b62ec` passed the runner's install and updater
+checks (44930438550) and the installer capture with the taskbar-icon check
+(44930451086). Its one change is About's update check and Windows facts (0111).
+blanc.day offers 158.0.8127.904 (a signed update check from .903 answers
+`nextversion` 158.0.8127.904).
+#1685 moved blanc.day's Windows tile and `/dl/beta-win` to it (Pages 1400c80c,
+Production at 9b1ea06). The owner announced the Windows beta for testing on
+r/blancbrowser (owner-approved text, release flair):
+https://www.reddit.com/r/blancbrowser/comments/1y2451g/blanc_beta_is_now_on_windows_try_the/
+
+**Second Windows beta public (2026-11-21):** Blanc Beta 158.0.8127.903, GitHub
+pre-release `chromium-beta-windows-158.0.8127.903` at `96315b04c` (never latest;
+v1.51.0 stayed latest), published 16:30 UTC through `windows-release.mjs`, all ten
+stages: signing run 44923135363 (owner-approved), owner-signed package `d119ad51…`,
+staging gate 44924443284, Sigstore-signed `SHA256SUMS`, verify-public 44924998686.
+Candidate `windows-x64-f12188c27d3b5d32` passed the runner's install and updater
+checks (44922671476) and the installer capture with the taskbar-icon check
+(44922682745). Carries this session's Blanc-look fixes (0085, 0098, 0109, 0110,
+the bar restyle) and 0107/0108. Spaces across profiles ships in it but is not
+claimed for Windows: its checks need test hooks, which beta builds compile out.
+blanc.day offers 158.0.8127.903.
+
+**First Windows beta public (2026-11-21):** Blanc Beta 158.0.8127.902, GitHub
+pre-release `chromium-beta-windows-158.0.8127.902` at `f64ed2ed9` (never latest;
+v1.51.0 stayed latest), published 09:19 UTC through `windows-release.mjs`, all ten
+stages: signing run 44885396573 (owner-approved), owner-signed package `d2571c7e…`,
+staging gate 44887435753, Sigstore-signed `SHA256SUMS`, and verify-public: a
+logged-out download of every file, checksums and Sigstore, blanc.day's signed offer
+of .902, and the public setup alone installing .902 on a clean runner (44889077445).
+blanc.day offers 158.0.8127.902 (`cloudflare/update-worker/src/release.json`);
+ledger `chromium/release/windows-ledger.json`. Not done before release: the five
+hands-on checks above, and no website page or download link yet.
+
+### Windows nightly (2026-11-22)
+
+The Mac Studio runs the Windows nightly every day at 04:00 (LaunchAgent
+`me.bnfy.blanc.desktop-nightly`, installed by
+`chromium/release/daily/install-desktop-nightly.sh`; design
+`docs/superpowers/specs/2026-11-21-windows-nightly-design.md`, plan
+`docs/superpowers/plans/2026-11-21-windows-nightly.md`, runbook "Windows nightly"
+in `docs/chromium-beta-release.md`). It builds `BlancWinBeta` and
+`BlancWinPrototype` on the build server at `chromium/next`'s tip under the
+checkout lock, puts both zips on the `fork-windows-candidate` draft under its
+hold, runs the beta's install, launch, hash and icon checks and the prototype's
+launch, frame and suite on GitHub's Windows runners, reruns what failed once, and
+records the night in `records/nightly/windows/<stamp>/result.json` (the Mac
+Studio's), with `LAST-PASS` naming the newest passing night.
+`chromium/release/daily/windows-beta-prep.mjs` starts a release from that night
+on the MacBook Pro. It claims the night's build number for its exact source on
+`chromium/next` (`build-claims.mjs` `claimExact`, shared with Linux since
+2026-11-22) before it touches the draft.
+
+Rehearsal (2026-11-21, `5b0b06608`, build 906, a throwaway draft and records):
+every step ran, the checks passed, the hold was released and prep refused the
+failed night. Five suite cases failed on both runs (F41-named-workspaces:435,
+glance:337, interface-language:43, tab-migration:116, vertical-tabs:146).
+
+First night (2026-11-22, stamp `20261122-0400`, `2c0831c41`, build 905):
+**pass**. Beta `windows-x64-7e59824678dae1f5` (zip `ede19df8…`), prototype
+`windows-x64-6d6727b13c63748a` (zip `6a22c55d…`); all eight checks true (beta
+workflow 45016500918, capture 45016502729); suite 45016505006 passed 635, and
+four cases passed only on the rerun 45026829607 (glance:337,
+island-and-commands:61 and :115, vertical-tabs:146). Linux's L2 suite fixes in
+`2c0831c41` (Glance, import, profiles and window-layout steps) made the
+rehearsal's five pass. It ran 4 h 26 min; the hold was released and the build
+server left no lock, build or night folder. Prep has not released from it.
+The four rerun-only cases, fixed 2026-11-22 (`tests/windows-nightly-cases.test.mjs`).
+Each was a difference Windows shares with Linux or a hosted-runner condition:
+- glance:337: Windows publishes a woken quiet tab awake and still loading, so
+  the picker remembers the chosen tab's id as Linux's did (the overlay edit is
+  now every platform but the Mac). Checked on a prototype rebuilt by hand at
+  `75d017f2b` (`windows-x64-c0246d1a54192ea0`, zip `fdff76c0…`): all 65 Glance
+  cases passed with no retries (45042056622).
+- island-and-commands:61: the runner's real pointer rested at (650, 570),
+  inside the test window, where no placement clears it. `real-pointer.mjs` reads
+  the Windows pointer and, on a GitHub-hosted Windows runner only, moves it to a
+  screen corner (45037224663 recorded it at (1918, 1030)).
+- island-and-commands:115: Windows moves off a hover-opened panel only after it
+  settles (`moveOffSettledPanel`, as Linux).
+- vertical-tabs:146: quieting a tab released every DevTools session, which let
+  the held loading tab finish; Windows now detaches only the quieted tab
+  (`quietTab`). A control run on the unfixed harness (45036183809) failed it twice.
+- On slower runners island-and-commands:49 failed too, with or without the
+  pointer fix (45039655461, 45039657756): shipping's step allows 600 ms for a
+  300 ms dwell. On Windows the moves and the panel check run side by side and
+  count only if no gap between moves reached the dwell.
+Final check on the rebuilt prototype (45045207804): all of island-and-commands,
+vertical-tabs:146 and glance:264, :273 and :337, 71 cases, every one on the first try.
+
+## Linux
+
+**L0 first build (PL.1), 2026-11-21.** The desktop lane built Chromium
+158.0.8127.2 for native x64 on `blanc-android-build`, in the Windows build's
+checkout at `~/chromium-desktop/src`. The guarded cold build of
+`out/BlancLinuxPrototype` took 1 h 10 min 51 s for 57,829 steps, with no
+compile errors. [L0 plan](../docs/superpowers/plans/2026-11-21-linux-fork-l0.md)
+
+Candidate `linux-x64-2fcae33ab6ecf405` came from `chromium/next` at
+`d827f59a0`. The preview tarball on the `fork-linux-candidate` draft had
+SHA-256 `b04f264edd4a5d037911a52dc0de79b92cf16c32c46d2154cf43212780147a96`.
+The full suite ran from `83571b839` against the pinned v1.49.1 shipping cases.
+
+| L0 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. Both patch checks, fork unit suite, next Mac nightly and both Windows build plans | Open. Desktop and Android patch checks passed. The fork unit suite had 1,118 passes, 28 skips and zero failures. Evidence is pending for a Mac nightly containing L0 and the before/after plans for `BlancWinPrototype` and `BlancWinBeta` | Local commands in the [F0 report](reports/f0-linux.json). Linux setup saves the Windows plans under `~/blanc-evidence/linux/plans/` |
+| 2. Generated progress agrees with the Linux candidate | Passed locally. Bar A counts 667 cases against the recorded executable hash | `node chromium/tools/progress.mjs --check`, [baseline](scenarios/baseline-linux-x64-2fcae33ab6ecf405.json) |
+| 3. Guarded server build of Linux x64 `chrome` | Passed on the first build with the existing amd64 sysroot. L0 setup ran no hooks | `chromium/tools/build.mjs`, [candidate record at 83571b839](https://github.com/bnfy/blanc/commit/83571b839855a5c3a2189e0299883270593afdf2) |
+| 4. Ordinary-user launch, sandbox, Island, blocker and page on X11 and Wayland | Passed on hosted Ubuntu 24.04 as UID 1001 with `kernel.apparmor_restrict_unprivileged_userns=1`. All six renderers per display had seccomp mode 2 and a PID namespace distinct from the browser's. The Island drew, the blocker became ready, the fixture page loaded and both browsers exited 0 | [Launch run 44942354424](https://github.com/bnfy/blanc/actions/runs/44942354424), `smoke-x11.json` and `smoke-wayland.json` |
+| 5. Full Linux suite recorded, with failures grouped by cause | Passed. On X11, 615 passed, 21 failed, 5 were undefined and 26 were excluded across 667 cases from 618 declarations | [Suite run 44942589970](https://github.com/bnfy/blanc/actions/runs/44942589970), [F0 report](reports/f0-linux.json), [JUnit](reports/f0-linux-junit.xml) |
+| 6. Linux status and platform differences recorded | Written for the L0 candidate | [Linux platform differences](PLATFORMS.md#linux) |
+
+L2 Task 2 takes up the 21 failures and five undefined cases. References give
+the feature and declaration line in `spec/acceptance/`, plus the example line
+for outlines. [L2 triage plan](../docs/superpowers/plans/2026-11-21-linux-fork-l2.md#task-2-every-failing-suite-case-fixed-or-recorded)
+
+| L2 triage group | Failed | Undefined | L0 cases and first observed errors |
+| --- | ---: | ---: | --- |
+| Arc import adapter and discovery | 7 | 1 | `arc-spaces-import:7,14,23,31,39,46,60` expected Arc discovery or preview data on Linux, which offers a copied-file chooser. At `:53` the adapter explicitly rejected the Linux platform before exercising that chooser |
+| Owner decision 5, no Linux app icon catalog | 3 | 0 | `settings-and-theming:12`, `supporter-and-session:7,12` looked for the app-icon control in Settings |
+| Owner decision 4, passkeys | 0 | 1 | `private-tabs:40` called the Touch ID ceremony. Chromium on Linux uses a security key or phone for device-bound passkeys |
+| Owner decision 6, floating Island controls | 0 | 1 | `island-and-commands:320` requested floating button geometry. L1 checks Chromium's own caption buttons |
+| Interface-language harness | 5 | 0 | `interface-language:10,18,26,34,43` all stopped because the harness cannot set the simulated OS language on Linux |
+| Single cases for diagnosis | 6 | 2 | `F41-named-workspaces:236` timed out on the hex picker. `glance:506/example-516` saved x = 0 instead of −25. `newtab-layouts:21` put the Mahjong rail outside the board. `split-view:53` left the surviving pane short of full width. `sync:162,181` timed out waiting for a protected window. `navigation-and-context-menu:12/example-22,32` were undefined at the V12 Brave search-engine step |
+
+### L1 identity, frame and packages (PL.2, 2026-11-21 to 11-22)
+
+The hosted frame check used `linux-x64-64f8e6871c8fb16f` from `9f9a0be93`,
+which also passed both launch checks. The install runs used candidate 5 from
+`abe384098` on both architectures. The owner signed both candidate records
+and RPMs on November 22.
+The arm64 prototype cold build took 2 h 02 min for 95,221 steps on the same
+x86-64 server as the L0 build. [L1 plan](../docs/superpowers/plans/2026-11-21-linux-fork-l1.md#l1-gate-all-must-hold),
+[L1 report](reports/l1-linux.json), [frame candidate launch](https://github.com/bnfy/blanc/actions/runs/44948948374)
+
+| Candidate 5 | Candidate ID | Tarball SHA-256 on the `fork-linux-candidate` draft |
+| --- | --- | --- |
+| x64 | `linux-x64-abbf0c91ab29a46a` | `21f9ce7ae13da6312c601356ddf9682c63d319286033962c6989c7ec2ddcc481` |
+| arm64 | `linux-arm64-7f8c53cb7cb20dff` | `b05c2194b5c0129f60fd4cbb9ec47f4d640a29ae1bbf43a2f582ae4e8c630d57` |
+
+| L1 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. Frame input on X11, layout and VM input on Wayland | Passed. The hosted checks passed 8 of 8 on X11 by real input and 8 of 8 on Wayland for layout. In the VM every button worked by real input in all four layouts at 100% and 200%; strip drag, double-click, corner resize and the menu passed in all four at 100% and in default and left at 200%. Split and Close-only at 200% add no new menu or drag position (the menu button sits on the left as in default). | [Frame run 44950261755](https://github.com/bnfy/blanc/actions/runs/44950261755), [VM results](linux/hand-checks-l1.md#results) |
+| 2. Install on Ubuntu 24.04, Debian 12 and Fedora 45 for x64 and arm64 | Passed all six legs, with Ubuntu’s user namespace restriction at 1. The shipping and Chromium profiles, keyring entries, existing default and Google repository files passed every preservation check. Only x64 ships an Electron AppImage to relaunch. | [x64 run 45036361406](https://github.com/bnfy/blanc/actions/runs/45036361406), [arm64 run 45036363620](https://github.com/bnfy/blanc/actions/runs/45036363620) |
+| 3. Package scan and cron | Passed. Candidates 5 and 6 packaged cleanly on both architectures. The cron enrolled only Blanc’s staging repository and its key. | [Packager](linux/package-candidate.mjs), [install checks](tests/linux-install.mjs), [VM apt check](linux/hand-checks-l1.md#results) |
+| 4. Candidate and RPM signatures | Passed. Both install runs verified the signed descriptors, tarball and package hashes, and RPM signatures using only the committed Blanc key. The VM check also verified the arm64 descriptor and matched the installed Debian package to its hash. | [L1 signing record](reports/l1-linux.json), [repository key](linux/keys/blanc-repository.asc) |
+| 5. Mac nightly and both Windows outputs unaffected | Passed. The Mac nightly `20261122-0700` at `2c0831c41` includes patches 0113–0115 and passed; each Linux apply was mirrored on the Mac Studio with both outputs regenerated with unchanged arguments. The first Windows nightly passed. Across 15 Linux setups the Windows plans changed only in timing lines, pending GN regenerations for shared build files, and one intended compile for the Ctrl+Tab change Windows verified (run 44953442824). | [Windows nightly](#windows-nightly-2026-11-22), `~/blanc-evidence/linux/plans/` on the build server |
+| 6. Owner’s first look at arm64 | Passed, delegated. On November 22 the owner asked Claude to run the check and watched it in the Parallels window; Claude drove the owner’s Ubuntu 26.04 GNOME Wayland VM by real input. Default Apps listed Blanc Prototype as the current Web choice; the login keyring was unlocked, so no prompt appeared (a locked keyring was not exercised). | [VM hand check](linux/hand-checks-l1.md) |
+
+The first frame run failed on screenshot timing, fixed in `cdf30aa00`. The
+first x64 install run reached its final shipping AppImage relaunch, where the
+restored session closed the CDP target. The test fix was `b32392b3a`.
+[Frame run 44948958941](https://github.com/bnfy/blanc/actions/runs/44948958941),
+[install run 45035696993](https://github.com/bnfy/blanc/actions/runs/45035696993)
+
+### L2 suite, quit, Ctrl+Tab and screen sharing (PL.3, 2026-11-21 to 11-22)
+
+Candidate 6 from `3902e2323` on both architectures, signed by the owner on November 22.
+[L2 plan](../docs/superpowers/plans/2026-11-21-linux-fork-l2.md#l2-gate-all-must-hold),
+[S1 index](reports/s1-linux.json), [triage](linux/triage-l2.md), [VM hand checks](linux/hand-checks-l2.md)
+
+| Candidate 6 | Candidate ID | Full suite |
+| --- | --- | --- |
+| x64 | `linux-x64-a8ae62abfb80abd5` | 636 of 667 pass, none failing, 31 excluded with named reasons ([run 45041019578](https://github.com/bnfy/blanc/actions/runs/45041019578); L0 was 615, candidate 5 627) |
+| arm64 | `linux-arm64-38d1e4faa1e2945e` | 633 pass, 31 excluded; three timing cases (Spaces menu fade, shield popover, pointer dwell) passed on rerun ([run 45041022075](https://github.com/bnfy/blanc/actions/runs/45041022075), [rerun 45052104498](https://github.com/bnfy/blanc/actions/runs/45052104498)) |
+
+| L2 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. S1 reports from candidates after every L2 fix | Passed. Both per-architecture reports and the index are committed; every non-passing case is excluded with a named reason or passed on rerun. | [s1-linux.json](reports/s1-linux.json) |
+| 2. Quit check on X11 | Partial on the runner, passed on a desktop. Six of seven cases pass on X11. `download in progress` can't be operated under Xvfb with Openbox (the dialog has no reachable window there); by real input on GNOME it shows "Download is in progress", and Exit quits every Blanc process within 2 seconds. | [Run 45057217919](https://github.com/bnfy/blanc/actions/runs/45057217919), [triage](linux/triage-l2.md), [VM check](linux/hand-checks-l2.md) |
+| 3. Ctrl+Tab by real keys | Passed. Every case on X11 on both architectures from a fresh process; the Windows checks passed on the shared change (run 44953442824); the Wayland check passed in the owner's VM. | [x64 run 45056247216](https://github.com/bnfy/blanc/actions/runs/45056247216), [arm64 run 45056743311](https://github.com/bnfy/blanc/actions/runs/45056743311) |
+| 4. Screen sharing | Passed. A tab and the whole screen through Chromium's picker by real input on X11, both architectures; a window through GNOME's portal in the owner's VM. | [x64 run 45059423813](https://github.com/bnfy/blanc/actions/runs/45059423813), [arm64 run 45059705534](https://github.com/bnfy/blanc/actions/runs/45059705534) |
+| 5. Mac nightly and Windows outputs unaffected | Passed. The Mac Studio was regenerated with unchanged arguments before each nightly (plans of 3 and 4 actions on November 22); the Windows plans changed only by pending regenerations. | [L1 gate 5](#l1-identity-frame-and-packages-pl2-2026-11-21-to-11-22) |
+
+Open: a day of ordinary use by the owner; the download-quit case on the hosted runner.
+
+### L3 first public Linux beta (PL.4, 2026-11-22 to 11-23)
+
+**Blanc Beta for Linux 158.0.8127.906 is public.** It was published at 03:45 UTC on November 23
+as GitHub pre-release
+[`chromium-beta-linux-158.0.8127.906`](https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.906),
+not latest (v1.52.0 stayed latest), and as generation 906 of the signed apt and dnf repository at
+`https://pkg.blanc.day` (digest `32459e86…`, the same tree proven on staging). It ships `.deb` and
+`.rpm` packages for x64 and arm64, built from `a52e29005` on Chromium 158.0.8127.2. Build 905 was the
+proof-only N-1, from the same source and never published. Both numbers are claimed in
+`build-reservations.json` and recorded in the [Linux ledger](release/linux-ledger.json).
+[L3 plan](../docs/superpowers/plans/2026-11-21-linux-fork-l3.md#l3-gate-all-must-hold),
+[L3 report](reports/l3-linux.json)
+
+| L3 gate | Result | Evidence |
+| --- | --- | --- |
+| 1. Update proof on every leg, refusals refused | Passed. On Ubuntu 24.04, Debian 12 and Fedora 45, x64 and arm64: 905 installed by file, 906 came from staging through apt or dnf, Blanc offered to restart and relaunched into 906 with its tabs, and foreign-key, unsigned and bad-metadata repositories were refused. The repository add, update and remove check passed on all six. The first two runs failed on test assumptions, fixed in `32b7db2e2` and `ffdf6f60f`. | [Update proof 45103487653](https://github.com/bnfy/blanc/actions/runs/45103487653), [lifecycle 45103802669](https://github.com/bnfy/blanc/actions/runs/45103802669) |
+| 2. Verify-public on x64 and arm64 | Passed on all six systems. Each downloaded every public asset logged out, checked the Sigstore signature, `SHA256SUMS` and the manifest, and installed from `pkg.blanc.day`. The first run's two x64 jobs got 403 on anonymous `api.github.com` reads (a rate limit shared on the runner's address); only the three metadata reads now use the job's read-only token. | [Run 45108455963](https://github.com/bnfy/blanc/actions/runs/45108455963), [first run 45107889525](https://github.com/bnfy/blanc/actions/runs/45107889525) |
+| 3. Owner's VM hand checks | Passed, one item partial. In Ubuntu 26.04 arm64 the Island's Restart to update relaunched 905 into 906 with tabs restored. The Dock icon, keyring, default browser and screen sharing matched L1 and L2. Ubuntu 26.04 has no Software Updater; App Center lists the update only when the repository publishes DEP-11 metadata, which the owner chose to add before the .37 update. | [VM hand check](linux/hand-checks-l3.md) |
+| 4. Latest release still Electron's; Mac and Windows betas unaffected | Passed. Latest stayed v1.52.0 (checked by the publish stage and verify-public). The release created only its own tag, pre-release and repository generation and wrote no Mac or Windows asset or feed. | [Release](https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.906) |
+| 5. Website copy approved by the owner | Passed. The owner approved the Download page's Linux tile on November 23; it merged as `139394045` and deployed to blanc.day (Pages `71c36fae`, Production, `main`), with counted `/dl/beta-linux-<arch>-<format>` routes on blanc-ping (version `defe9dac`). | [bnfy/blanc#1708](https://github.com/bnfy/blanc/pull/1708) |
+
+Found during the release: on Linux, spell checking downloads its Hunspell dictionary from
+`redirector.gvt1.com/edgedl/chrome/dict/`, as shipping Electron Blanc does. No other Google update
+or release host appeared in the update proof's network logs.
+
+Open: DEP-11 metadata before the 158.0.8127.37 update; the 158.0.8127.37 Linux betas after the
+build server moves to .37; the ship note to the release-notes list (owner).
+
 ## Android
 Betas and stable on Play, once production exists: `docs/android/channels.md` (nightly, weekly beta, four-weekly stable, security releases).
 
@@ -4543,7 +4820,8 @@ on that site, and a wrong search address still fails it.
 | --- | --- |
 | macOS | 635/667 executable cases pass; 1 failed; 3 undefined/not run; 28 excluded — [baseline](scenarios/baseline-macos-1400e3914b1a7bdf.json)<br>S1 rows: 260/263 pass; 0 failed; 1 undefined; 2 excluded |
 | Windows | Not run for current candidate (previous baseline is stale) |
-| Linux | Not run (667 cases) |
+| Linux x64 | Not run for current candidate (previous baseline is stale) |
+| Linux arm64 | Not run (667 cases) |
 
 667 executable cases from 618 declarations. Exclusions stay visible in the fixed total; inventory is not a fork run.
 
@@ -4567,5 +4845,5 @@ Android's Bar A counts the shared scenarios bound in `chromium/tests/android/acc
 
 Legacy macOS stages come from the approved spec; they await verification on the canonical candidate. No legacy stage counts as Verified.
 
-Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: windows-x64-7edd9da4f45532ea; Linux: none; Android: android-arm64-7bd35e94ef746069.
+Candidate identities: macOS: macos-1400e3914b1a7bdf; Windows: windows-x64-7edd9da4f45532ea; Linux: linux-x64-a8ae62abfb80abd5, linux-arm64-38d1e4faa1e2945e; Android: android-arm64-7bd35e94ef746069.
 <!-- END GENERATED PROGRESS -->

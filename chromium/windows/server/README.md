@@ -31,6 +31,14 @@ source and the same Chromium pin as the Mac.
 - Never run hooks, clean an output or change `args.gn` as a routine step.
 - The server holds no signing key and no GitHub credential. A built candidate
   is copied off by the operator's Mac (`chromium/windows/ship-candidate.sh`).
+- The desktop checkout (`~/chromium-desktop`) is shared with the Linux lane
+  and the Windows nightly, which take turns through
+  `~/chromium-desktop/.blanc-checkout.lock`. A lock the guard or the nightly
+  takes holds an `owner` token; the guard's refusal names its first 8 hex
+  digits. If a crash left the lock behind: confirm no process holds it (no
+  `siso ninja`, no `nightly-build.mjs`, no setup script), then
+  `rm -f ~/chromium-desktop/.blanc-checkout.lock/owner` and
+  `rmdir ~/chromium-desktop/.blanc-checkout.lock`.
 - Crash capture works in this cross build (W1 Part B): Chromium's docs say the
   assembly Crashpad needs is stubbed, but this tree assembles it with llvm-ml.
   Dumps are written locally; there is no crash server to upload to.

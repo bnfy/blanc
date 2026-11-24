@@ -1,0 +1,182 @@
+Blanc Linux Island frame. Trace at the desktop pin:
+
+At Chromium 158.0.8127.2 an Island is a normal browser window. X11 and
+Wayland both use CreateBrowserFrameViewLinux. With the system theme and a
+toolkit NavButtonProvider it constructs BrowserFrameViewLinuxNative and
+BrowserFrameViewLayoutLinuxNative. Otherwise it constructs BrowserFrameViewLinux
+and BrowserFrameViewLayoutLinux. Both use OpaqueBrowserFrameView's buttons.
+SettingsProviderGtk reads GtkSettings' gtk-decoration-layout on startup and
+on notify (including outside GNOME). GtkUi sets WindowButtonOrderProvider's
+leading/trailing vectors and notifies the LinuxUi observers. The frame's
+OnWindowButtonOrderingChange copies the order into the layout and relays out
+the root. OpaqueBrowserFrameViewLayout::LayoutWindowControls places the
+visible buttons, substituting Restore when maximized. The native variant
+uses toolkit button images, margins and spacing. CalculateClientAreaBounds
+uses NonClientTopHeight, which includes title/icon height when a title is
+shown and otherwise retains the frame's top border and extra top thickness.
+InitWindowCaptionButton gives each button its own transparent layer, and
+FrameView::GetChildrenInZOrder places the client behind the frame children.
+The Island supplies the hidden tab strip's preferred height for button sizing
+and keeps the resize inset above the client.
+
+BrowserNativeWidgetAuraLinux::UseCustomFrame forces client decorations when
+Ozone has no server decoration support. Otherwise it honors the normal
+window's custom-frame preference. WaylandToplevelWindow requests kClientSide
+for a custom frame and kServerSide for a native frame, and ShouldUseNativeFrame
+requires the xdg decoration manager. Wayland therefore permits the overlay.
+On X11 the upstream default depends on the window manager. The Island defaults
+to a custom frame. Selecting "Use system title bar and borders" on a supporting
+desktop places the system title bar above the strip, and GetShowWindowTitleBar
+suppresses Chromium's controls.
+
+diff --git a/chrome/browser/ui/views/frame/browser_frame_view_linux.h b/chrome/browser/ui/views/frame/browser_frame_view_linux.h
+--- a/chrome/browser/ui/views/frame/browser_frame_view_linux.h
++++ b/chrome/browser/ui/views/frame/browser_frame_view_linux.h
+@@ -32,6 +32,14 @@
+   ~BrowserFrameViewLinux() override;
+ 
+   BrowserFrameViewLayoutLinux* layout() { return layout_; }
++
++#if BUILDFLAG(IS_LINUX)
++  void Layout(PassKey) override;
++  void OnDeviceScaleFactorChanged(float old_scale, float new_scale) override;
++  bool IsTabStripVisible() const override;
++  bool ShouldShowWindowTitle() const override;
++  bool ShouldShowWindowIcon() const override;
++#endif
+ 
+   // BrowserFrameView:
+   gfx::Insets RestoredMirroredFrameBorderInsets() const override;
+diff --git a/chrome/browser/ui/views/frame/browser_frame_view_linux.cc b/chrome/browser/ui/views/frame/browser_frame_view_linux.cc
+--- a/chrome/browser/ui/views/frame/browser_frame_view_linux.cc
++++ b/chrome/browser/ui/views/frame/browser_frame_view_linux.cc
+@@ -5,6 +5,9 @@
+ #include "chrome/browser/ui/views/frame/browser_frame_view_linux.h"
+ 
+ #include "base/notreached.h"
++#if BUILDFLAG(IS_LINUX)
++#include "blanc/browser/ui/blanc_prototype_ui.h"
++#endif
+ #include "chrome/browser/ui/views/chrome_layout_provider.h"
+ #include "chrome/browser/ui/views/frame/browser_native_widget_aura_linux.h"
+ #include "chrome/browser/ui/views/frame/browser_view.h"
+@@ -26,6 +29,12 @@
+ // bottom resize borders.
+ constexpr int kResizeTopBorderThickness = 4;
+ 
++#if BUILDFLAG(IS_LINUX)
++bool HasIslandStrip(const BrowserView* view) {
++  return view && blanc_prototype::IsIslandWindow(view->browser());
++}
++#endif
++
+ }  // namespace
+ 
+ BrowserFrameViewLinux::BrowserFrameViewLinux(
+@@ -41,6 +50,38 @@
+ }
+ 
+ BrowserFrameViewLinux::~BrowserFrameViewLinux() = default;
++
++#if BUILDFLAG(IS_LINUX)
++void BrowserFrameViewLinux::Layout(PassKey) {
++  LayoutSuperclass<OpaqueBrowserFrameView>(this);
++  if (HasIslandStrip(GetBrowserView())) {
++    blanc_prototype::LinuxWindowButtonsChanged(GetBrowserView());
++  }
++}
++
++void BrowserFrameViewLinux::OnDeviceScaleFactorChanged(float old_scale,
++                                                       float new_scale) {
++  OpaqueBrowserFrameView::OnDeviceScaleFactorChanged(old_scale, new_scale);
++  if (HasIslandStrip(GetBrowserView())) {
++    InvalidateLayout();
++  }
++}
++
++bool BrowserFrameViewLinux::IsTabStripVisible() const {
++  return OpaqueBrowserFrameView::IsTabStripVisible() ||
++         (HasIslandStrip(GetBrowserView()) && ShouldShowCaptionButtons());
++}
++
++bool BrowserFrameViewLinux::ShouldShowWindowTitle() const {
++  return !HasIslandStrip(GetBrowserView()) &&
++         OpaqueBrowserFrameView::ShouldShowWindowTitle();
++}
++
++bool BrowserFrameViewLinux::ShouldShowWindowIcon() const {
++  return !HasIslandStrip(GetBrowserView()) &&
++         OpaqueBrowserFrameView::ShouldShowWindowIcon();
++}
++#endif  // BUILDFLAG(IS_LINUX)
+ 
+ gfx::Insets BrowserFrameViewLinux::RestoredMirroredFrameBorderInsets() const {
+   return layout_->RestoredMirroredFrameBorderInsets();
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -903,6 +903,14 @@
+       exclusive_access_context_(
+           std::make_unique<ExclusiveAccessContextImpl>(*this)),
+       browser_(browser) {
++#if BUILDFLAG(IS_LINUX)
++  if (blanc_prototype::IsIslandWindow(browser_)) {
++    // X11's default depends on the window manager. Keep an explicit system
++    // title bar preference while defaulting Island windows to client buttons.
++    browser_->GetProfile()->GetPrefs()->SetDefaultPrefValue(
++        prefs::kUseCustomChromeFrame, base::Value(true));
++  }
++#endif
+   if (auto* manager = InitialWebUIWindowMetricsManager::From(browser_.get())) {
+     manager->OnBrowserWindowCreated();
+   }
+@@ -1273,6 +1281,13 @@
+                 ->GetPreferredSize()
+                 .height()
+           : 0;
++#if BUILDFLAG(IS_LINUX)
++  if (blanc_prototype::IsIslandWindow(browser_)) {
++    // The opaque layout and the GTK image provider both size their buttons
++    // from the top area. The Island has hidden the tab strip that sized it.
++    info.tabstrip_preferred_height = GetLayoutConstant(LayoutConstant::kTabStripHeight);
++  }
++#endif
+   if (toolbar_ && ShouldDrawVerticalTabStrip()) {
+     info.toolbar_minimum_height = toolbar_->GetMinimumSize().height();
+   } else if (web_app_frame_toolbar_ && ShouldDrawWebAppFrameToolbar()) {
+@@ -4560,7 +4575,7 @@
+ bool BrowserView::ShouldDescendIntoChildForEventHandling(
+     gfx::NativeView child,
+     const gfx::Point& location) {
+-#if BUILDFLAG(IS_WIN)
++#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
+   // Blanc: the Island's strip is web content. Its drag areas belong to the
+   // window, as a web app's draggable regions do, so a press there starts a
+   // window move instead of going to the strip.
+@@ -4568,6 +4583,13 @@
+     gfx::Point island_point(location);
+     views::View::ConvertPointToTarget(GetWidget()->GetRootView(), this,
+                                       &island_point);
++#if BUILDFLAG(IS_LINUX)
++    if (blanc_prototype::LinuxWindowButtonAt(this, island_point.x(),
++                                              island_point.y()) != HTNOWHERE &&
++        !WidgetOwnedByAnchorContainsPoint(island_point)) {
++      return false;
++    }
++#endif
+     if (blanc_prototype::IsCaption(this, island_point.x(), island_point.y()) &&
+         !WidgetOwnedByAnchorContainsPoint(island_point)) {
+       return false;
+@@ -4688,6 +4710,12 @@
+   if (blanc_prototype::IsIslandWindow(browser_)) {
+     gfx::Point local(point);
+     views::View::ConvertPointToTarget(parent(), this, &local);
++#if BUILDFLAG(IS_LINUX)
++    const int button = blanc_prototype::LinuxWindowButtonAt(this, local.x(), local.y());
++    if (button != HTNOWHERE) return button;
++    // The opaque frame still owns its shadow and resize borders.
++    if (!GetLocalBounds().Contains(local)) return HTNOWHERE;
++#endif
+     if (blanc_prototype::IsCaption(this, local.x(), local.y())) return HTCAPTION;
+     if (local.y() >= 0 && local.y() < 68) return HTCLIENT;
+   }

@@ -53,17 +53,23 @@ export function readHeldFile(file,{platform=process.platform,read=fs.readFileSyn
 // assume it; the Mac's Chromium default is at least that on the Mac Studio,
 // but on the Windows runner's 1920x1080 display it is 929x1004.
 export function initialWindowFlags(platform=process.platform){
- return platform==='win32'?['--window-size=1280,800']:[];
+ return platform==='win32'||platform==='linux'?['--window-size=1280,800']:[];
 }
 // The OS's preferred language for a launch, as each platform's Chromium reads
 // it: the AppleLanguages default on the Mac, --lang on Windows (interface
-// language and default page languages). Linux reads the environment, which
-// this harness doesn't fake.
+// language and default page languages). Linux reads the child environment.
 export function osLanguageFlags(tag,platform=process.platform){
  if(!/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(String(tag)))throw Error('Not a language tag: '+tag);
  if(platform==='darwin')return ['-AppleLanguages',`(${tag})`];
  if(platform==='win32')return [`--lang=${tag}`];
+ if(platform==='linux')return [];
  throw Error(`The OS language is not faked on ${platform}`);
+}
+// ICU and gettext use the POSIX locale, with LANGUAGE listing fallbacks.
+export function osLanguageEnv(tag,env) {
+ osLanguageFlags(tag,'linux');
+ const locale = tag.replaceAll('-','_');
+ return {...env, LANGUAGE:[...new Set([locale,tag.split('-')[0]])].join(':'), LC_ALL:locale+'.UTF-8', LANG:locale+'.UTF-8'};
 }
 // Every process as "pid command line", one per line.
 export function processListCommand(platform=process.platform){
@@ -84,9 +90,14 @@ export function keepAwake(pid=process.pid,platform=process.platform){
  spawn('/usr/bin/caffeinate',['-d','-i','-w',String(pid)],{stdio:'ignore'}).unref();
  return true;
 }
-// The candidate under test is its executable plus its main library: the
-// framework on the Mac, chrome.dll on Windows. Exactly one of the two.
+// Linux identifies chrome itself. Mac and Windows also hash their main library.
 export function candidateIdentityFiles(config){
+ if(config.singleBinary===true){
+  if(!config.executable||!config.executableSha256||config.framework!==undefined||config.dll!==undefined||
+     config.frameworkSha256!==undefined||config.dllSha256!==undefined)
+   throw Error('Single-binary candidate identity needs only an executable and its SHA-256');
+  return [[config.executable,config.executableSha256]];
+ }
  const library=config.framework!==undefined?['framework','frameworkSha256']:['dll','dllSha256'];
  if((config.framework!==undefined)===(config.dll!==undefined)||!config.executable||!config.executableSha256||!config[library[0]]||!config[library[1]])
   throw Error('Candidate identity needs an executable and either a framework or a dll, each with its SHA-256');
@@ -94,6 +105,7 @@ export function candidateIdentityFiles(config){
 }
 export function candidateIdentity(config){
  candidateIdentityFiles(config);
+ if(config.singleBinary===true)return {id:config.candidate,executableSha256:config.executableSha256,singleBinary:true};
  return config.framework!==undefined
   ?{id:config.candidate,frameworkSha256:config.frameworkSha256,executableSha256:config.executableSha256}
   :{id:config.candidate,dllSha256:config.dllSha256,executableSha256:config.executableSha256};

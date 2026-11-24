@@ -1,0 +1,8 @@
+# Blanc's desktop fork for Linux, preview channel (arm64). Copied to
+# out/BlancLinuxArm64Prototype/args.gn by chromium/linux/server/setup.sh.
+target_os = "linux"
+target_cpu = "arm64"
+is_debug = false
+is_component_build = false
+symbol_level = 0
+blanc_blocker_bundle = "/home/blanc/blanc-assets/blocker"

@@ -47,17 +47,20 @@ async function activePage(w){
  if(visible.length!==1)throw new UndefinedNativeAdapterError('Active tab document is not uniquely addressable: '+tab.url);
  return visible[0];
 }
-// The window as its content sees it. CDP reports the whole OS window, which on
-// Windows includes invisible resize borders around the client area; the
-// native hook says how wide they are (zero when maximized). The Mac's window
-// has none, and is not asked.
+// CDP includes Windows' resize borders and the Linux frame's client-side
+// decorations. The hook measures each edge in the same DIPs as CDP.
 const NO_INSETS={left:0,top:0,right:0,bottom:0};
-async function windowOf(w){
- const page=await activePage(w);
- const {windowId,bounds}=await w.fixture.browser.send('Browser.getWindowForTarget',{targetId:page.targetId});
- const insets=process.platform==='win32'?await w.native('windowFrameInsets'):NO_INSETS;
+async function windowOf(w,targetId){
+ targetId??=(await activePage(w)).targetId;
+ const {windowId,bounds}=await w.fixture.browser.send('Browser.getWindowForTarget',{targetId});
+ const insets=['win32','linux'].includes(process.platform)?await w.native('windowFrameInsets'):NO_INSETS;
  return {windowId,insets,bounds:{...bounds,left:bounds.left+insets.left,top:bounds.top+insets.top,
   width:bounds.width-insets.left-insets.right,height:bounds.height-insets.top-insets.bottom}};
+}
+// Linux's setWindowContentSize adds the restored frame around the request.
+export async function relaunchWindowBounds(w,targetId){
+ if(process.platform==='linux')return (await windowOf(w,targetId)).bounds;
+ return (await w.fixture.browser.send('Browser.getWindowForTarget',{targetId})).bounds;
 }
 const strip=w=>w.frame('strip');const overlay=w=>w.frame('overlay');
 // macOS floats only the pill (shipping's floatViewsWanted): no window
@@ -110,6 +113,12 @@ async function islandReport(w){
 }
 // Shipping sets these through its Settings page; drive the fork's Settings
 // page the same way. A missing control is the product's own gap.
+export function linuxButtonRects(buttons,menuButtonRect) {
+ if (!buttons.length) return {windowControlsRect:null,menuButtonRect};
+ const x = Math.min(...buttons.map(b=>b.x)), y = Math.min(...buttons.map(b=>b.y));
+ const right = Math.max(...buttons.map(b=>b.x+b.width)), bottom = Math.max(...buttons.map(b=>b.y+b.height));
+ return {windowControlsRect:{x,y,width:right-x,height:bottom-y},menuButtonRect};
+}
 export const island={
  tabLayout:async w=>{
   const layout=(await w.snapshot()).tabLayout;
@@ -124,7 +133,7 @@ export const island={
  // ---- window ----
  async windowContentBounds(w){
   const {bounds}=await windowOf(w);
-  // The Island window has no OS frame: the host and the page split its height,
+  // Inside the frame, the host and the page split the client height,
   // or (auto-hide) the page takes all of it with the Island above it.
   // A zoomed page (Mahjong's records check) reports fewer CSS pixels; its
   // height is compared in the host's, within the pixel that rounding costs.
@@ -135,15 +144,21 @@ export const island={
   return {x:bounds.left,y:bounds.top,width:bounds.width,height:bounds.height};
  },
  async setWindowContentSize(w,width,height){
-  const {windowId}=await windowOf(w);
+  const {windowId,bounds}=await windowOf(w);
   await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{windowState:'normal'}});
-  // The restored window's borders, read after it is restored.
-  const {insets}=await windowOf(w);
+  // Restoring on X11/Wayland can require a window-manager configure event.
+  const {insets}=process.platform==='linux' && bounds.windowState!=='normal'
+    ? await w.waitFor(()=>windowOf(w),win=>win.bounds.windowState==='normal','restored window frame')
+    : await windowOf(w);
   await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{width:Number(width)+insets.left+insets.right,height:Number(height)+insets.top+insets.bottom}});
  },
  async mainWindowState(w){const {bounds}=await windowOf(w);return {maximized:bounds.windowState==='maximized',minimized:bounds.windowState==='minimized'};},
  async restoreMainWindow(w){const {windowId}=await windowOf(w);await w.fixture.browser.send('Browser.setWindowBounds',{windowId,bounds:{windowState:'normal'}});return true;},
- chromeButtonRects:undef('The fork strip reports no window-button geometry to the host'),
+ chromeButtonRects:process.platform==='linux'?async w=>{
+  const buttons=await w.hostEval('window.BlancPrototypeHost.windowButtons().buttons');
+  const menu=await strip(w).locator('#mainMenuButton').boundingBox();
+  return linuxButtonRects(buttons,menu);
+ }:undef('The fork strip reports no window-button geometry to the host'),
  mainMenuRequests:w=>w.hostEval('window.BlancPrototypeHost.mainMenuRequests()'),
  // ---- strip geometry and DOM ----
  islandRect:async w=>(await islandReport(w))?.rect??null,

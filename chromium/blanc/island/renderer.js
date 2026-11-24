@@ -624,6 +624,31 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   let lastActiveTab = null;
   let pillNoticeTimer = null;
   function showPillNotice(kind) {
+    if (platform === 'linux' && kind?.kind === 'update-ready') {
+      if (frameElement?.id !== 'strip' && frameElement?.id !== 'floatPill') return;
+      let button = document.getElementById('pillRestartToUpdate');
+      if (!kind.version) {
+        if (!button) return;
+        button.remove();
+      } else if (button) {
+        button.dataset.version = kind.version;
+        return;
+      } else {
+        button = document.createElement('button');
+        button.id = 'pillRestartToUpdate';
+        button.type = 'button';
+        button.textContent = blancI18n.t('pill.restartToUpdate');
+        button.dataset.version = kind.version;
+        button.addEventListener('click', event => {
+          event.stopPropagation();
+          if (event.isTrusted) location.assign('/restartToUpdate?' + encodeURIComponent(button.dataset.version));
+        });
+        pillDomain.after(button);
+      }
+      fitIslandDots();
+      requestAnimationFrame(reportIslandRect);
+      return;
+    }
     const key = PILL_NOTICE_KEYS[kind];
     if (!key) return;
     pillNoticeKey = key;
@@ -1549,11 +1574,11 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
   // Double-click on empty strip area zooms the window (desktop convention).
   // Not in a float view: its bare strip is the margin around its one element.
   stripEl.addEventListener('dblclick', (e) => {
-    if (e.target === stripEl && !floatSurface) window.browserAPI.maximizeWindow();
+    if (platform !== 'linux' && e.target === stripEl && !floatSurface) window.browserAPI.maximizeWindow();
   });
   // The covered strip's top band zooms the window the same way.
   const dragBand = document.getElementById('dragBand');
-  dragBand.addEventListener('dblclick', () => window.browserAPI.maximizeWindow());
+  if (platform !== 'linux') dragBand.addEventListener('dblclick', () => window.browserAPI.maximizeWindow());
 
   // Permission prompts render in their own floating bottom-center view
   // (permission.html/permission.js) — the strip no longer hosts them.
@@ -1777,6 +1802,20 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-renderer", {create
     lastIslandReport = serialized;
     window.browserAPI.reportIslandRect(rect);
   };
+  if (platform === 'linux') {
+    window.addEventListener('blanc-window-buttons', ({ detail: { leading, trailing, buttons, zoom } }) => {
+      const style = document.documentElement.style;
+      style.setProperty('--window-controls-leading-w', leading / zoom + 'px');
+      style.setProperty('--window-controls-w', trailing / zoom + 'px');
+      dragBand.style.height = 'calc(var(--drag-band-h) / ' + zoom + ')';
+      // A narrow vertical rail puts its menu row below a left-hand cluster.
+      const bottom = Math.max(0, ...buttons.filter(b => b.x < leading).map(b => b.y + b.height));
+      style.setProperty('--window-controls-leading-h', bottom / zoom + 'px');
+      dotFitKey = '';
+      fitIslandDots();
+      requestAnimationFrame(reportIslandRect);
+    });
+  }
   new ResizeObserver(reportIslandRect).observe(islandPill);
   // The observer only sees the pill's SIZE change. A window resize re-centers
   // the pill without resizing it, which left this rect stale — and the ⌘L

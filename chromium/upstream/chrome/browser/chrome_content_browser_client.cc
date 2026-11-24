@@ -141,6 +141,7 @@
 #include "chrome/browser/payments/payment_request_display_manager_factory.h"
 #include "chrome/browser/performance_manager/public/chrome_browser_main_extra_parts_performance_manager.h"
 #include "chrome/browser/performance_manager/public/chrome_content_browser_client_performance_manager_part.h"
+#include "chrome/browser/picture_in_picture/auto_picture_in_picture_tab_helper.h"
 #include "chrome/browser/picture_in_picture/picture_in_picture_window_manager.h"
 #include "chrome/browser/picture_in_picture/scoped_tuck_picture_in_picture.h"
 #include "chrome/browser/picture_in_picture/video_overlay_window.h"
@@ -583,7 +584,6 @@
 #include "chrome/browser/loader/fetch_keepalive_process_manager.h"
 #include "chrome/browser/metrics/usage_scenario/chrome_responsiveness_calculator_delegate.h"
 #include "chrome/browser/new_tab_page/new_tab_page_util.h"
-#include "chrome/browser/picture_in_picture/auto_picture_in_picture_tab_helper.h"
 #include "chrome/browser/screen_ai/screen_ai_install_state.h"
 #include "chrome/browser/themes/theme_service.h"
 #include "chrome/browser/themes/theme_service_factory.h"
@@ -1015,8 +1015,7 @@ blink::mojom::AutoplayPolicy DetermineWebContentsAutoplayPolicy(
     blink::mojom::AutoplayPolicy current_policy) {
   using PolicyStatus = AutoplayPolicyStatusObserver::PolicyStatus;
 
-  Profile* profile =
-      Profile::FromBrowserContext(web_contents->GetBrowserContext());
+  Profile* profile = GetProfileForWebPreferences(web_contents);
   PrefService* prefs = profile->GetPrefs();
 
   AutoplayPolicyStatusObserver* observer =
@@ -4622,7 +4621,6 @@ bool ChromeContentBrowserClient::CanCreateWindow(
   DCHECK(!prerender::ChromeNoStatePrefetchContentsDelegate::FromWebContents(
       web_contents));
 
-#if !BUILDFLAG(IS_ANDROID)
   // For Automatic Document Picture-in-Picture, the window creation is
   // authorized by the browser rather than a user gesture. If AutoPip
   // preconditions are met, permit the window creation.
@@ -4634,7 +4632,6 @@ bool ChromeContentBrowserClient::CanCreateWindow(
       return true;
     }
   }
-#endif  // !BUILDFLAG(IS_ANDROID)
 
   const BlockedWindowParams blocked_params(
       target_url, opener->GetGlobalFrameToken(), source_origin,
@@ -8193,6 +8190,20 @@ ChromeContentBrowserClient::MaybeOverrideSourceURLForClipboardAccess(
 #else
   return std::nullopt;
 #endif  // BUILDFLAG(ENTERPRISE_DATA_CONTROLS)
+}
+
+content::BrowserContext* ChromeContentBrowserClient::GetUserBrowserContext(
+    content::RenderFrameHost& render_frame_host) {
+#if !BUILDFLAG(IS_ANDROID)
+  // When the WebContents of a Top Chrome WebUI is in TopChromeWebUIProfile,
+  // which is shared by the windows of all profiles, return its user profile.
+  // Otherwise, this is the profile of the WebContents.
+  if (Profile* user_profile = webui::GetUserProfile(
+          content::WebContents::FromRenderFrameHost(&render_frame_host))) {
+    return user_profile;
+  }
+#endif  // !BUILDFLAG(IS_ANDROID)
+  return render_frame_host.GetBrowserContext();
 }
 
 bool ChromeContentBrowserClient::IsClipboardPasteAllowed(

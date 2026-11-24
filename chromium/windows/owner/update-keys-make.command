@@ -9,7 +9,8 @@
 #     Used only by the owner's signing step (Task D1).
 #
 # Public halves: ~/Projects/Blanc/records/windows-update-keys/{cup,crx}-public.der
-# (BLANC_KEYS_OUT overrides the folder; BLANC_OP overrides the op command, for tests).
+# (BLANC_KEYS_OUT overrides the folder; BLANC_OP overrides the op command and
+# BLANC_WORK_TMP the folder that holds the working folder, for tests).
 set -euo pipefail
 umask 077
 OPENSSL=/opt/homebrew/opt/openssl@3/bin/openssl
@@ -20,7 +21,7 @@ export OP_BIOMETRIC_UNLOCK_ENABLED=true
 OPACCT=my.1password.com
 CUP_TITLE='Blanc Windows Beta CUP Key'
 CRX_TITLE='Blanc Windows Beta CRX Publisher Key'
-WORK=$(mktemp -d /private/tmp/blanc-win-keys.XXXXXX)
+WORK=$(mktemp -d "${BLANC_WORK_TMP:-/private/tmp}/blanc-win-keys.XXXXXX")
 trap 'code=$?; rm -rf "$WORK"; if [ $code -ne 0 ]; then echo; echo "STOPPED. Nothing was left on disk. Tell Claude."; fi' EXIT
 echo "Blanc Beta for Windows: make the update keys"
 echo

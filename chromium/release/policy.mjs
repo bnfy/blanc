@@ -7,8 +7,8 @@ export const PRODUCT = 'Blanc Beta';
 export const TEAM = 'XYGUCY4498';
 export const CERT = '55283A84D3706D5A22386D5F002A0CD4845ECFD4';
 export const FEED_ROOT = 'https://blanc.day/updates/chromium-beta/';
-export const UPSTREAM = '681cd621e82e606d7536eae8ea2576afb3c7d65c';
-export const CHROME_VERSION = '158.0.8127.2';
+export const UPSTREAM = 'b8c2be851f62f6a394ec57955d7f31335d7cb6d4';
+export const CHROME_VERSION = '158.0.8127.37';
 export const SPARKLE = '2.10.1';
 // Release gates the owner waived in writing, by release; any other waiver is refused.
 // The reason travels with the release: in release.json's gateWaivers, or, for a waiver

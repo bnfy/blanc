@@ -1,7 +1,7 @@
 // Runs the fork's acceptance runner against an unpacked Windows candidate on
 // a hosted Windows runner (.github/workflows/chromium-windows-candidate.yml):
 //
-//   node chromium/windows/run-suite.mjs CANDIDATE_FOLDER RESULTS_FOLDER --slice=f0 [--only=case-id-text]
+//   node chromium/windows/run-suite.mjs CANDIDATE_FOLDER RESULTS_FOLDER --slice=f0 [--only=case-id-text | --case-list=FILE] [--nightly=RUN_ID]
 //
 // It writes the run config from the candidate's candidate.json and starts
 // tests/runner.mjs, which itself refuses a candidate the tracker doesn't
@@ -13,6 +13,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { runtimeConfig } from './candidate.mjs';
 
+// The shared parser (Linux's run-suite.mjs uses it too): one slice and at most
+// one --only filter.
 export function suiteArguments(options) {
   const slices = options.filter(option => option.startsWith('--slice='));
   const only = options.filter(option => option.startsWith('--only='));
@@ -22,35 +24,80 @@ export function suiteArguments(options) {
   if (only.length && only[0] === '--only=') throw new Error('--only needs case-id text; leave it out for a full run.');
   return only;
 }
+// Windows also runs nightlies (Task 2 of the Windows nightly plan): an optional
+// --nightly=RUN_ID and a --case-list=FILE in place of --only. Returns the
+// arguments for the runner, as suiteArguments does.
+export function nightlySuiteArguments(options) {
+  const nightly = options.filter(option => option.startsWith('--nightly='));
+  const caseList = options.filter(option => option.startsWith('--case-list='));
+  const rest = options.filter(option => !nightly.includes(option) && !caseList.includes(option));
+  const only = suiteArguments(rest);
+  if (nightly.length > 1 || caseList.length > 1 || (only.length && caseList.length))
+    throw new Error(`Use at most one --nightly=RUN_ID, and --only or --case-list, not both (got ${JSON.stringify(options)}).`);
+  if (caseList.length && caseList[0] === '--case-list=') throw new Error('--case-list needs a file.');
+  if (nightly.length && !/^--nightly=[1-9][0-9]{0,19}$/.test(nightly[0])) throw new Error('--nightly needs the run id.');
+  return [...only, ...caseList];
+}
+// The nightly run id, or null (Task 2 of the Windows nightly plan).
+export function nightlyRun(options) {
+  nightlySuiteArguments(options);
+  return options.find(option => option.startsWith('--nightly='))?.slice('--nightly='.length) ?? null;
+}
+// A nightly is never a tracker baseline: on this throwaway checkout the tracker
+// names its candidate for this run only. Returns a new tracker.
+export function nightlyTracker(tracker, config, runId) {
+  return {...tracker, currentCandidates: {...tracker.currentCandidates,
+    windows: {id: config.candidate, exeSha256: config.executableSha256, dllSha256: config.dllSha256,
+      qualification: `nightly run ${runId}; not a tracker baseline`}}};
+}
+// The report a nightly leaves names its run, so a judge can bind it to the dispatch.
+export function stampNightly(baseline, runId) {
+  return {...baseline, runId, nightly: runId};
+}
 function main() {
   const [candidateFolder, resultsFolder, ...options] = process.argv.slice(2);
   if (!candidateFolder || !resultsFolder) throw new Error('Usage: run-suite.mjs CANDIDATE_FOLDER RESULTS_FOLDER --slice=f0 [--only=case-id-text]');
-  const extra = suiteArguments(options);
+  const extra = nightlySuiteArguments(options);
+  const nightly = nightlyRun(options);
   const directory = path.resolve(candidateFolder);
   const config = runtimeConfig(directory, JSON.parse(fs.readFileSync(path.join(directory, 'candidate.json'), 'utf8')));
   const configFile = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-suite-')), 'runtime-config.json');
   fs.writeFileSync(configFile, JSON.stringify(config, null, 2) + '\n');
   // The runner refuses a candidate the tracker does not name. A full run keeps
-  // that rule: its tracker entry is committed first. A development subset is
-  // never a baseline, so on this throwaway checkout the tracker is pointed at
-  // the candidate under test.
-  if (extra.length) {
-    const trackerFile = path.join(path.dirname(fileURLToPath(import.meta.url)), '../tracker.json');
-    const tracker = JSON.parse(fs.readFileSync(trackerFile, 'utf8'));
-    if (tracker.currentCandidates.windows?.id !== config.candidate) {
-      tracker.currentCandidates.windows = { id: config.candidate, exeSha256: config.executableSha256, dllSha256: config.dllSha256,
-        qualification: 'development subset on a throwaway checkout; not recorded' };
-      fs.writeFileSync(trackerFile, JSON.stringify(tracker, null, 2) + '\n');
-      console.log(`run-suite: development subset; tracker pointed at ${config.candidate} for this run only.`);
+  // that rule: its tracker entry is committed first. A development subset or a
+  // nightly is never a baseline, so the tracker names the candidate under test
+  // for this run only and is put back afterwards, whatever the runner did.
+  // (BLANC_RUN_SUITE_TRACKER and BLANC_RUN_SUITE_RUNNER are for tests.)
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const trackerFile = process.env.BLANC_RUN_SUITE_TRACKER || path.join(here, '../tracker.json');
+  const runner = process.env.BLANC_RUN_SUITE_RUNNER || path.join(here, '../tests/runner.mjs');
+  const results = path.resolve(resultsFolder);
+  // Only a report this invocation makes is ever stamped.
+  if (fs.existsSync(results)) throw new Error('The results folder already exists; use a new one.');
+  const originalTracker = fs.readFileSync(trackerFile);
+  try {
+    if (nightly) {
+      fs.writeFileSync(trackerFile, JSON.stringify(nightlyTracker(JSON.parse(originalTracker), config, nightly), null, 2) + '\n');
+      console.log(`run-suite: nightly run ${nightly}; tracker pointed at ${config.candidate} for this run only.`);
+    } else if (extra.length) {
+      const tracker = JSON.parse(originalTracker);
+      if (tracker.currentCandidates.windows?.id !== config.candidate) {
+        tracker.currentCandidates.windows = { id: config.candidate, exeSha256: config.executableSha256, dllSha256: config.dllSha256,
+          qualification: 'development subset on a throwaway checkout; not recorded' };
+        fs.writeFileSync(trackerFile, JSON.stringify(tracker, null, 2) + '\n');
+        console.log(`run-suite: development subset; tracker pointed at ${config.candidate} for this run only.`);
+      }
     }
+    const run = spawnSync(process.execPath, [runner, configFile, results, ...extra], { stdio: 'inherit' });
+    if (run.error) throw run.error;
+    // The runner exits 1 when cases fail or are undefined: a recorded result,
+    // not a broken run. Only a crash or a guard stop fails this step.
+    const baseline = path.join(results, 'baseline.json');
+    if (!fs.existsSync(baseline)) throw new Error(`The runner stopped without a baseline (exit ${run.status ?? run.signal}).`);
+    if (nightly) fs.writeFileSync(baseline, JSON.stringify(stampNightly(JSON.parse(fs.readFileSync(baseline, 'utf8')), nightly), null, 2) + '\n');
+  } finally {
+    fs.writeFileSync(trackerFile, originalTracker);
   }
-  const runner = path.join(path.dirname(fileURLToPath(import.meta.url)), '../tests/runner.mjs');
-  const run = spawnSync(process.execPath, [runner, configFile, path.resolve(resultsFolder), ...extra], { stdio: 'inherit' });
-  if (run.error) throw run.error;
-  // The runner exits 1 when cases fail or are undefined: a recorded result,
-  // not a broken run. Only a crash or a guard stop fails this step.
-  const baseline = path.join(path.resolve(resultsFolder), 'baseline.json');
-  if (!fs.existsSync(baseline)) throw new Error(`The runner stopped without a baseline (exit ${run.status ?? run.signal}).`);
 }
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) {
   try { main(); } catch (error) { console.error(`run-suite: ${error.message}`); process.exitCode = 1; }

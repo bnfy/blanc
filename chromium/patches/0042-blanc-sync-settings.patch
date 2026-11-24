@@ -771,23 +771,25 @@
    PEOPLE: Route;
    PERFORMANCE: Route;
    PRELOADING: Route;
+diff --git a/chrome/browser/resources/settings/settings_main/settings_main.html b/chrome/browser/resources/settings/settings_main/settings_main.html
+index a7e073c..4e13206 100644
 --- a/chrome/browser/resources/settings/settings_main/settings_main.html
 +++ b/chrome/browser/resources/settings/settings_main/settings_main.html
-@@ -15,6 +15,14 @@
+@@ -12,6 +12,14 @@ ${this.showResetProfileBanner_ ? html`
  ` : ''}
  
  <cr-view-manager id="switcher" ?show-all="${this.shouldShowAll_()}">
-+  ${cache(this.showPage_(this.pageVisibility_?.blancSync) ? html`
++  ${this.showPage_(this.pageVisibility_?.blancSync) ? html`
 +    <div slot="view" id="blancSync">
-+      ${cache(this.renderPlugin_(this.routes_.BLANC_SYNC) ? html`
++      ${this.renderPlugin_(this.routes_.BLANC_SYNC) ? html`
 +        <settings-blanc-sync-page></settings-blanc-sync-page>
-+      ` : '')}
++      ` : ''}
 +    </div>
-+  ` : '')}
++  ` : ''}
 +
-   ${cache(this.showPage_(this.pageVisibility_?.people) ? html`
+   ${this.showPage_(this.pageVisibility_?.people) ? html`
      <div slot="view" id="people">
-       ${cache(this.renderPlugin_(this.routes_.PEOPLE) ? html`
+       ${this.renderPlugin_(this.routes_.PEOPLE) ? html`
 --- a/chrome/browser/resources/settings/settings_main/settings_main.ts
 +++ b/chrome/browser/resources/settings/settings_main/settings_main.ts
 @@ -15,6 +15,7 @@

@@ -13,10 +13,13 @@ import {GLANCE_STEPS} from './fork-steps/glance.mjs';
 import {CERTIFICATE_RECOVERY_STEPS} from './fork-steps/certificate-recovery.mjs';
 import {WINDOW_LAYOUT_STEPS} from './fork-steps/window-layout.mjs';
 import {DIVERGENCES} from './fork-steps/divergences.mjs';
+const linuxArcSteps=process.platform==='linux'?(await import('./fork-steps/linux-arc.mjs')).linuxArcSteps:null;
 export const definitions=[];
 // These intent-level steps preserve the assertions in shipping v1.45.1
 // test/desktop/steps/runnable.steps.js; only the native transport changes.
 function register(expression,run,source,sourceSha256=null){
+ const arc=linuxArcSteps?.get(expression);
+ if(arc){run=arc;source=`chromium/tests/fork-steps/linux-arc.mjs (shipping ${source})`;}
  const batchClose=BATCH_CLOSE_STEPS.get(String(expression));
  if(batchClose){run=batchClose;source=`chromium/tests/fork-steps/batch-close.mjs (shipping ${source})`;}
  const linkSpace=LINK_SPACE_STEPS.get(String(expression));

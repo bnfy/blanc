@@ -4,6 +4,7 @@
 
 #include "base/functional/callback.h"
 #include "base/values.h"
+#include "build/build_config.h"
 #include <optional>
 #include "third_party/skia/include/core/SkColor.h"
 #include <cstdint>
@@ -199,6 +200,10 @@ bool HasIsland(views::View* parent);
 int RailWidth(views::View* parent);
 int HeaderHeight(views::View* parent);
 bool IsCaption(views::View* parent, int x, int y);
+#if BUILDFLAG(IS_LINUX)
+void LinuxWindowButtonsChanged(views::View* parent);
+int LinuxWindowButtonAt(views::View* parent, int x, int y);
+#endif
 void RestoreExtensions(views::View* parent);
 // Chromium's infobars in an Island window are part of the Island's band
 // (owner, 2026-11-14): its current color, with ink and a link color that read

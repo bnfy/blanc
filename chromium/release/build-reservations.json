@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "sequences": {
+    "desktop-158": [
+      {
+        "build": 905,
+        "sourceCommit": "a52e29005d6237c405ddcc2afd3b0f216c8b390b",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "proof"
+      },
+      {
+        "build": 906,
+        "sourceCommit": "a52e29005d6237c405ddcc2afd3b0f216c8b390b",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "release"
+      },
+      {
+        "build": 907,
+        "sourceCommit": "ed21560a73b270f61ce5bc810241310df88b4ab8",
+        "platforms": [
+          "windows"
+        ],
+        "purpose": "release"
+      },
+      {
+        "build": 908,
+        "sourceCommit": "b82e4fab7bb0400932a047beff0eaab5ba34b36f",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "proof"
+      },
+      {
+        "build": 909,
+        "sourceCommit": "b82e4fab7bb0400932a047beff0eaab5ba34b36f",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "release"
+      }
+    ]
+  }
+}

@@ -51953,18 +51953,18 @@ index b5ef0a7..cf8b40a 100644
  
  node("generate_enum_conversions") {
 diff --git a/chrome/browser/search/search.cc b/chrome/browser/search/search.cc
-index 401bdad..8838187 100644
+index 58d75e0..d7efaab 100644
 --- a/chrome/browser/search/search.cc
 +++ b/chrome/browser/search/search.cc
-@@ -9,6 +9,7 @@
- #include <string>
+@@ -10,6 +10,7 @@
+ #include <string_view>
  
  #include "base/check_deref.h"
 +#include "base/command_line.h"
  #include "base/feature_list.h"
  #include "base/metrics/histogram_macros.h"
  #include "build/build_config.h"
-@@ -168,6 +169,13 @@ struct NewTabURLDetails {
+@@ -167,6 +168,13 @@ struct NewTabURLDetails {
        : url(url), state(state) {}
  
    static NewTabURLDetails ForProfile(Profile* profile) {
@@ -51978,7 +51978,7 @@ index 401bdad..8838187 100644
      // Incognito and Guest profiles have their own New Tab.
      // This function may also be called by other off-the-record profiles that
      // can exceptionally open a browser window.
-@@ -176,6 +184,10 @@ struct NewTabURLDetails {
+@@ -175,6 +183,10 @@ struct NewTabURLDetails {
        return NewTabURLDetails(GURL(), NEW_TAB_URL_INCOGNITO);
      }
  

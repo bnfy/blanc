@@ -29,7 +29,7 @@ test('the claims ledger names the release and keeps every page sentence', () => 
   assert.equal(ledger.release, '2.0.0-beta.4');
   assert.equal(ledger.sourceCommit, r.sourceCommit);
   assert.equal(ledger.claims.length, before.claims.length);
-  for (const text of ['Beta 4', '2.0.0-beta.4 · build 4', 'Chromium 158', '158.0.8127.2', 'Apple Silicon Macs · macOS 13 or later', 'Released November 14, 2026'])
+  for (const text of ['Beta 4', '2.0.0-beta.4 · build 4', 'Chromium 158', '158.0.8127.37', 'Apple Silicon Macs · macOS 13 or later', 'Released November 14, 2026'])
     assert.ok(ledger.claims.some(c => c.text === text), text);
   assert.ok(!ledger.claims.some(c => /beta\.3|Beta 3|build 3/.test(c.text)));
   for (const text of Object.values(LIMITATIONS)) assert.match(ledger.claims.find(c => c.text === text).evidence, /standing decision/);
@@ -99,4 +99,20 @@ test('a limitation kept after its waiver is retired stays on the page, with the 
   assert.doesNotMatch(claim.evidence, /is waived/);
   // Without the kept limitation the page's text would change, which needs the owner.
   assert.throws(() => siteFiles({ ...input, r: passing, standing: standingThen }), /needs the owner/);
+});
+
+test('the beta website PR carries the changelog once main has the beta changelog file', async () => {
+  const { changelogFiles } = await import('./daily/site-pr.mjs');
+  const fsm = await import('node:fs');
+  const pathm = await import('node:path');
+  const osm = await import('node:os');
+  const tree = fsm.mkdtempSync(pathm.join(osm.tmpdir(), 'site-pr-changelog-'));
+  const calls = [];
+  const runner = (command, args, options) => { calls.push([command, args, options.cwd]); };
+  assert.deepEqual(changelogFiles(tree, runner), []);
+  assert.equal(calls.length, 0);
+  fsm.mkdirSync(pathm.join(tree, 'site/src/data'), { recursive: true });
+  fsm.writeFileSync(pathm.join(tree, 'site/src/data/beta-releases.json'), '[]\n');
+  assert.deepEqual(changelogFiles(tree, runner), ['site/src/data/beta-releases.json', 'site/src/data/releases.json']);
+  assert.deepEqual(calls, [['node', ['scripts/generate-site-changelog.mjs'], tree]]);
 });

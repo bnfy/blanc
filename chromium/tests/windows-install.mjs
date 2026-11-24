@@ -19,12 +19,14 @@ import {execFileSync,spawnSync,spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {pause} from './lib/cdp.mjs';
 import crypto from 'node:crypto';
-import {channelNames} from '../windows/candidate.mjs';
+import {channelNames,installedMatches} from '../windows/candidate.mjs';
 
 const [candidateFolder,resultsFolder,shippingInstaller,...installOptions]=process.argv.slice(2);
 const installerOption=installOptions.find(o=>o.startsWith('--installer='))?.slice('--installer='.length)??null;
 const signed=installOptions.includes('--signed');
-if(installOptions.some(o=>!o.startsWith('--installer=')&&o!=='--signed'))throw Error('Unknown option: '+installOptions.join(' '));
+const signatureRecord=installOptions.find(o=>o.startsWith('--signature-record='))?.slice('--signature-record='.length)??null;
+const signedHashes=signatureRecord?new Set(JSON.parse(fs.readFileSync(signatureRecord,'utf8')).files.map(f=>f.sha256)):null;
+if(installOptions.some(o=>!o.startsWith('--installer=')&&!o.startsWith('--signature-record=')&&o!=='--signed'))throw Error('Unknown option: '+installOptions.join(' '));
 if(signed&&!installerOption)throw Error('--signed needs the signed installer, through --installer');
 if(!candidateFolder||!resultsFolder||!shippingInstaller)throw Error('Usage: windows-install.mjs CANDIDATE_FOLDER RESULTS_FOLDER SHIPPING_INSTALLER');
 if(process.platform!=='win32')throw Error('The install check runs on Windows');
@@ -95,6 +97,15 @@ try{
  record.details.installerExit=run.status;
  const exe=path.join(application,'chrome.exe');
  record.checks.installed=run.status===0&&fs.existsSync(exe)&&fs.existsSync(path.join(application,candidate.version,'chrome.dll'));
+ // The installed files are this candidate's (a night reuses its build number
+ // until it ships, so the version alone can name an older payload).
+ if(record.checks.installed){
+  const bytes=installedMatches(candidate,{installedExe:exe,installedDll:path.join(application,candidate.version,'chrome.dll'),
+   originalExe:path.join(directory,'chrome.exe'),originalDll:path.join(directory,'chrome.dll')},
+   {signed,signedHashes,read:f=>fs.readFileSync(f),sha256:b=>crypto.createHash('sha256').update(b).digest('hex')});
+  record.details.installedSha256=bytes.sha256;
+  record.checks.installedMatchesCandidate=bytes.match;
+ }else record.checks.installedMatchesCandidate=false;
  const uninstallKey=`${HKCU}\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${product}`;
  const entry=regValues(uninstallKey);
  record.details.uninstallEntry=entry;
@@ -156,7 +167,7 @@ try{
  record.checks.electronStillStarts=electron.exitCode===null;
  killAll('Blanc.exe');
 }catch(error){failure=error;record.error=String(error.stack||error);}
-const required=['electronInstalled','installed','uninstallEntry','startMenuShortcut','versionResources','registeredAsBrowser','electronUntouchedByInstall',
+const required=['electronInstalled','installed','installedMatchesCandidate','uninstallEntry','startMenuShortcut','versionResources','registeredAsBrowser','electronUntouchedByInstall',
  'installedLaunches','uninstalled','dataKept','electronUntouched','electronStillStarts',...(names.testHooks?[]:['blockerEmbedded'])];
 record.pass=!failure&&required.every(name=>record.checks[name]===true);
 fs.writeFileSync(path.join(out,'install.json'),JSON.stringify(record,null,2)+'\n');

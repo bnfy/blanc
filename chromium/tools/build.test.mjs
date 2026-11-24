@@ -3,7 +3,10 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName, buildLane, requireAndroidHost, competingBuild, processListArgs, WINDOWS_OUTPUTS, requireDesktopHost, windowsToolchainPins, windowsToolchainMounted } from './build.mjs';
+import * as guard from './build.mjs';
+const { changedInputs, plannedActions, checkPlan, planSummary, localJobs, maximumActions, selectedSdk, outputName, buildLane,
+  requireAndroidHost, competingBuild, processListArgs, WINDOWS_OUTPUTS, requireDesktopHost, windowsToolchainPins, windowsToolchainMounted,
+  LINUX_OUTPUTS, checkoutLockPath, acquireCheckoutLock, sysrootHash, linuxEnvironment } = guard;
 
 test('cold plans larger than the former capture limit retain their final count', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-plan-test-'));
@@ -193,4 +196,161 @@ test('the Windows build needs its case-insensitive toolchain mount', () => {
   assert.equal(windowsToolchainMounted('/dev/md2 / ext4 rw 0 0\n', src), false);
   assert.equal(windowsToolchainMounted(mounts, '/home/b/other/src'), false);
   assert.equal(windowsToolchainMounted(`/dev/md2 ${mount} ext4 rw 0 0\n`, src), false);
+});
+
+const linuxPreviews = ['BlancLinuxPrototype', 'BlancLinuxArm64Prototype'];
+const linuxBetas = ['BlancLinuxBeta', 'BlancLinuxArm64Beta'];
+test('each Linux output builds chrome, chrome_sandbox and its channel’s package group', () => {
+  assert.deepEqual([...LINUX_OUTPUTS].sort(), [...linuxPreviews, ...linuxBetas].sort());
+  for (const out of [...linuxPreviews, ...linuxBetas]) {
+    const options = ['--out=' + out];
+    assert.equal(outputName(options), out);
+    const channel = linuxBetas.includes(out) ? 'beta' : 'prototype';
+    assert.deepEqual(buildLane(options, true), { lane: 'desktop', out, target: 'chrome', extraTargets: ['chrome_sandbox', 'chrome/installer/linux:' + channel] });
+    if (channel === 'beta') assert.deepEqual(buildLane(options, false), buildLane(options, true));
+    assert.throws(() => buildLane([...options, '--sdk-root=/tmp']), /macOS option/);
+    assert.throws(() => buildLane([...options, '--lane=android']));
+  }
+});
+test('Linux outputs require x86-64 Linux', () => {
+  for (const out of LINUX_OUTPUTS) {
+    assert.throws(() => requireDesktopHost(out, 'darwin', 'arm64'), /x86-64 Linux/);
+    assert.throws(() => requireDesktopHost(out, 'linux', 'arm64'), /x86-64 Linux/);
+    assert.doesNotThrow(() => requireDesktopHost(out, 'linux', 'x64'));
+  }
+  assert.throws(() => requireDesktopHost('BlancPrototype', 'linux', 'x64'), /only on macOS/);
+});
+test('arm64 preview arguments differ from x64 only in target_cpu', () => {
+  const args = cpu => fs.readFileSync(new URL('../linux/args/prototype-' + cpu + '.gn', import.meta.url), 'utf8')
+    .split('\n').filter(line => line.trim() && !line.trim().startsWith('#')).join('\n');
+  assert.match(args('arm64'), /^target_cpu = "arm64"$/m);
+  assert.equal(args('arm64'), args('x64').replace('target_cpu = "x64"', 'target_cpu = "arm64"'));
+});
+test('setup and builds contend for one checkout lock', () => {
+  assert.equal(checkoutLockPath('/h/chromium-desktop/src'), '/h/chromium-desktop/.blanc-checkout.lock');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-checkout-'));
+  try {
+    const src = path.join(dir, 'src'), lock = checkoutLockPath(src);
+    const release = acquireCheckoutLock(src);
+    assert.throws(() => acquireCheckoutLock(src), /locked/);
+    assert.throws(() => fs.mkdirSync(lock), { code: 'EEXIST' });
+    release();
+    fs.mkdirSync(lock); // Setup takes the same lock with mkdir.
+    assert.throws(() => acquireCheckoutLock(src), /locked/);
+    fs.rmdirSync(lock);
+    const releaseAgain = acquireCheckoutLock(src);
+    releaseAgain();
+    assert.equal(fs.existsSync(lock), false);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+test('sysroot requires exactly one bare hash marker', () => {
+  const hash = 'f851add7'.padEnd(64, '0');
+  const sidecars = ['_hash', '_content_names', '_is_first_class_gcs'].map(suffix => '.' + hash + suffix);
+  assert.equal(sysrootHash([...sidecars, '.' + hash]), hash);
+  assert.throws(() => sysrootHash(sidecars));
+  assert.throws(() => sysrootHash(['.' + hash, '.' + '1'.repeat(64)]));
+});
+
+test('the arm64 environment requires both the host hash and the pinned installer URL stamp', t => {
+  const src = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-linux-env-'));
+  t.after(() => fs.rmSync(src, { recursive: true, force: true }));
+  const clang = path.join(src, 'third_party/llvm-build/Release+Asserts');
+  const linux = path.join(src, 'build/linux');
+  const host = path.join(linux, 'debian_bullseye_amd64-sysroot');
+  const arm = path.join(linux, 'debian_bullseye_arm64-sysroot');
+  const scripts = path.join(linux, 'sysroot_scripts');
+  const x64 = path.join(src, 'out/BlancLinuxPrototype');
+  const arm64 = path.join(src, 'out/BlancLinuxArm64Prototype');
+  const arm64Beta = path.join(src, 'out/BlancLinuxArm64Beta');
+  for (const dir of [path.join(clang, 'bin'), host, scripts, x64, arm64, arm64Beta]) fs.mkdirSync(dir, { recursive: true });
+  fs.symlinkSync(process.execPath, path.join(clang, 'bin/clang')); // Supplies --version.
+  fs.writeFileSync(path.join(clang, 'cr_build_revision'), 'test');
+  for (const out of [x64, arm64, arm64Beta]) fs.writeFileSync(path.join(out, 'args.gn'), '');
+  const hostHash = 'a'.repeat(64), armHash = 'b'.repeat(64);
+  const hostMarker = path.join(host, '.' + hostHash);
+  fs.writeFileSync(hostMarker, '');
+  const original = linuxEnvironment(src, x64).inputs;
+  assert.equal(original.sysrootHash, hostHash);
+  assert.equal(Object.hasOwn(original, 'arm64SysrootHash'), false);
+
+  const prefix = 'https://commondatastorage.googleapis.com/chrome-linux-sysroot';
+  const entry = { SysrootDir: path.basename(arm), URL: prefix, Sha256Sum: armHash };
+  fs.writeFileSync(path.join(scripts, 'sysroots.json'), JSON.stringify({ bullseye_arm64: entry }));
+  fs.mkdirSync(arm);
+  fs.writeFileSync(path.join(arm, '.' + armHash), ''); // The standalone installer requires .stamp.
+  assert.throws(() => linuxEnvironment(src, arm64), /\.stamp/);
+  assert.throws(() => linuxEnvironment(src, arm64Beta), /\.stamp/);
+  const stamp = path.join(arm, '.stamp');
+  for (const value of [armHash, prefix + '/' + hostHash, 'https://other.invalid/' + armHash]) {
+    fs.writeFileSync(stamp, value);
+    assert.throws(() => linuxEnvironment(src, arm64), /\.stamp/);
+  }
+  fs.writeFileSync(stamp, prefix + '/' + armHash);
+  const current = linuxEnvironment(src, arm64).inputs;
+  assert.equal(current.sysrootHash, hostHash);
+  assert.equal(current.arm64SysrootHash, armHash);
+  assert.deepEqual(linuxEnvironment(src, arm64Beta).inputs, current);
+  assert.deepEqual(linuxEnvironment(src, x64).inputs, original);
+  fs.unlinkSync(hostMarker);
+  assert.throws(() => linuxEnvironment(src, arm64), /sysroot hash marker/);
+});
+
+test('the guard can plan and build the unpackaged Linux browser before the owner key lands', () => {
+  for (const mode of ['--check', '--build']) {
+    for (const out of linuxPreviews) {
+      const options = ['--out=' + out, mode];
+      assert.deepEqual(buildLane(options, false).extraTargets, ['chrome_sandbox']);
+      assert.deepEqual(buildLane([...options, '--linux-packages'], false).extraTargets,
+        ['chrome_sandbox', 'chrome/installer/linux:prototype']);
+    }
+    assert.throws(() => buildLane([mode, '--linux-packages']), /Linux/);
+  }
+});
+// The Windows nightly (Task 4): one owner holds the checkout from checkout to
+// packages, and the guard builds under that owner's lock.
+test('a lock owner can run the guard under its own lock, and the lock stays', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-owner-'));
+  try {
+    const src = path.join(dir, 'src'), lock = checkoutLockPath(src);
+    fs.mkdirSync(lock);
+    fs.writeFileSync(path.join(lock, 'owner'), 'token-a\n');
+    const release = acquireCheckoutLock(src, fs.mkdirSync, 'token-a');
+    release();
+    assert.equal(fs.existsSync(lock), true, 'an owner\'s lock is not released by the guard');
+    assert.throws(() => acquireCheckoutLock(src, fs.mkdirSync, 'token-b'), /locked/);
+    assert.throws(() => acquireCheckoutLock(src, fs.mkdirSync, undefined), /locked/);
+    fs.rmSync(lock, {recursive: true});
+    assert.throws(() => acquireCheckoutLock(src, fs.mkdirSync, 'token-a'), /not held/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+test('the guard writes an owner into a lock it takes, and removes only its own', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-owner-'));
+  try {
+    const src = path.join(dir, 'src'), lock = checkoutLockPath(src);
+    const release = acquireCheckoutLock(src);
+    assert.match(fs.readFileSync(path.join(lock, 'owner'), 'utf8'), /^[0-9a-f]{32}\n$/);
+    release();
+    assert.equal(fs.existsSync(lock), false);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+test('every Windows and Linux mode takes the checkout lock, recording the environment included', () => {
+  const source = fs.readFileSync(new URL('./build.mjs', import.meta.url), 'utf8');
+  assert.match(source, /const releaseCheckout = \(windows \|\| linux\) \? acquireCheckoutLock\(src, fs\.mkdirSync, process\.env\.BLANC_CHECKOUT_LOCK_OWNER\) : null;/);
+});
+test('the nightly cap: 1,001 actions pass with an explicit maximum of 3,000, 3,001 refuse, and pending build flags refuse', () => {
+  assert.equal(checkPlan('Build Succeeded: 1001 steps', true, true, 3000), 1001);
+  assert.throws(() => checkPlan('Build Succeeded: 3001 steps', true, true, 3000), /exceeds approved maximum 3000/);
+  assert.throws(() => checkPlan('Build Succeeded: 5 steps\npython3 ../../build/write_buildflag_header.py', true, true, 3000), /Generated build flags/);
+});
+test('a refusal names the holder\'s token prefix, so a stuck nightly lock is told from a setup lock', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-owner-'));
+  try {
+    const src = path.join(dir, 'src'), lock = checkoutLockPath(src);
+    fs.mkdirSync(lock);
+    fs.writeFileSync(path.join(lock, 'owner'), '1a2b3c4d5e6f\n');
+    assert.throws(() => acquireCheckoutLock(src), /held by owner 1a2b3c4d\)/);
+    assert.throws(() => acquireCheckoutLock(src, fs.mkdirSync, 'zz'), /held by owner 1a2b3c4d\)/);
+    fs.rmSync(path.join(lock, 'owner'));
+    assert.throws(() => acquireCheckoutLock(src), /another build\)\. No build started/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });

@@ -75,3 +75,42 @@ html, body { background: transparent; }
    of 45 with 1 between (WindowFrameUtil::kWindowsCaptionButtonWidth). */
 :root[data-platform="win32"] #windowControls { display: none; }
 :root[data-platform="win32"] { --window-controls-w: 137px; }
+
+/* GTK allows either cluster, including a single Close button. Keep the pill
+   centered within the page pane, including when the left rail owns the menu. */
+:root[data-platform="linux"] #windowControls { display: none; }
+:root[data-platform="linux"] #pillRestartToUpdate {
+  background: var(--accent-dim);
+}
+:root[data-platform="linux"] #pillRestartToUpdate:hover { border-color: var(--accent); }
+:root[data-platform="linux"] {
+  --window-controls-leading-w: 0px;
+  --window-controls-w: 0px;
+  --linux-leading-clearance: calc(var(--window-controls-leading-w) + 50px);
+  --pill-window-clearance: calc(2 * max(var(--linux-leading-clearance), var(--window-controls-w) + 8px));
+}
+:root[data-platform="linux"][data-tab-layout="vertical"] {
+  --linux-leading-clearance: max(8px, calc(var(--window-controls-leading-w) + 8px - var(--vertical-tabs-w)));
+}
+/* Center the unmodified pill whenever both sides fit. On a narrow pane
+   reserve each GTK cluster only on the side where it is actually drawn. */
+:root[data-platform="linux"][data-tab-layout="vertical"]:not([data-surface="glance"]) #strip {
+  --linux-trailing-clearance: calc(var(--window-controls-w) + 8px);
+  --pill-window-clearance: calc(var(--linux-leading-clearance) + var(--linux-trailing-clearance));
+  display: grid;
+  grid-template-columns: minmax(var(--linux-leading-clearance), 1fr) minmax(0, max-content)
+                         minmax(var(--linux-trailing-clearance), 1fr);
+}
+:root[data-platform="linux"][data-tab-layout="vertical"]:not([data-surface="glance"]) #islandPill {
+  grid-column: 2;
+}
+:root[data-platform="linux"] .vertical-tabs-toolbar {
+  padding-top: calc(8px + var(--window-controls-leading-h, 0px));
+}
+
+/* At the smallest pane widths the panel uses the row below the GTK buttons. */
+:root[data-linux-panel-below-controls] #panelAnchor { top: var(--linux-panel-top); }
+:root[data-linux-panel-below-controls] #islandPanel {
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - var(--linux-panel-top) - 12px);
+}

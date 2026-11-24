@@ -104,24 +104,11 @@ export function onlyArgsChanged(guardOutput) {
   return Boolean(m) && m[1].split(',').map(s => s.trim()).join() === 'argsSha256';
 }
 
-// A night passes when every case passed, or failed only on the known list, after
-// one rerun of anything else (pointer and window cases fail when the Mac is used).
-export function judgeSuite(baseline, known, rerun = null) {
-  check(!baseline.incomplete && !baseline.developmentSubset, 'the suite run is incomplete');
-  const cases = baseline.scenarios.flatMap(s => s.cases);
-  const knownIds = new Map(known.cases.map(k => [k.id, k]));
-  const rerunPass = new Set(rerun ? rerun.scenarios.flatMap(s => s.cases).filter(c => c.result === 'pass').map(c => c.id) : []);
-  const bad = cases.filter(c => c.result === 'fail' || c.result === 'undefined');
-  const unknown = bad.filter(c => !(knownIds.has(c.id) && knownIds.get(c.id).results.includes(c.result)) && !rerunPass.has(c.id));
-  return {
-    status: unknown.length ? 'fail' : 'pass',
-    pass: cases.filter(c => c.result === 'pass').length + bad.filter(c => rerunPass.has(c.id)).length,
-    known: bad.filter(c => knownIds.has(c.id)).map(c => ({ id: c.id, result: c.result, reason: knownIds.get(c.id).reason })),
-    passedOnRerun: bad.filter(c => rerunPass.has(c.id)).map(c => c.id),
-    unknown: unknown.map(c => ({ id: c.id, result: c.result })),
-    rerunCandidates: bad.filter(c => !(knownIds.has(c.id) && knownIds.get(c.id).results.includes(c.result))).map(c => c.id),
-  };
-}
+// The suite verdict lives in judge.mjs (no imports), so other nights can load it
+// without this file's I/O. A re-export alone binds no local name, so night()
+// imports it too (the 2026-11-23 night stopped on that ReferenceError).
+import { judgeSuite } from './judge.mjs';
+export { judgeSuite };
 
 const stampNow = (d = new Date()) => d.toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
 const readJSON = file => JSON.parse(fs.readFileSync(file, 'utf8'));

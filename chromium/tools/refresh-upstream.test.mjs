@@ -77,10 +77,12 @@ test('--patched-only recomputes the patched hashes once the patch is rebased', t
   assert.equal(f.run('--src', f.src, '--version', '157.0.2.3').status, 3);
   fs.writeFileSync(path.join(f.root, 'patches/android/0101-x.patch'), [
     'diff --git a/chrome/b.txt b/chrome/b.txt', '--- a/chrome/b.txt', '+++ b/chrome/b.txt',
-    '@@ -1 +1,2 @@', ' something else', '+blanc', ''].join('\n'));
+    '@@ -1 +1,2 @@', ' something else', '+blanc',
+    '--- /dev/null', '+++ b/chrome/new.txt', '@@ -0,0 +1 @@', '+new file', ''].join('\n'));
   const r = f.run('--patched-only');
   assert.equal(r.status, 0, r.stderr);
   assert.equal(f.read('source-map-android.json').upstreamFiles['chrome/b.txt'], sha('something else\nblanc\n'));
+  assert.equal(f.read('source-map-android.json').upstreamFiles['chrome/new.txt'], sha('new file\n'));
 });
 
 test('a version that is not four numbers is refused before anything is read', t => {
@@ -95,4 +97,41 @@ test('a version that is not the checkout\'s own chrome/VERSION is refused, and n
   assert.equal(r.status, 1);
   assert.match(r.stderr, /157\.0\.2\.3/);
   assert.deepEqual(f.read('lanes/android.json'), before);
+});
+
+// A copy of just the pinned files, as fetched from gitiles at one commit: no .git.
+function plainCopy(t, f) {
+  const copy = fs.mkdtempSync(path.join(os.tmpdir(), 'refresh-upstream-copy-'));
+  t.after(() => fs.rmSync(copy, {recursive: true, force: true}));
+  fs.cpSync(f.src, copy, {recursive: true, filter: s => path.basename(s) !== '.git'});
+  return copy;
+}
+
+test('a copy that is not a git checkout pins the commit named by --upstream', t => {
+  const f = fixture(t);
+  const commit = 'b'.repeat(40);
+  const r = f.run('--src', plainCopy(t, f), '--version', '157.0.2.3', '--upstream', commit);
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(f.read('upstream-android/manifest.json').upstream, commit);
+  assert.equal(f.read('lanes/android.json').upstream, commit);
+  assert.equal(f.read('source-map-android.json').upstream, commit);
+});
+
+test('a copy that is not a git checkout and has no --upstream is refused, and nothing is written', t => {
+  const f = fixture(t);
+  const before = f.read('lanes/android.json');
+  const r = f.run('--src', plainCopy(t, f), '--version', '157.0.2.3');
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /pass --upstream/);
+  assert.deepEqual(f.read('lanes/android.json'), before);
+});
+
+test('--upstream that is not the checkout\'s HEAD is refused, and nothing is written', t => {
+  const f = fixture(t);
+  const before = f.read('lanes/android.json');
+  const r = f.run('--src', f.src, '--version', '157.0.2.3', '--upstream', 'c'.repeat(40));
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /not the checkout's HEAD/);
+  assert.deepEqual(f.read('lanes/android.json'), before);
+  assert.equal(f.run('--src', f.src, '--version', '157.0.2.3', '--upstream', 'short').status, 2);
 });

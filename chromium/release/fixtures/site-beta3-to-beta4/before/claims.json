@@ -27,7 +27,7 @@
     },
     {
       "text": "Blanc built directly on Chromium.",
-      "evidence": "The release is built from the fork's Chromium 158 tree (release.json chromiumVersion 158.0.8127.2); the approved release notes say the same."
+      "evidence": "The release is built from the fork's Chromium 158 tree (release.json chromiumVersion 158.0.8127.37); the approved release notes say the same."
     },
     {
       "text": "It installs beside Blanc and never replaces it.",
@@ -46,12 +46,12 @@
     {
       "text": "Chromium 158",
       "field": "chromium-major",
-      "evidence": "release.json chromiumVersion 158.0.8127.2, the fork's Chromium tree (chrome/VERSION unchanged from upstream)."
+      "evidence": "release.json chromiumVersion 158.0.8127.37, the fork's Chromium tree (chrome/VERSION unchanged from upstream)."
     },
     {
-      "text": "158.0.8127.2",
+      "text": "158.0.8127.37",
       "field": "chromium-version",
-      "evidence": "release.json chromiumVersion 158.0.8127.2; the release's SBOM names the same Chromium."
+      "evidence": "release.json chromiumVersion 158.0.8127.37; the release's SBOM names the same Chromium."
     },
     {
       "text": "Apple Silicon Macs · macOS 13 or later",

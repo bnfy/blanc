@@ -267,9 +267,10 @@ Afterwards (records PR): the ledger entry and production's `release.json`.
 
 - [ ] Owner hand checks on a real Windows desktop (W2's D1 plus: install from the download, an
       update arriving, About showing it).
-- [ ] Release through `release.mjs`'s Windows stages, owner-run; a hosted smoke of the published
-      installer; the claims ledger and the download tile in a website PR, with the owner's approval
-      of the copy.
+- [x] Release through the Windows stages, owner-run; a hosted check of the published installer.
+      **Done 2026-11-21:** 158.0.8127.902, `chromium-beta-windows-158.0.8127.902` (verify-public run
+      44889077445).
+- [ ] The claims ledger and the download tile in a website PR, with the owner's approval of the copy.
 
 ## W3 gate
 

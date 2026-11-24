@@ -1,0 +1,98 @@
+diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
+index ffb7bf8..6d6381a 100644
+--- a/chrome/browser/resources/settings/about_page/about_page.html.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
+@@ -34,8 +34,10 @@ export function getHtml(this: SettingsAboutPageElement) {
+     <!-- Set the icon from the iconset (when it's obsolete/EOL and
+       when update is done) or set the src (when it's updating). -->
+ <if expr="not is_chromeos">
+-    <!-- Blanc (S3, owner): updates are Blanc's own, not Chromium's updater. -->
+-    <div class="icon-container" hidden>
++    <!-- Blanc (S3, owner): on the Mac, updates are Sparkle's, not Chromium's
++         updater; the Windows beta's are Chromium's own updater (W3). -->
++    <div class="icon-container"
++        ?hidden="${!this.windowsUpdater_ || !this.shouldShowIcons_()}">
+       <cr-icon
+           ?hidden="${this.shouldShowThrobber_()}"
+           icon="${this.getUpdateStatusIcon_()}">
+@@ -46,11 +48,12 @@ export function getHtml(this: SettingsAboutPageElement) {
+ </if>
+     <div class="flex cr-padded-text">
+ <if expr="not is_chromeos">
+-      <div id="updateStatusMessage" hidden>
++      <div id="updateStatusMessage"
++          ?hidden="${!this.windowsUpdater_ || !this.showUpdateStatus_}">
+         <div role="alert" aria-live="polite"
+             .innerHTML="${this.getUpdateStatusMessage_()}">
+         </div>
+-        <a ?hidden="${!this.shouldShowLearnMoreLink_()}" target="_blank"
++        <a hidden target="_blank"
+             href="https://support.google.com/chrome?p=update_error"
+             aria-label="$i18nPolymer{aboutLearnMoreUpdatingErrors}">
+           $i18n{learnMore}
+@@ -75,6 +78,11 @@ export function getHtml(this: SettingsAboutPageElement) {
+         $i18n{aboutRelaunch}
+       </cr-button>
+     </span>
++    ${this.windowsUpdater_ && !this.showRelaunch_ ? html`
++      <div class="separator"></div>
++      <cr-button id="blancWindowsCheck" ?disabled="${this.windowsCheckBusy_()}"
++          @click="${this.onBlancWindowsCheckClick_}">Check for Updates…</cr-button>
++    ` : ''}
+ </if>
+   </div>
+ <if expr="_google_chrome and is_macosx">
+@@ -109,6 +117,7 @@ export function getHtml(this: SettingsAboutPageElement) {
+   <cr-link-row class="hr" id="blancWelcomeTour" @click="${this.onBlancWelcomeTourClick_}"
+       label="$i18n{blancWelcomeTour}" sub-label="$i18n{blancWelcomeTourHint}">
+   </cr-link-row>
++  ${this.profileImportAvailable_ ? html`
+   <!-- Blanc: bring a person's data across from the released (Electron) app.
+        The browser picks that app's own folder; this page names nothing. -->
+   <div class="cr-row" id="blancImport">
+@@ -120,6 +129,7 @@ export function getHtml(this: SettingsAboutPageElement) {
+       ${this.blancImportButton_}
+     </cr-button>
+   </div>
++  ` : ''}
+   <!-- What the last import brought across, a row for each profile. -->
+   ${this.blancImportDetails_.map(row => html`
+     <div class="cr-row blanc-import-row" data-kind="${row.kind}">
+diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
+index 1dee3df..e04548f 100644
+--- a/chrome/browser/resources/settings/about_page/about_page.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.ts
+@@ -143,6 +143,18 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
+ 
+   private betaUpdaterTimer_: number|null = null;
+   protected readonly betaBuild_ = loadTimeData.getBoolean('blancBetaUpdater');
++  // Blanc: the Windows beta's updates are Chromium's own updater (W3). The page
++  // shows its status, and Check for Updates… runs its check again.
++  protected readonly windowsUpdater_ = loadTimeData.getBoolean('blancWindowsUpdater');
++  protected readonly profileImportAvailable_ = loadTimeData.getBoolean('blancProfileImportAvailable');
++  protected windowsCheckBusy_(): boolean {
++    const status = this.currentUpdateStatusEvent_?.status;
++    return status === UpdateStatus.CHECKING || status === UpdateStatus.UPDATING;
++  }
++  protected onBlancWindowsCheckClick_() {
++    if (this.windowsCheckBusy_()) return;
++    this.aboutBrowserProxy_.refreshUpdateStatus();
++  }
+   protected accessor betaUpdateState_: {available: boolean, canCheck: boolean,
+     inProgress: boolean, version: string}|null = null;
+   private async refreshBetaUpdater_() {
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index 941878a..e4612c7 100644
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -285,6 +285,10 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+   // mechanism as the other Blanc Settings controls. Shipping keys and new
+   // consent copy are recorded in CODEX-NOTES-s4a-sync-ui.md.
+   html_source->AddBoolean("blancBetaUpdater", blanc_prototype::IsBetaBuild() && BUILDFLAG(IS_MAC));
++  // Blanc: the Windows beta updates through Chromium's own updater (W3), whose
++  // status About shows; the Electron importer reads that app's data on the Mac.
++  html_source->AddBoolean("blancWindowsUpdater", blanc_prototype::IsBetaBuild() && BUILDFLAG(IS_WIN));
++  html_source->AddBoolean("blancProfileImportAvailable", BUILDFLAG(IS_MAC));
+   html_source->AddString("blancVerticalTabsTextSize", u"Vertical tab text size");
+   html_source->AddString("blancVerticalTabsTextSizeHint", u"Make tab titles and group names easier to read in the vertical tab rail.");
+   html_source->AddString("blancSyncStartWithPassphrase", u"Start with a name and passphrase");

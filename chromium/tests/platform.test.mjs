@@ -43,6 +43,15 @@ test('a candidate is identified by its executable and its main library', () => {
     {executable: '/a', executableSha256: 'e', dll: '/d'}, {executable: '/a', executableSha256: 'e', framework: '/f', frameworkSha256: 'f', dll: '/d', dllSha256: 'd'}])
     assert.throws(() => candidateIdentityFiles(bad), /identity/);
 });
+test('single-binary identity requires only the executable and its hash', () => {
+  const config = { candidate: 'linux-x64-abababababababab', executable: '/b/chrome', executableSha256: 'ab'.repeat(32), singleBinary: true };
+  assert.deepEqual(candidateIdentityFiles(config), [[config.executable, config.executableSha256]]);
+  assert.deepEqual(candidateIdentity(config), { id: config.candidate, executableSha256: config.executableSha256, singleBinary: true });
+  for (const change of [{ singleBinary: undefined }, { singleBinary: 'true' }, { executableSha256: undefined },
+    { dll: '/b/chrome.dll' }, { framework: '/b/Framework' }]) {
+    assert.throws(() => candidateIdentityFiles({ ...config, ...change }), /identity/);
+  }
+});
 test('free memory off the Mac reads in the same form the guard parses', () => {
   assert.equal(freePercent(freeMemoryText('win32', {free: 6, total: 16})), 38);
   assert.equal(freePercent(freeMemoryText('win32', {free: 0, total: 16})), 0);
@@ -117,18 +126,36 @@ test('a file the browser holds open is read through a shadow copy on Windows onl
   const missing = () => { throw Object.assign(new Error('ENOENT'), {code: 'ENOENT'}); };
   assert.throws(() => readHeldFile('a', {platform: 'win32', read: missing, copyHeld: copy}), /ENOENT/);
 });
-test('on Windows the browser opens at shipping\'s window size', () => {
+test('on Windows and Linux the browser opens at shipping\'s window size', () => {
   // Chromium's own default on the runner's 1920x1080 display is 929x1004;
   // shipping's window, which its steps assume, is 1280x800.
   assert.deepEqual(initialWindowFlags('win32'), ['--window-size=1280,800']);
   assert.deepEqual(initialWindowFlags('darwin'), []);
-  assert.deepEqual(initialWindowFlags('linux'), []);
+  assert.deepEqual(initialWindowFlags('linux'), ['--window-size=1280,800']);
 });
 test('the OS language is faked as each platform\'s Chromium reads it', () => {
   // macOS: the AppleLanguages default; Windows: --lang, which Chromium uses for
   // its interface language and the default page languages there.
   assert.deepEqual(osLanguageFlags('de-DE', 'darwin'), ['-AppleLanguages', '(de-DE)']);
   assert.deepEqual(osLanguageFlags('de-DE', 'win32'), ['--lang=de-DE']);
-  assert.throws(() => osLanguageFlags('de-DE', 'linux'), /not faked on linux/);
+  assert.deepEqual(osLanguageFlags('de-DE', 'linux'), []);
   assert.throws(() => osLanguageFlags('de DE;', 'win32'), /language tag/);
+});
+
+test('Linux relaunches with the simulated desktop locale only in the child environment', async () => {
+  const {default: register} = await import('./fork-steps/commands.mjs');
+  const steps = new Map();
+  register((name, run) => steps.set(name, run));
+  const parent = {HOME:'/fixture', DISPLAY:':17', LANG:'C'};
+  const {osLanguageEnv} = await import('./lib/platform.mjs');
+  assert.deepEqual(osLanguageEnv('de-DE', parent), {...parent, LANGUAGE:'de_DE:de', LC_ALL:'de_DE.UTF-8', LANG:'de_DE.UTF-8'});
+  assert.deepEqual(osLanguageEnv('en-US', parent).LANG, 'en_US.UTF-8');
+  assert.equal(parent.LANG, 'C');
+  assert.throws(() => osLanguageEnv('de DE', parent), /language tag/);
+  if (process.platform === 'linux') {
+    const fixture = {launchEnv:parent, extraArgs:['--use-fake-device-for-media-stream']};
+    steps.get('the OS prefers {string}').call({fixture}, 'de-DE');
+    assert.deepEqual(fixture.launchEnv, osLanguageEnv('de-DE', parent));
+    assert.deepEqual(fixture.extraArgs, ['--use-fake-device-for-media-stream']);
+  }
 });

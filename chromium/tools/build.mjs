@@ -4,6 +4,8 @@ import process from 'node:process';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
+import {checkoutStatusProblem} from './checkout-status.mjs';
 
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 export function changedInputs(saved, current) {
@@ -79,13 +81,18 @@ export function maximumActions(options) {
 // x86-64 Linux server (chromium/windows/). It shares the lane's patches and
 // source with the Mac; only the output and the machine differ.
 export const WINDOWS_OUTPUTS = ['BlancWinPrototype', 'BlancWinBeta'];
+export const LINUX_OUTPUT_ARCH = Object.freeze({
+  BlancLinuxPrototype: 'x64', BlancLinuxArm64Prototype: 'arm64',
+  BlancLinuxBeta: 'x64', BlancLinuxArm64Beta: 'arm64',
+});
+export const LINUX_OUTPUTS = Object.keys(LINUX_OUTPUT_ARCH);
 const MAC_OUTPUTS = ['BlancPrototype', 'BlancRelease', 'BlancBeta'];
 // The preview candidate's output, or the release channel's own (F0.3); never
 // an arbitrary path, so a typo cannot start a cold build somewhere new.
 export function outputName(options) {
   const values = options.filter(option => option.startsWith('--out='));
   if (!values.length) return 'BlancPrototype';
-  const names = [...MAC_OUTPUTS, ...WINDOWS_OUTPUTS];
+  const names = [...MAC_OUTPUTS, ...WINDOWS_OUTPUTS, ...LINUX_OUTPUTS];
   if (values.length !== 1 || !names.includes(values[0].slice('--out='.length)))
     throw new Error(`Use one --out=${names.join(' or --out=')}.`);
   return values[0].slice('--out='.length);
@@ -93,15 +100,27 @@ export function outputName(options) {
 // The lane decides the output, the target and the machine. Desktop keeps its
 // defaults; Android (chromium/android/) builds the APK on x86-64 Linux only.
 export const ANDROID_OUTPUTS = ['AndroidDebug', 'AndroidDebugX64', 'AndroidRelease', 'AndroidReleaseX64'];
-export function buildLane(options) {
+const linuxRepositoryKey = fileURLToPath(new URL('../linux/keys/blanc-repository.asc', import.meta.url));
+export function buildLane(options, hasLinuxKey) {
   const lanes = options.filter(option => option.startsWith('--lane='));
   if (lanes.length > 1 || (lanes.length && !['--lane=desktop', '--lane=android'].includes(lanes[0])))
     throw new Error('Use one --lane=desktop or --lane=android.');
   const lane = lanes.length ? lanes[0].slice('--lane='.length) : 'desktop';
+  const packagesRequested = options.includes('--linux-packages');
+  if (packagesRequested && (lane !== 'desktop' || !LINUX_OUTPUTS.includes(outputName(options))))
+    throw new Error('--linux-packages requires a Linux desktop output.');
   if (lane === 'desktop') {
     const out = outputName(options);
-    if (WINDOWS_OUTPUTS.includes(out) && options.some(option => option.startsWith('--sdk-root=')))
-      throw new Error('--sdk-root is a macOS option; the Windows output has none.');
+    const linux = LINUX_OUTPUTS.includes(out);
+    if (!MAC_OUTPUTS.includes(out) && options.some(option => option.startsWith('--sdk-root=')))
+      throw new Error(`--sdk-root is a macOS option; the ${linux ? 'Linux' : 'Windows'} output has none.`);
+    if (linux) {
+      const channel = out.endsWith('Beta') ? 'beta' : 'prototype';
+      const extraTargets = ['chrome_sandbox'];
+      if (channel === 'beta' || packagesRequested || (hasLinuxKey ?? fs.existsSync(linuxRepositoryKey)))
+        extraTargets.push(`chrome/installer/linux:${channel}`);
+      return { lane, out, target: 'chrome', extraTargets };
+    }
     // The Windows output also builds Chromium's installer (W1 Part B), which
     // packs the browser it builds: one named extra target, nothing chosen on
     // the command line. The beta also builds Blanc's updater and its setup
@@ -129,13 +148,51 @@ export function requireAndroidHost(platform = process.platform, arch = process.a
   if (platform !== 'linux' || arch !== 'x64') throw new Error(`The Android lane builds only on x86-64 Linux (this is ${platform} ${arch}). No build started.`);
 }
 // A desktop output belongs to one kind of machine: the Mac outputs to macOS,
-// the Windows output to the x86-64 Linux server that cross-compiles it.
+// the Windows and Linux outputs to the x86-64 Linux server, where they share
+// one desktop checkout.
 export function requireDesktopHost(outName, platform = process.platform, arch = process.arch) {
-  if (WINDOWS_OUTPUTS.includes(outName)) {
+  if (WINDOWS_OUTPUTS.includes(outName) || LINUX_OUTPUTS.includes(outName)) {
     if (platform !== 'linux' || arch !== 'x64') throw new Error(`${outName} builds only on x86-64 Linux (this is ${platform} ${arch}). No build started.`);
   } else if (platform !== 'darwin') {
     throw new Error(`${outName} builds only on macOS (this is ${platform} ${arch}). No build started.`);
   }
+}
+export function checkoutLockPath(src) {
+  return path.join(path.dirname(src), '.blanc-checkout.lock');
+}
+// One owner at a time for the desktop checkout (setup, apply, builds). A lock
+// this guard takes holds an `owner` token and is removed only while it still
+// names that token. A process that already holds the lock (the Windows
+// nightly's server phase, from checkout to packages) passes its token as
+// |owner| (BLANC_CHECKOUT_LOCK_OWNER): the guard then runs under that lock and
+// leaves it for its owner to release.
+export function acquireCheckoutLock(src, mkdir = fs.mkdirSync, owner = undefined) {
+  const lock = checkoutLockPath(src);
+  const ownerFile = path.join(lock, 'owner');
+  if (owner) {
+    let held = null;
+    try { held = fs.readFileSync(ownerFile, 'utf8').trim(); } catch { /* not held, or held without an owner */ }
+    if (!fs.existsSync(lock)) throw new Error('The desktop checkout lock is not held by this owner. No build started.');
+    if (held !== owner) throw new Error(`The desktop checkout is locked (setup, apply or another build${held ? `; held by owner ${held.slice(0, 8)}` : ''}). No build started.`);
+    return () => {};
+  }
+  try { mkdir(lock); } catch (error) {
+    if (error.code === 'EEXIST') {
+      let held = null;
+      try { held = fs.readFileSync(ownerFile, 'utf8').trim(); } catch { /* a setup lock has no owner file */ }
+      throw new Error(`The desktop checkout is locked (setup, apply or another build${held ? `; held by owner ${held.slice(0, 8)}` : ''}). No build started.`);
+    }
+    throw error;
+  }
+  const token = crypto.randomBytes(16).toString('hex');
+  fs.writeFileSync(ownerFile, token + '\n', {mode: 0o600});
+  return () => {
+    let held = null;
+    try { held = fs.readFileSync(ownerFile, 'utf8').trim(); } catch { return; }
+    if (held !== token) return;
+    fs.rmSync(ownerFile, {force: true});
+    fs.rmdirSync(lock);
+  };
 }
 // The Visual Studio package and SDK the pinned tree asks for. Both are plain
 // string assignments in build/vs_toolchain.py; anything else needs a person.
@@ -229,6 +286,53 @@ function windowsEnvironment(src, out) {
   };
   return { inputs, env };
 }
+export function sysrootHash(entries) {
+  // gclient also leaves metadata files whose names start with the same hash.
+  const markers = entries.filter(entry => /^\.[0-9a-f]{64}$/.test(entry));
+  if (markers.length !== 1) throw new Error('Expected exactly one sysroot hash marker. Review the installed sysroot.');
+  return markers[0].slice(1);
+}
+export function linuxEnvironment(src, out) {
+  const clang = path.join(src, 'third_party/llvm-build/Release+Asserts');
+  const linux = path.join(src, 'build/linux');
+  const inputs = {
+    host: `${process.platform} ${process.arch}`,
+    clangRevision: fs.readFileSync(path.join(clang, 'cr_build_revision'), 'utf8').trim(),
+    clangVersion: run(path.join(clang, 'bin/clang'), ['--version']),
+    sysrootHash: sysrootHash(fs.readdirSync(path.join(linux, 'debian_bullseye_amd64-sysroot'))),
+    argsSha256: digest(fs.readFileSync(path.join(out, 'args.gn'))),
+  };
+  if (LINUX_OUTPUT_ARCH[path.basename(out)] === 'arm64') {
+    // install-sysroot.py writes the verified tarball URL verbatim to .stamp.
+    const manifest = JSON.parse(fs.readFileSync(path.join(linux, 'sysroot_scripts/sysroots.json'), 'utf8'));
+    const { SysrootDir, Sha256Sum, URL } = manifest.bullseye_arm64;
+    const stamp = path.join(linux, SysrootDir, '.stamp');
+    if (!/^[0-9a-f]{64}$/.test(Sha256Sum) || fs.readFileSync(stamp, 'utf8') !== `${URL}/${Sha256Sum}`)
+      throw new Error(`Arm64 sysroot .stamp differs from sysroots.json: ${stamp}. Review the installed sysroot.`);
+    inputs.arm64SysrootHash = Sha256Sum;
+  }
+  return { inputs, env: { ...process.env, DEPOT_TOOLS_UPDATE: '0' } };
+}
+
+// Called under the shared checkout lock. Setup's apply record describes the
+// Chromium sources; the immutable Git map identifies the Blanc commit.
+export function linuxBetaSource(src) {
+  const tree = fileURLToPath(new URL('../', import.meta.url));
+  const git = (cwd, ...args) => run('git', ['-C', cwd, ...args], {stdoutOnly: true});
+  const treeCommit = git(tree, 'rev-parse', 'HEAD');
+  const {upstream, upstreamFiles, canonicalSha256} = JSON.parse(git(tree, 'show', treeCommit + ':chromium/source-map.json'));
+  const applied = fs.readFileSync(path.join(path.dirname(src), '.blanc-applied-source-map.json'));
+  if (git(src, 'rev-parse', 'HEAD') !== upstream ||
+      !isDeepStrictEqual(JSON.parse(applied), {upstream, upstreamFiles, canonicalSha256})) {
+    throw new Error('The applied source map differs from the Linux beta commit. Run Linux setup for this source.');
+  }
+  const statusProblem = checkoutStatusProblem(src, {upstreamFiles, canonicalSha256});
+  if (statusProblem) throw new Error(statusProblem);
+  for (const [name, expected] of Object.entries({...upstreamFiles, ...canonicalSha256})) {
+    if (digest(fs.readFileSync(path.join(src, name))) !== expected) throw new Error(`Applied Linux beta source differs: ${name}`);
+  }
+  return {treeCommit, appliedSourceMapSha256: digest(applied)};
+}
 function environment(src, out, sdkRoot = null) {
   const developerDir = fs.realpathSync(process.env.DEVELOPER_DIR || run('/usr/bin/xcode-select', ['-p']));
   const env = { ...process.env, DEVELOPER_DIR: developerDir, DEPOT_TOOLS_UPDATE: '0' };
@@ -252,11 +356,27 @@ function environment(src, out, sdkRoot = null) {
   };
   return { inputs, env };
 }
+// The installer action validates this input when it runs. An empty input lets
+// Siso plan a requested installer before the key ceremony and invalidates any
+// cached package key if its source was removed. The checkout lock covers writes.
+export function stageLinuxPackageKey(source, destination) {
+  let armor;
+  try {
+    armor = fs.readFileSync(source);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    armor = Buffer.alloc(0);
+  }
+  if (fs.existsSync(destination) && fs.readFileSync(destination).equals(armor)) return;
+  fs.writeFileSync(destination + '.tmp', armor);
+  fs.renameSync(destination + '.tmp', destination);
+}
+
 function main() {
   const [source, ...options] = process.argv.slice(2);
-  const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build', '--reject-buildflags']);
+  const allowed = new Set(['--check', '--build', '--record-environment', '--allow-large-build', '--reject-buildflags', '--linux-packages']);
   if (!source || options.some(option => !allowed.has(option) && !option.startsWith('--local-jobs=') && !option.startsWith('--out=') && !option.startsWith('--lane=') && !option.startsWith('--sdk-root=') && !option.startsWith('--max-actions='))) {
-    throw new Error('Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=BlancPrototype|BlancRelease|BlancBeta|BlancWinPrototype|AndroidDebug|AndroidDebugX64|AndroidRelease|AndroidReleaseX64] [--sdk-root=ABSOLUTE_PATH]');
+    throw new Error(`Usage: node build.mjs CHROMIUM_SRC [--check | --build | --record-environment] [--allow-large-build] [--reject-buildflags] [--linux-packages] [--max-actions=N] [--local-jobs=N] [--lane=desktop|android] [--out=${[...MAC_OUTPUTS, ...WINDOWS_OUTPUTS, ...LINUX_OUTPUTS, ...ANDROID_OUTPUTS].join('|')}] [--sdk-root=ABSOLUTE_PATH]`);
   }
   const workerArgs = localJobs(options);
   const maxActions = maximumActions(options);
@@ -266,31 +386,45 @@ function main() {
   const src = fs.realpathSync(source);
   const { lane, out: outName, target, extraTargets = [] } = buildLane(options);
   const targets = [target, ...extraTargets];
+  const linuxInstaller = extraTargets.find(label => label.startsWith('chrome/installer/linux:'));
   if (lane === 'android') requireAndroidHost(); else requireDesktopHost(outName);
   const windows = WINDOWS_OUTPUTS.includes(outName);
-  if (windows && !windowsToolchainMounted(fs.readFileSync('/proc/mounts', 'utf8'), src))
-    throw new Error('The Windows toolchain is not mounted. Run chromium/windows/server/mount-toolchain.sh, then rerun. No build started.');
+  const linux = LINUX_OUTPUTS.includes(outName);
   const out = path.join(src, 'out', outName);
   const pinFile = path.join(out, '.blanc-build-environment.json');
   const lock = path.join(out, '.blanc-build-guard.lock');
   const observe = () => lane === 'android' ? androidEnvironment(src, out)
-    : windows ? windowsEnvironment(src, out) : environment(src, out, selectedSdk(options, out));
-  const { inputs, env } = observe();
-  if (mode === '--record-environment') {
-    // A declared baseline, never a claim that the build passed. Recording is
-    // separate from compilation and cannot bypass the large-plan guard.
-    fs.writeFileSync(pinFile, JSON.stringify(inputs, null, 2) + '\n');
-    console.log(`Recorded build environment: ${pinFile}\n${inputs.xcode ?? inputs.jdk ?? `Visual Studio package ${inputs.toolchainHash}, Windows SDK ${inputs.sdkVersion}`}\nNo build started.`);
-    return;
-  }
-  if (!fs.existsSync(pinFile)) throw new Error('No pinned environment. Review the toolchain and record it with --record-environment first.');
-  const changed = changedInputs(JSON.parse(fs.readFileSync(pinFile, 'utf8')), inputs);
-  if (changed.length) throw new Error(`Build inputs changed: ${changed.join(', ')}. Review the cache impact before recording a new environment. No build started.`);
-  if (competingBuild(run('/bin/ps', processListArgs()))) {
-    throw new Error('A Siso build is already running. Wait for it; no competing build or dry run started.');
-  }
-  fs.mkdirSync(lock);
+    : windows ? windowsEnvironment(src, out) : linux ? linuxEnvironment(src, out) : environment(src, out, selectedSdk(options, out));
+  // Setup can change shared inputs before a dry run, even for another output.
+  const releaseCheckout = (windows || linux) ? acquireCheckoutLock(src, fs.mkdirSync, process.env.BLANC_CHECKOUT_LOCK_OWNER) : null;
+  let outputLocked = false;
   try {
+    if (windows && !windowsToolchainMounted(fs.readFileSync('/proc/mounts', 'utf8'), src))
+      throw new Error('The Windows toolchain is not mounted. Run chromium/windows/server/mount-toolchain.sh, then rerun. No build started.');
+    const { inputs, env } = observe();
+    if (mode === '--record-environment') {
+      // A declared baseline, never a claim that the build passed. Recording is
+      // separate from compilation and cannot bypass the large-plan guard.
+      fs.writeFileSync(pinFile, JSON.stringify(inputs, null, 2) + '\n');
+      let summary = linux ? `Linux sysroot ${inputs.sysrootHash}` : inputs.xcode ?? inputs.jdk ?? `Visual Studio package ${inputs.toolchainHash}, Windows SDK ${inputs.sdkVersion}`;
+      if (inputs.arm64SysrootHash) summary += `\nLinux arm64 sysroot ${inputs.arm64SysrootHash}`;
+      console.log(`Recorded build environment: ${pinFile}\n${summary}\nNo build started.`);
+      return;
+    }
+    if (!fs.existsSync(pinFile)) throw new Error('No pinned environment. Review the toolchain and record it with --record-environment first.');
+    const changed = changedInputs(JSON.parse(fs.readFileSync(pinFile, 'utf8')), inputs);
+    if (changed.length) throw new Error(`Build inputs changed: ${changed.join(', ')}. Review the cache impact before recording a new environment. No build started.`);
+    if (competingBuild(run('/bin/ps', processListArgs()))) {
+      throw new Error('A Siso build is already running. Wait for it; no competing build or dry run started.');
+    }
+    fs.mkdirSync(lock);
+    outputLocked = true;
+    if (linuxInstaller) {
+      // The packages read the committed copy in blanc/branding/linux (a mapped
+      // source file); nothing is staged into the checkout or the output folder.
+    } else if (linux) {
+      console.log("Planning chrome and chrome_sandbox. The owner repository key is pending. Use --linux-packages to request installers.");
+    }
     const siso = path.join(src, 'third_party/siso/cipd/siso');
     const args = ['ninja', '-offline', ...workerArgs, '-C', out];
     const planFile = path.join(out, 'blanc-build-plan.log');
@@ -303,7 +437,10 @@ function main() {
     } finally {
       fs.closeSync(planFd);
     }
-    if (result.error || result.status !== 0) throw new Error(`Dry run failed (${result.error?.message ?? result.status ?? result.signal}); inspect ${planFile}. No build started.`);
+    if (result.error || result.status !== 0) {
+      const hint = linuxInstaller ? ` The ${linuxInstaller} target requires browser identity patch 0113 and blanc_blocker_bundle.` : '';
+      throw new Error(`Dry run failed (${result.error?.message ?? result.status ?? result.signal}); inspect ${planFile}.${hint} No build started.`);
+    }
     const output = planSummary(planFile);
     const actions = plannedActions(output);
     console.log(`Dry-run scheduled actions: ${actions} (generated outputs may add work). Plan: ${planFile}`);
@@ -314,18 +451,25 @@ function main() {
     if (changedInputs(inputs, observe().inputs).length) {
       throw new Error('Build environment changed during preflight. No build started.');
     }
+    const sourceRecord = linux && outName.endsWith('Beta') ? linuxBetaSource(src) : null;
     if (!actions) return;
+    const successFile = path.join(out, '.blanc-last-successful-build.json');
+    // An interrupted beta build may already have replaced some of the binaries.
+    if (sourceRecord) fs.rmSync(successFile, {force: true});
     const build = process.platform === 'darwin'
       ? spawnSync('/usr/bin/caffeinate', ['-i', siso, ...args, ...targets], { cwd: src, env, stdio: 'inherit' })
       : spawnSync(siso, [...args, ...targets], { cwd: src, env, stdio: 'inherit' });
     if (build.error) throw build.error;
     if (build.status !== 0) throw new Error(`Build did not complete successfully (${build.status ?? build.signal}). Cached work was preserved.`);
-    fs.writeFileSync(path.join(out, '.blanc-last-successful-build.json'), JSON.stringify({ inputs, completedAt: new Date().toISOString() }, null, 2) + '\n');
+    if (sourceRecord && !isDeepStrictEqual(sourceRecord, linuxBetaSource(src))) {
+      throw new Error('Linux beta source changed during compilation.');
+    }
+    fs.writeFileSync(successFile, JSON.stringify({ inputs, ...sourceRecord, completedAt: new Date().toISOString() }, null, 2) + '\n');
     // Only the preview build is the tracked desktop candidate. The Android
     // candidate is recorded once the tracker holds Android candidates (A0 task 7).
     if (lane === 'desktop' && outName === 'BlancPrototype') run(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), 'progress.mjs'), `--candidate-from-output=${out}`]);
   } finally {
-    fs.rmdirSync(lock);
+    try { if (outputLocked) fs.rmdirSync(lock); } finally { releaseCheckout?.(); }
   }
 }
 // Real paths: on macOS a temp or symlinked path (/var → /private/var) would otherwise never match.

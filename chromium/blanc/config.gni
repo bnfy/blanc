@@ -13,32 +13,45 @@ declare_args() {
   # Folder holding the blocker's engine bundle (engine.js, made by
   # experiments/chromium-extension-spike/native/blocker/bundle.mjs). Beta builds
   # embed it; the build and the browser both refuse any bytes but the pinned
-  # hash in services/blocker/bundle_hash.h. Preview builds take it at run time
-  # from --blanc-blocker-assets instead.
+  # hash in services/blocker/bundle_hash.h. Linux packages install it beside
+  # the executable. Unpacked desktop previews use --blanc-blocker-assets.
   blanc_blocker_bundle = ""
 }
 assert(blanc_channel == "preview" || blanc_channel == "release" || blanc_channel == "beta")
+assert(target_os != "linux" || blanc_channel != "release",
+       "Linux release builds require a dedicated package, profile and keyring identity")
 assert(blanc_android_version_name == "" || target_os == "android",
        "A Blanc Android version is only valid for Android builds")
 assert(target_os != "android" || blanc_channel != "release" ||
            blanc_android_version_name != "",
        "Android release builds need blanc_android_version_name")
 blanc_beta_channel = blanc_channel == "beta"
+if (is_linux) {
+  if (blanc_beta_channel) {
+    blanc_linux_package = "blanc-beta"
+    blanc_linux_menu_name = "Blanc Beta"
+  } else {
+    blanc_linux_package = "blanc-prototype"
+    blanc_linux_menu_name = "Blanc Prototype"
+  }
+  blanc_linux_keyring_label = blanc_linux_menu_name
+}
 assert(!blanc_beta_local_qualification || (blanc_beta_channel && target_cpu == "arm64"))
 if (blanc_beta_channel) {
-  # target_os, not is_mac/is_win: GN also reads this in the host toolchain.
-  assert(target_os == "mac" || (target_os == "win" && target_cpu == "x64"),
-         "Blanc Beta is built for macOS and Windows x64 (W3)")
+  # GN also reads this in the host toolchain. Admit the target OS and CPU.
+  assert(target_os == "mac" || (target_os == "win" && target_cpu == "x64") ||
+             (target_os == "linux" && (target_cpu == "x64" || target_cpu == "arm64")),
+         "Blanc Beta supports macOS, Windows x64 and Linux x64/arm64")
   assert(blanc_beta_build > 0 && blanc_beta_build <= 9999)
   assert(blanc_blocker_bundle != "", "Beta builds embed the blocker bundle")
-  if (blanc_beta_version == "2.0.0-beta.1") {
+  if (target_os != "linux" && blanc_beta_version == "2.0.0-beta.1") {
     assert(target_cpu == "arm64", "Owner-approved beta 1 Intel waiver")
   }
 }
-# A Windows beta's version PATCH is its build number (patch 0103,
-# chromium/tools/windows-version.test.mjs); everything else keeps Chromium's.
+# Patch 0103 stamps Windows and Linux beta versions with the build number.
+# The blanc_win_version_patch name predates Linux.
 blanc_win_version_patch = ""
-if (blanc_channel == "beta" && target_os == "win") {
+if (blanc_channel == "beta" && (target_os == "win" || target_os == "linux")) {
   blanc_win_version_patch = "$blanc_beta_build"
 }
 blanc_enable_test_hooks = blanc_channel == "preview" && !is_official_build
@@ -55,4 +68,25 @@ if (blanc_channel == "release") {
 
 if (blanc_beta_channel) {
   blanc_product_dir_name = "Blanc Beta"
+}
+
+if (is_linux && target_os == "linux") {
+  declare_args() {
+    # Browser-only outputs can generate their graph before installer inputs land.
+    blanc_linux_build_packages =
+        defined(blanc_linux_package) && blanc_blocker_bundle != ""
+    blanc_linux_channel = "prototype"
+    if (blanc_beta_channel) {
+      blanc_linux_channel = "beta"
+    }
+  }
+  declare_args() {
+    blanc_linux_repository = "https://pkg-staging.blanc.day"
+    if (blanc_linux_channel == "beta") {
+      blanc_linux_repository = "https://pkg.blanc.day"
+    }
+  }
+  assert((blanc_linux_channel == "prototype" && blanc_channel == "preview") ||
+         (blanc_linux_channel == "beta" && blanc_beta_channel),
+         "Linux package and browser channels must match")
 }

@@ -2549,11 +2549,32 @@
       "version": "158.0.8127.2",
       "treeCommit": "c8db069c4a184652b1e72526d9aab375e2a56f05",
       "qualification": "cross-compiled candidate; runtime acceptance pending"
+    },
+    "linux": {
+      "x64": {
+        "id": "linux-x64-a8ae62abfb80abd5",
+        "arch": "x64",
+        "exeSha256": "a8ae62abfb80abd528ee0ebd568e92adc1a0e97260817dfcc58f5d55b49306e2",
+        "version": "158.0.8127.2",
+        "treeCommit": "3902e23239f2bddb9f79f83f1bacedef5d058365",
+        "qualification": "compiled candidate; runtime acceptance pending"
+      },
+      "arm64": {
+        "id": "linux-arm64-38d1e4faa1e2945e",
+        "arch": "arm64",
+        "exeSha256": "38d1e4faa1e2945e603e04bd922eb80593095620ccda75a8997437c2d83bead5",
+        "version": "158.0.8127.2",
+        "treeCommit": "3902e23239f2bddb9f79f83f1bacedef5d058365",
+        "qualification": "compiled candidate; runtime acceptance pending"
+      }
     }
   },
   "baselines": {
     "macos": "scenarios/baseline-macos-1400e3914b1a7bdf.json",
-    "windows": "scenarios/baseline-windows-x64-e42f9e5a532cdf96.json"
+    "windows": "scenarios/baseline-windows-x64-e42f9e5a532cdf96.json",
+    "linux": {
+      "x64": "scenarios/baseline-linux-x64-2fcae33ab6ecf405.json"
+    }
   },
   "scenarioIds": [
     "spec/acceptance/F41-named-workspaces.feature:4",

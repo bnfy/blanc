@@ -11,3 +11,11 @@ test('slice report counts only slice rows and keeps each failure reason',()=>{
  assert.equal(report.rows.F2.cases[0].reason,'native hook adapter missing: x');
  assert.match(junit,/tests="3" failures="1" skipped="1"/);
 });
+
+test('an exclusion keeps its complete decision in JSON and JUnit', () => {
+ const exclusionReason = 'Decision 4: security key & phone';
+ const {report,junit} = sliceReport({platform:'linux', scenarios:[{featureRows:['F1'],cases:[
+  {id:'passkey', result:'excluded', exclusionReason}]}]},'S1');
+ assert.equal(report.rows.F1.cases[0].exclusionReason, exclusionReason);
+ assert.match(junit, /<skipped message="Decision 4: security key &amp; phone"/);
+});

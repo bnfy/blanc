@@ -80,6 +80,53 @@ export const EDITS = {
     ['      <div id="islandHint"></div>\n', '      <button id="previewStatusLink" class="preview-notice-button" type="button" hidden>Security &amp; updates</button>\n<div id="islandHint"></div>\n'],
   ],
   'renderer.js': [
+    // A recommended package update stays actionable across normal pill notices.
+    ['  function showPillNotice(kind) {', `  function showPillNotice(kind) {
+    if (platform === 'linux' && kind?.kind === 'update-ready') {
+      if (frameElement?.id !== 'strip' && frameElement?.id !== 'floatPill') return;
+      let button = document.getElementById('pillRestartToUpdate');
+      if (!kind.version) {
+        if (!button) return;
+        button.remove();
+      } else if (button) {
+        button.dataset.version = kind.version;
+        return;
+      } else {
+        button = document.createElement('button');
+        button.id = 'pillRestartToUpdate';
+        button.type = 'button';
+        button.textContent = blancI18n.t('pill.restartToUpdate');
+        button.dataset.version = kind.version;
+        button.addEventListener('click', event => {
+          event.stopPropagation();
+          if (event.isTrusted) location.assign('/restartToUpdate?' + encodeURIComponent(button.dataset.version));
+        });
+        pillDomain.after(button);
+      }
+      fitIslandDots();
+      requestAnimationFrame(reportIslandRect);
+      return;
+    }`],
+    // GTK button bounds arrive from the opaque frame through the strip host.
+    ['  new ResizeObserver(reportIslandRect).observe(islandPill);',
+`  if (platform === 'linux') {
+    window.addEventListener('blanc-window-buttons', ({ detail: { leading, trailing, buttons, zoom } }) => {
+      const style = document.documentElement.style;
+      style.setProperty('--window-controls-leading-w', leading / zoom + 'px');
+      style.setProperty('--window-controls-w', trailing / zoom + 'px');
+      dragBand.style.height = 'calc(var(--drag-band-h) / ' + zoom + ')';
+      // A narrow vertical rail puts its menu row below a left-hand cluster.
+      const bottom = Math.max(0, ...buttons.filter(b => b.x < leading).map(b => b.y + b.height));
+      style.setProperty('--window-controls-leading-h', bottom / zoom + 'px');
+      dotFitKey = '';
+      fitIslandDots();
+      requestAnimationFrame(reportIslandRect);
+    });
+  }
+  new ResizeObserver(reportIslandRect).observe(islandPill);`],
+    // Real double-clicks on Linux go to WindowEventFilterLinux.
+    ["if (e.target === stripEl && !floatSurface)", "if (platform !== 'linux' && e.target === stripEl && !floatSurface)"],
+    ["  dragBand.addEventListener('dblclick'", "  if (platform !== 'linux') dragBand.addEventListener('dblclick'"],
     ["    pillSpace.hidden = spaceMarkOnIsland();", "    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || spaceMarkOnIsland();"],
     // An extension's page goes by the extension's name, not its 32-letter id.
     // An extension's page shows the extension's name, not its 32-letter id
@@ -107,6 +154,13 @@ export const EDITS = {
   // commit) draw with; the rest of styles.css stays at the release, since
   // later shipping changes to it (#1622, #1624) aren't in the fork yet.
   'styles.css': [
+    // Both text actions use the shipping pill's button dimensions.
+    ['#pillMiniOpen {', '#pillMiniOpen,\n:root[data-platform="linux"] #pillRestartToUpdate {'],
+    // Linux reserves the actual GTK cluster on each side. Other platforms
+    // keep the measured shipping clearances for the horizontal and rail layouts.
+    [' - 184px) / var(--pill-zoom)', ' - var(--pill-window-clearance, 184px)) / var(--pill-zoom)'],
+    [' - 150px) / var(--pill-zoom)', ' - var(--pill-window-clearance, 150px)) / var(--pill-zoom)'],
+    ['#mainMenuButton[hidden]', ':root[data-platform="linux"] #strip > #mainMenuButton { left: calc(8px + var(--window-controls-leading-w, 0px)); }\n#mainMenuButton[hidden]'],
     // Another profile's row has no ••• to make room for, so it keeps its count.
     ['.ws-row:hover .ws-row-count, .ws-row:focus-within .ws-row-count,\n',
      '/* Another profile\'s row has no ••• to make room for, so it keeps its count. */\n.ws-row:not(.ws-row-elsewhere):hover .ws-row-count, .ws-row:not(.ws-row-elsewhere):focus-within .ws-row-count,\n'],
@@ -124,6 +178,12 @@ export const EDITS = {
      '.ws-select:focus { outline: none; background: var(--surface-raised); border-color: var(--border); }\n'],
   ],
   'overlay.js': [
+    // On Linux and Windows a wake publishes an awake, still-loading tab
+    // before it finishes, so the chosen quiet tab is remembered by id.
+    ['  let glancePickerBusy = false;', '  let glancePickerBusy = false;\n  let openingTabId = null;'],
+    ['    glancePickerBusy = true;', "    if (platform !== 'darwin') openingTabId = tab.asleep ? tab.id : null;\n    glancePickerBusy = true;"],
+    ['glancePickerBusy && tab.id === glancePickerSelectedId && !!tab.asleep',
+     "glancePickerBusy && (platform !== 'darwin' ? tab.id === openingTabId : tab.id === glancePickerSelectedId && !!tab.asleep)"],
     // F3-3: a collapsed group's membership stays explicit in the panel.
     // Use shipping's translated plural string and existing empty-row style.
     ["          // Collapsed: header alone. Open: indent membership under the group.\n          if (!group.collapsed) bandNodes.push(...tabRowsFor(gtabs, { inGroup: true }));",

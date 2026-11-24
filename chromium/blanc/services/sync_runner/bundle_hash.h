@@ -2,6 +2,6 @@
 #ifndef BLANC_SERVICES_SYNC_RUNNER_BUNDLE_HASH_H_
 #define BLANC_SERVICES_SYNC_RUNNER_BUNDLE_HASH_H_
 namespace blanc {
-inline constexpr char kBlancSyncBundleSha256[] = "f3831798b7f5d860d4b2f884a4c9fe640ef3168f3dd77c0370198bf30d4ad42e";
+inline constexpr char kBlancSyncBundleSha256[] = "2e05f5080d4ce5658edb6828ac1a98942d2717c634aab934b53e0b1a3a137112";
 }  // namespace blanc
 #endif  // BLANC_SERVICES_SYNC_RUNNER_BUNDLE_HASH_H_

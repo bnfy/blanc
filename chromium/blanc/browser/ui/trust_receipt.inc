@@ -15,6 +15,17 @@ constexpr size_t kCrashLedgerLimit = 50;
 // The identity shipping's release builds are signed with (trust-receipt.js).
 constexpr char kExpectedTeamId[] = "XYGUCY4498";
 constexpr char kExpectedPublisher[] = "Developer ID Application: Anthony Loria (XYGUCY4498)";
+// The Windows builds' Authenticode publisher (Azure Trusted Signing).
+constexpr char kExpectedWindowsPublisher[] = "Bananify Creative";
+// The platform this build runs on, as Settings → About names it.
+constexpr char kPlatformName[] =
+#if BUILDFLAG(IS_WIN)
+    "Windows";
+#elif BUILDFLAG(IS_MAC)
+    "macOS";
+#else
+    "Linux";
+#endif
 
 const char* CrashReason(base::TerminationStatus status) {
   switch (status) {
@@ -92,10 +103,15 @@ void CrashLedger::BrowserChildProcessCrashed(const content::ChildProcessData& da
   Record(content::GetProcessTypeNameInEnglish(data.process_type), reason ? reason : "crashed");
 }
 
-// What `codesign -dv --verbose=2` says of this app, off the UI thread.
+// What `codesign -dv --verbose=2` (macOS) or Authenticode (Windows) says of
+// this app, off the UI thread.
 base::DictValue InspectSignature() {
   base::DictValue signature;
+#if BUILDFLAG(IS_WIN)
+  signature.Set("expected", kExpectedWindowsPublisher);
+#else
   signature.Set("expected", kExpectedPublisher);
+#endif
 #if BUILDFLAG(IS_MAC)
   std::string out;
   const auto bundle = base::apple::OuterBundlePath();
@@ -117,6 +133,45 @@ base::DictValue InspectSignature() {
   signature.Set("observed", publisher);
   signature.Set("status", team == kExpectedTeamId &&
       base::StartsWith(publisher, "Developer ID Application:") ? "verified" : "mismatch");
+#elif BUILDFLAG(IS_WIN)
+  // chrome.exe's Authenticode signature, checked by Windows with cached
+  // revocation data only, so opening the section still makes no network
+  // request; the signer's name is the publisher.
+  base::FilePath exe;
+  if (!base::PathService::Get(base::FILE_EXE, &exe)) {
+    signature.Set("status", "unavailable");
+    return signature;
+  }
+  WINTRUST_FILE_INFO file_info = {sizeof(file_info)};
+  file_info.pcwszFilePath = exe.value().c_str();
+  WINTRUST_DATA data = {sizeof(data)};
+  data.dwUIChoice = WTD_UI_NONE;
+  data.fdwRevocationChecks = WTD_REVOKE_NONE;
+  data.dwUnionChoice = WTD_CHOICE_FILE;
+  data.pFile = &file_info;
+  data.dwStateAction = WTD_STATEACTION_VERIFY;
+  data.dwProvFlags = WTD_CACHE_ONLY_URL_RETRIEVAL;
+  GUID action = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+  const LONG trust = WinVerifyTrust(static_cast<HWND>(INVALID_HANDLE_VALUE), &action, &data);
+  std::string publisher;
+  if (CRYPT_PROVIDER_DATA* provider = WTHelperProvDataFromStateData(data.hWVTStateData)) {
+    if (CRYPT_PROVIDER_SGNR* signer = WTHelperGetProvSignerFromChain(provider, 0, FALSE, 0)) {
+      if (CRYPT_PROVIDER_CERT* cert = WTHelperGetProvCertFromChain(signer, 0)) {
+        wchar_t name[256] = {};
+        const DWORD length = CertGetNameStringW(cert->pCert, CERT_NAME_SIMPLE_DISPLAY_TYPE, 0, nullptr, name, 256);
+        if (length > 1) publisher = base::WideToUTF8(std::wstring(name, length - 1));
+      }
+    }
+  }
+  data.dwStateAction = WTD_STATEACTION_CLOSE;
+  WinVerifyTrust(static_cast<HWND>(INVALID_HANDLE_VALUE), &action, &data);
+  if (trust == TRUST_E_NOSIGNATURE || (trust != ERROR_SUCCESS && publisher.empty())) {
+    signature.Set("status", "development");
+    return signature;
+  }
+  signature.Set("observed", publisher);
+  signature.Set("status", trust == ERROR_SUCCESS && publisher == kExpectedWindowsPublisher
+      ? "verified" : "mismatch");
 #else
   signature.Set("status", "unavailable");
 #endif
@@ -139,6 +194,9 @@ base::DictValue TrustReceiptFacts(Profile* profile) {
   const auto bundle = blanc::BundleVersion();
   if (!bundle.first.empty()) version = bundle.first;
   build = bundle.second;
+#elif BUILDFLAG(IS_WIN)
+  // The Windows beta's build is its version's last number (158.0.8127.<build>).
+  build = base::NumberToString(version_info::GetVersion().components().back());
 #endif
   auto dns = SystemNetworkContextManager::GetStubResolverConfigReader()->GetSecureDnsConfiguration(false);
   return base::DictValue()
@@ -146,7 +204,7 @@ base::DictValue TrustReceiptFacts(Profile* profile) {
           .Set("version", version)
           .Set("build", build)
           .Set("chromium", std::string(version_info::GetVersionNumber()))
-          .Set("platform", "macOS")
+          .Set("platform", kPlatformName)
           .Set("architecture", base::SysInfo::OperatingSystemArchitecture())
           .Set("packaged", IsBetaBuild()))
       .Set("blocker", base::DictValue().Set("combinedSha256", kBlancBlockerBundleSha256))

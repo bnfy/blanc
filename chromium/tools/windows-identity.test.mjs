@@ -94,3 +94,37 @@ test('the Windows preview\'s BRANDING names Bananify Creative and Blanc Prototyp
   assert.ok(!Object.keys(branding).some(key => key.startsWith('MAC_')), 'a Windows-only file carries no Mac keys');
   assert.match(read('../windows/args/prototype-x64.gn'), /^branding_file_path = "\/\/blanc\/branding\/win\/BRANDING"$/m);
 });
+
+// Owner, 2026-11-21: Windows shows Blanc's own words, not Chromium's: the
+// shortcut tooltip (GetAppDescription) and the Default Programs description
+// (GetLongAppDescription, Capabilities\ApplicationDescription).
+test('the shortcut tooltip and the registered description are Blanc\'s', () => {
+  const start = patch.indexOf('+++ b/chrome/installer/util/install_util.cc\n');
+  const end = patch.indexOf('\ndiff --git ', start);
+  const hunk = patch.slice(start, end < 0 ? undefined : end);
+  const added = hunk.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).join('\n');
+  assert.match(added, /return L"Browse the web";/);
+  assert.match(added, /return L"A minimal web browser with ad and tracker blocking built in";/);
+  assert.match(hunk, /^-\s+return installer::GetLocalizedString\(IDS_SHORTCUT_TOOLTIP_BASE\);$/m);
+  assert.match(hunk, /^-\s+return installer::GetLocalizedString\(IDS_PRODUCT_DESCRIPTION_BASE\);$/m);
+  assert.doesNotMatch(added, /L"[^"]*Chromium/, 'no string Windows shows names Chromium');
+});
+
+// Owner, 2026-11-21: on Windows the window title names the channel, as the
+// taskbar and Start menu do ("Example Domain - Blanc Beta"), not the product
+// word patch 0077 puts in Chromium's format ("… - Blanc"). Only the format's
+// product word changes: the localized format stays, and a page title that
+// says Blanc is left alone.
+test('the window title names the Windows channel', () => {
+  const start = patch.indexOf('+++ b/chrome/browser/ui/window_metadata/window_metadata_controller.cc\n');
+  assert.ok(start >= 0, '0098 patches the window title');
+  const end = patch.indexOf('\ndiff --git ', start);
+  const hunk = patch.slice(start, end < 0 ? undefined : end);
+  const added = hunk.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++')).join('\n');
+  assert.match(added, /#if BUILDFLAG\(IS_WIN\)/);
+  assert.match(added, /install_static::GetBaseAppName\(\)/);
+  assert.match(added, /l10n_util::GetStringUTF16\(IDS_BROWSER_WINDOW_TITLE_FORMAT\)/, 'the localized format');
+  assert.match(added, /ReplaceStringPlaceholders\(format, title/, 'the page title goes in after the product word changed');
+  const manifest = JSON.parse(read('../upstream/manifest.json'));
+  assert.ok(manifest.files['chrome/browser/ui/window_metadata/window_metadata_controller.cc'], 'the pristine file is pinned');
+});

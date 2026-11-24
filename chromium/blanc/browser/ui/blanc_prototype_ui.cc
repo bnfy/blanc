@@ -24,6 +24,15 @@
 #include "third_party/blink/public/common/page/page_zoom.h"
 #include "blanc/browser/sync/favorite_helpers.h"
 #include "blanc/buildflags.h"
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+#include "chrome/browser/buildflags.h"
+#include "chrome/browser/lifetime/application_lifetime_desktop.h"
+#include "chrome/browser/upgrade_detector/build_state.h"
+#include "chrome/browser/upgrade_detector/build_state_observer.h"
+#include "chrome/browser/upgrade_detector/upgrade_detector.h"
+#include "chrome/browser/upgrade_detector/upgrade_observer.h"
+static_assert(BUILDFLAG(ENABLE_UPDATE_NOTIFICATIONS));
+#endif
 #include "blanc/common/test_launch.h"
 #if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
 #include "components/renderer_context_menu/context_menu_delegate.h"
@@ -309,6 +318,7 @@
 #include "chrome/browser/ui/toolbar/toolbar_actions_model.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/infobars/infobar_container_view.h"
+#include "chrome/browser/ui/views/infobars/infobar_view.h"
 #include "chrome/browser/ui/views/frame/toolbar_button_provider.h"
 #include "chrome/browser/ui/toolbar/app_menu_model.h"
 #include "chrome/browser/ui/views/toolbar/app_menu.h"
@@ -385,12 +395,33 @@
 #include "components/page_load_metrics/browser/page_load_tracker.h"
 #include "third_party/blink/public/common/use_counter/use_counter_feature.h"
 #include "third_party/blink/public/mojom/use_counter/metrics/web_feature.mojom.h"
-#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
 #include "blanc/browser/ui/tab_switch_keys.h"
 #endif
 #if BUILDFLAG(IS_MAC)
 #include "blanc/browser/ui/app_menus_mac.h"
 #include "blanc/browser/ui/window_buttons_mac.h"
+#endif
+#if BUILDFLAG(IS_LINUX)
+#include "chrome/common/process_singleton_lock_posix.h"
+#include "net/base/network_interfaces.h"
+#include "blanc/browser/ui/tab_switch_keys_aura.h"
+#include "blanc/browser/ui/window_buttons_linux.h"
+#include "ui/compositor/compositor.h"
+#if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
+#include "ui/views/controls/menu/submenu_view.h"
+#endif
+#endif
+#if BUILDFLAG(IS_WIN)
+// Settings → About's trust receipt reads chrome.exe's Authenticode publisher.
+#include <windows.h>
+#include <softpub.h>
+#include <wincrypt.h>
+#include <wintrust.h>
+#pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "wintrust.lib")
+#include "base/path_service.h"
+#include "base/strings/utf_string_conversions.h"
 #endif
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/views/controls/webview/webview.h"
@@ -1234,6 +1265,63 @@ std::optional<std::pair<std::string, std::string>> UtilityPageFor(const GURL& ur
 }
 
 namespace {
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+std::string CurrentRecommendedVersion() {
+  const auto* state = g_browser_process->GetBuildState();
+  const auto& installed = state->installed_version();
+  if (state->update_type() != BuildState::UpdateType::kNormalUpdate ||
+      !installed || !installed->IsValid() || *installed <= version_info::GetVersion() ||
+      UpgradeDetector::GetInstance()->upgrade_notification_stage() ==
+          UpgradeDetector::UPGRADE_ANNOYANCE_NONE) {
+    return {};
+  }
+  return installed->GetString();
+}
+
+// A pill sends the command as a navigation in its own frame. Unlike the
+// host's chrome.send bridge, this IPC carries Chromium's initiator token.
+// Cancel it before commit so neither the pill nor the overlay loses its UI.
+class RestartToUpdateGate : public content::NavigationThrottle {
+ public:
+  explicit RestartToUpdateGate(content::NavigationThrottleRegistry& registry)
+      : NavigationThrottle(registry) {}
+  const char* GetNameForLogging() override { return "BlancRestartToUpdateGate"; }
+  ThrottleCheckResult WillStartRequest() override {
+    auto* navigation = navigation_handle();
+    auto* contents = navigation->GetWebContents();
+    auto* main = contents->GetPrimaryMainFrame();
+    if (!contents->GetUserData(kOwnerKey) || !main->GetWebUI() ||
+        main->GetLastCommittedURL() != GURL("chrome://blanc-prototype/host.html")) {
+      return CANCEL_AND_IGNORE;
+    }
+    auto* frame = contents->GetFocusedFrame();
+    const auto& initiator = navigation->GetInitiatorFrameToken();
+    const std::string version = CurrentRecommendedVersion();
+    if (navigation->IsRendererInitiated() && navigation->HasUserGesture() &&
+        frame && frame->GetParent() == main && frame->HasTransientUserActivation() &&
+        frame->GetFrameTreeNodeId() == navigation->GetFrameTreeNodeId() &&
+        initiator && *initiator == frame->GetFrameToken() &&
+        (frame->GetLastCommittedURL() == GURL("chrome://blanc-prototype/index.html") ||
+         frame->GetLastCommittedURL() == GURL("chrome://blanc-prototype/index.html?surface=float")) &&
+        !version.empty() && navigation->GetURL().query() == version) {
+      // Finish cancelling the navigation before a restart can close its window.
+      base::SequencedTaskRunner::GetCurrentDefault()->PostTask(FROM_HERE, base::BindOnce(
+          [](content::WeakDocumentPtr document, std::string advertised) {
+            auto* requester = document.AsRenderFrameHostIfValid();
+            if (requester && requester->HasTransientUserActivation() &&
+                advertised == CurrentRecommendedVersion()) {
+              chrome::AttemptRestart();
+            }
+          }, frame->GetWeakDocumentPtr(), version));
+    } else {
+      // A stale click gets the authoritative version (empty after rollback).
+      main->GetWebUI()->CallJavascriptFunctionUnsafe("blancPrototypeEvent",
+          base::Value("update-refused"), base::Value(version));
+    }
+    return CANCEL_AND_IGNORE;
+  }
+};
+#endif
 // A tab in an Island window that starts loading a utility page shows it in
 // the sheet instead, from wherever the load came (the address field, a
 // Favorite, Chromium's own "Manage" links, a restored entry). A tab opened
@@ -1269,6 +1357,14 @@ class UtilityPageGate : public content::NavigationThrottle {
 };
 }  // namespace
 void AddUtilityPageGate(content::NavigationThrottleRegistry& registry) {
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+  const GURL& url = registry.GetNavigationHandle().GetURL();
+  if (url.SchemeIs(content::kChromeUIScheme) && url.host() == kHost &&
+      url.path() == "/restartToUpdate") {
+    registry.AddThrottle(std::make_unique<RestartToUpdateGate>(registry));
+    return;
+  }
+#endif
   if (registry.GetNavigationHandle().IsInPrimaryMainFrame() && UtilityPageFor(registry.GetNavigationHandle().GetURL()))
     registry.AddThrottle(std::make_unique<UtilityPageGate>(registry));
 }
@@ -1316,6 +1412,9 @@ class Owner : public base::SupportsUserData::Data,
   // Chromium's app menu, opened from the strip's menu button where the
   // Island draws one (Windows and Linux; the Mac has its menu bar). The menu
   // points into its model, so the model is declared first and outlives it.
+#if BUILDFLAG(IS_LINUX)
+  base::RepeatingClosure window_buttons_changed;
+#endif
   std::unique_ptr<AppMenuModel> main_menu_model;
   std::unique_ptr<AppMenu> main_menu;
   // Both point at the window's toolbar and browser, so they are dropped as
@@ -2030,6 +2129,16 @@ class IslandView : public views::WebView, public views::ViewTargeterDelegate {
   explicit IslandView(Profile* profile) : views::WebView(profile) {
     SetEventTargeter(std::make_unique<views::ViewTargeter>(this));
   }
+#if BUILDFLAG(IS_LINUX)
+  // The page can be fullscreen with the Island hidden. These two shortcuts
+  // belong to the browser window and follow its activation/visibility.
+  bool CanHandleAccelerators() const override {
+    return parent() && parent()->CanHandleAccelerators();
+  }
+  bool AcceleratorPressed(const ui::Accelerator& accelerator) override {
+    return parent() && blanc::DispatchTabSwitchAccelerator(*parent(), accelerator);
+  }
+#endif
   bool DoesIntersectRect(const views::View*, const gfx::Rect& rect) const override {
     auto* owner = GetOwner(const_cast<IslandView*>(this)->GetWebContents());
     if (!owner) return GetLocalBounds().Intersects(rect);
@@ -6307,6 +6416,9 @@ class CreatedSearchTabCapture : public TabStripModelObserver {
 };
 
 class Handler : public content::WebUIMessageHandler, public extensions::ExtensionUninstallDialog::Delegate,
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+                public UpgradeObserver, public BuildStateObserver,
+#endif
                 public base::PowerSuspendObserver, public history::HistoryServiceObserver {
  public:
   ~Handler() override { if (archive_power_observing_) base::PowerMonitor::GetInstance()->RemovePowerSuspendObserver(this); }
@@ -6411,6 +6523,55 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (auto* owner = GetOwner(web_ui()->GetWebContents())) ApplyAutoHide(owner);
     OnIslandSettingChanged();
   }
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+  // Only the main Island document publishes the recommendation to its pills.
+  bool IsUpdateHost() {
+    return IsIslandHost() && web_ui()->GetRenderFrameHost() ==
+        web_ui()->GetWebContents()->GetPrimaryMainFrame();
+  }
+  void OnJavascriptAllowed() override {
+    if (!IsUpdateHost()) return;
+    upgrade_observation_.Observe(UpgradeDetector::GetInstance());
+    build_observation_.Observe(g_browser_process->GetBuildState());
+    OnUpgradeRecommended();
+  }
+  void OnUpdate(const BuildState*) override {
+    // Withdrawing a package can stop the detector's timer without another
+    // OnUpgradeRecommended notification.
+    OnUpgradeRecommended();
+  }
+  void OnUpgradeRecommended() override {
+    if (!IsJavascriptAllowed() || !IsUpdateHost()) return;
+    const std::string current = CurrentRecommendedVersion();
+    if (recommended_version_ == current) return;
+    recommended_version_ = current;
+    web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeEvent",
+        base::Value("update-ready"), base::Value(current));
+  }
+  base::ScopedObservation<UpgradeDetector, UpgradeObserver> upgrade_observation_{this};
+  base::ScopedObservation<BuildState, BuildStateObserver> build_observation_{this};
+  std::string recommended_version_;
+#endif
+#if BUILDFLAG(IS_LINUX)
+  std::optional<base::DictValue> last_window_buttons_;
+  bool last_frame_maximized_ = false;
+  void SendWindowButtons() {
+    if (!IsJavascriptAllowed() || !IsIslandHost()) return;
+    auto* owner = GetOwner(web_ui()->GetWebContents());
+    if (!owner->view || !owner->view->GetWidget()) return;
+    auto* widget = owner->view->GetWidget();
+    auto* compositor = widget->GetCompositor();
+    const float scale = compositor ? compositor->device_scale_factor() : 1.f;
+    const bool maximized = widget->IsMaximized();
+    auto data = blanc::LinuxWindowButtons::Measure(*owner->view).ToValue();
+    data.Set("deviceScaleFactor", scale);
+    if (last_frame_maximized_ == maximized && last_window_buttons_ == data) return;
+    last_frame_maximized_ = maximized;
+    last_window_buttons_ = data.Clone();
+    web_ui()->CallJavascriptFunctionUnsafe("blancPrototypeEvent",
+        base::Value("windowButtons"), base::Value(std::move(data)));
+  }
+#endif
   void OnIslandSettingChanged() {
     NormalizeAppIcon(Profile::FromWebUI(web_ui()));
     if (IsJavascriptAllowed())
@@ -6418,6 +6579,11 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
   }
   void OnJavascriptDisallowed() override {
     auto_timer_.Stop();
+#if BUILDFLAG(IS_LINUX) && BUILDFLAG(BLANC_BETA_CHANNEL)
+    upgrade_observation_.Reset();
+    build_observation_.Reset();
+    recommended_version_.clear();
+#endif
     archive_history_.Reset();
     if (archive_power_observing_) { base::PowerMonitor::GetInstance()->RemovePowerSuspendObserver(this); archive_power_observing_ = false; }
     if (archive_running_) {
@@ -7465,14 +7631,46 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           }, weak_factory_.GetWeakPtr(), id, meta ? meta->Clone() : base::DictValue()));
       return;
     }
+#if BUILDFLAG(IS_LINUX)
+    // Read-only coordinates for real X11 input. The native menu's bounds
+    // independently confirm where the menu actually opened.
+    if (quiet_method == "linuxFrameGeometry" && quiet_args.empty()) {
+      auto* owner = GetOwner(web_ui()->GetWebContents());
+      if (!owner->view || !owner->view->parent()) { reject("Island unavailable"); return; }
+      const auto rect = [](const views::View* view) {
+        const auto b = view->GetBoundsInScreen();
+        return base::DictValue().Set("x", b.x()).Set("y", b.y())
+            .Set("width", b.width()).Set("height", b.height());
+      };
+      auto geometry = base::DictValue().Set("strip", rect(owner->view))
+          .Set("client", rect(owner->view->parent()));
+      if (owner->main_menu && owner->main_menu->IsShowing()) {
+        auto* submenu = owner->main_menu->root_menu_item()->GetSubmenu();
+        if (submenu && submenu->IsDrawn()) geometry.Set("menu", rect(submenu));
+      }
+      Reply(id, true, base::Value(std::move(geometry)));
+      return;
+    }
+#endif
     // What the OS window has outside its client area, in DIPs. Windows keeps
     // invisible resize borders there, which a window's reported bounds
     // include; the Island's content fills the client area inside them.
     if (quiet_method == "windowFrameInsets" && quiet_args.empty()) {
       auto* owner = GetOwner(web_ui()->GetWebContents());
       auto* widget = views::Widget::GetWidgetForNativeWindow(owner->browser->GetWindow()->GetNativeWindow());
+#if BUILDFLAG(IS_LINUX)
+      // DesktopWindowTreeHostPlatform returns the whole platform window for
+      // GetClientAreaBoundsInScreen(). FrameView lays out the BrowserView
+      // inside that window. Compare them in widget DIPs on both Ozone backends.
+      // A restore can report normal before Views lays out the restored frame.
+      widget->LayoutRootViewIfNecessary();
+      const auto* client_view = widget->client_view();
+      const gfx::Rect window = widget->GetRootView()->GetLocalBounds();
+      const gfx::Rect client = client_view->ConvertRectToWidget(client_view->GetLocalBounds());
+#else
       const gfx::Rect window = widget->GetWindowBoundsInScreen();
       const gfx::Rect client = widget->GetClientAreaBoundsInScreen();
+#endif
       Reply(id, true, base::Value(base::DictValue()
           .Set("left", client.x() - window.x()).Set("top", client.y() - window.y())
           .Set("right", window.right() - client.right()).Set("bottom", window.bottom() - client.bottom())));
@@ -7960,7 +8158,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       if (args.size() == 2) next.Set("mapping", args[1].GetDict().Clone());
       const bool ok = SaveGestureSettings(profile, next);Reply(id, ok, base::Value(std::move(before)));return;
     }
-#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
     // F59: one key of a Ctrl+Tab gesture, posted to this app's own event
     // queue for this window, so the real key path runs (the Select Next Tab
     // command and the Control-release watcher). Nothing leaves the process.
@@ -8130,7 +8328,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     if (message[1].GetString() == "windowsContentProtected") {
       int count = 0;
       for (auto* owner : Owner::Live())
+#if BUILDFLAG(IS_LINUX)
+        // F27 observes the pairing window's outstanding request. X11 has no
+        // per-window screenshot protection for the widget to report back.
+        if (owner->view->GetWidget() && owner->sync_capture_requested) ++count;
+#else
         if (auto* widget = owner->view->GetWidget(); widget && !widget->AreScreenshotsAllowed()) ++count;
+#endif
       Reply(id, true, base::Value(count)); return;
     }
     if (message[1].GetString() == "checklistProgress") {
@@ -10243,6 +10447,16 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     auto* profile = browser->GetProfile();
     const std::string& method = message[1].GetString();
     const base::ListValue& args = message[2].GetList();
+#if BUILDFLAG(IS_LINUX)
+    if (method == "observeWindowButtons" && args.empty()) {
+      owner->window_buttons_changed = base::BindRepeating(
+          &Handler::SendWindowButtons, weak_factory_.GetWeakPtr());
+      last_window_buttons_.reset();
+      SendWindowButtons();
+      reply(true, base::Value());
+      return;
+    }
+#endif
 #if BUILDFLAG(ENABLE_BLANC_TEST_HOOKS)
     if (method == "sessionWindows" && args.empty()) {
       auto* service = SessionServiceFactory::GetForProfile(profile);
@@ -11723,10 +11937,15 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       const bool changed = owner->band_color != color;
       owner->band_color = color;
       // Restyle the infobars showing now; new ones read the color as they theme.
+      // Each bar directly: on Windows the color arrives after the bars theme,
+      // and Widget::ThemeChanged() didn't reach them again (2026-11-21).
       auto* browser_view = BrowserView::GetBrowserViewForBrowser(owner->browser);
       if (changed && browser_view && browser_view->infobar_container() &&
-          !browser_view->infobar_container()->children().empty() && browser_view->GetWidget())
-        browser_view->GetWidget()->ThemeChanged();
+          browser_view->GetWidget()) {
+        for (views::View* child : browser_view->infobar_container()->children()) {
+          if (auto* infobar = views::AsViewClass<InfoBarView>(child)) infobar->OnThemeChanged();
+        }
+      }
       reply(true, base::Value(true));
       return;
     }
@@ -14148,6 +14367,9 @@ ToolbarButtonProvider* ToolbarProvider(BrowserWindowInterface* browser,
 
 std::unique_ptr<views::WebView> CreateIsland(
     BrowserWindowInterface* browser) {
+#if BUILDFLAG(IS_LINUX)
+  blanc::InstallTabSwitchWatcher();
+#endif
   blanc::browser_api::EnsureBlancDefaultSearch(browser->GetProfile()->GetOriginalProfile());
   // Start persisted desktop Sync with the first eligible window, even if
   // Settings is never opened. ForProfile is idempotent and rejects OTR,
@@ -14534,7 +14756,7 @@ content::WebContents* ReuseNewTab(BrowserWindowInterface* browser, bool is_priva
 // positional step: the setting on "list", another key (Ctrl+PageDown, the ⌘
 // shortcuts), a menu click, or a window without the Island.
 bool TabSwitchCommand(BrowserWindowInterface* browser, int direction) {
-#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX)
   if (!IsIslandWindow(browser) ||
       browser->GetProfile()->GetOriginalProfile()->GetPrefs()->GetString(kTabSwitchOrderPref) != "recent" ||
       blanc::CurrentTabSwitchKey() != blanc::TabSwitchKey::kCtrlTab) {
@@ -14547,6 +14769,9 @@ bool TabSwitchCommand(BrowserWindowInterface* browser, int direction) {
       !host->GetPrimaryMainFrame()->IsRenderFrameLive()) {
     return false;
   }
+#if BUILDFLAG(IS_LINUX)
+  if (!blanc::PrepareTabSwitchStep()) return true;
+#endif
   host->GetPrimaryMainFrame()->ExecuteJavaScript(
       direction > 0 ? u"window.BlancPrototypeHost?.tabSwitch('step', 1)"
                     : u"window.BlancPrototypeHost?.tabSwitch('step', -1)",
@@ -14652,10 +14877,27 @@ void IslandBackdrop(content::WebContents* tab, const base::DictValue* spec, int*
           sessions::SessionTabHelper::IdForTab(tab).id(), json.c_str())), base::NullCallback());
 }
 
+#if BUILDFLAG(IS_LINUX)
+void LinuxWindowButtonsChanged(views::View* parent) {
+  auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
+  auto* owner = view ? GetOwner(view->GetWebContents()) : nullptr;
+  if (owner && owner->window_buttons_changed) owner->window_buttons_changed.Run();
+}
+
+int LinuxWindowButtonAt(views::View* parent, int x, int y) {
+  return blanc::LinuxWindowButtons::Measure(*parent).HitTest(gfx::Point(x, y));
+}
+#endif
+
 bool IsCaption(views::View* parent, int x, int y) {
   auto* view = static_cast<views::WebView*>(parent->GetViewByID(kIslandViewId));
   if (!view || !view->GetVisible()) return false;
   auto* owner = GetOwner(view->GetWebContents());
+#if BUILDFLAG(IS_LINUX)
+  const auto controls = blanc::LinuxWindowButtons::Measure(*parent);
+  if (controls.leading.Contains(gfx::Point(x, y)) ||
+      controls.trailing.Contains(gfx::Point(x, y))) return false;
+#endif
   // While the page covers the strip (hidden, or floating), a thin band along
   // the page pane's top is the window's only drag handle, as shipping's
   // #dragBand.
@@ -14918,6 +15160,10 @@ void LayoutIsland(views::View* parent, int top) {
                            : owner ? std::max({owner->height, HeaderHeight(parent),
                                                IslandFloating(owner) ? owner->float_frame.bottom() : 0})
                            : 68, available));
+#if BUILDFLAG(IS_LINUX)
+  blanc::RegisterTabSwitchAccelerators(*view);
+  LinuxWindowButtonsChanged(parent);
+#endif
   if (!owner) return;
   auto* browser_view = static_cast<BrowserView*>(parent);
   if (!browser_view->toolbar()) return;
