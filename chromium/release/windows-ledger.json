@@ -1,4 +1,65 @@
 {
   "schema": 1,
-  "builds": []
+  "builds": [
+    {
+      "build": 902,
+      "version": "158.0.8127.902",
+      "tag": "chromium-beta-windows-158.0.8127.902",
+      "date": "2026-11-21",
+      "sourceCommit": "f64ed2ed9376c8eb59b066798fdecfdf963b8574",
+      "candidate": "windows-x64-a9f301d5f9c2f316",
+      "candidateZipSha256": "606937c3cc54a88f7d0f9d02d8bd1fede13c594b5d4f8e960fcc76fea529b022",
+      "setupSHA256": "83c5b55e9e518e7479c108a4abcd41e3bd81d0d49ffb3ea9a1627256ed079e86",
+      "installerSHA256": "3a2b63da9b1d911acdaf1d96b12660d9fc81a8d9773b4ca9472e06d9c803dd91",
+      "packageSHA256": "d2571c7e8ff1da2824f2dfbbc12ef2a75bab9adf936e398a2a850a946a15a7ef",
+      "signingRun": 44885396573,
+      "stagingGateRun": 44887435753,
+      "note": "First Windows Blanc Beta, published 2026-11-21 09:19 UTC as its own GitHub pre-release (not latest) through windows-release.mjs. Signed by Bananify Creative (Azure Trusted Signing), owner-signed update package, staging gate passed, Sigstore-signed checksums."
+    },
+    {
+      "build": 903,
+      "version": "158.0.8127.903",
+      "tag": "chromium-beta-windows-158.0.8127.903",
+      "date": "2026-11-21",
+      "sourceCommit": "96315b04c2c5779c3e7c5f3a3315aede629980fa",
+      "candidate": "windows-x64-f12188c27d3b5d32",
+      "candidateZipSha256": "ca3af9f6ecad45042eeecbcb010b94ca82bd712cf1b7277fc8b34826bd8d5424",
+      "setupSHA256": "81256da83cd9138f26dca977c4b88cf79cd8ce24c43f80bd58c374aff4212890",
+      "installerSHA256": "17710b1866c2ede5bec59ea1e1436a7b483414e6c41dc65db0c26b44948d5923",
+      "packageSHA256": "d119ad511a9eacc1e24642144e362a153f05c2d3da22699b7e71ced1fd12eb3b",
+      "signingRun": 44923135363,
+      "stagingGateRun": 44924443284,
+      "note": "Second Windows Blanc Beta, published 2026-11-21 16:30 UTC as its own GitHub pre-release (not latest) through windows-release.mjs: Blanc's look for Chromium's prompts, window title and installer icon, no API keys bar. Signed by Bananify Creative, owner-signed update package, staging gate passed, Sigstore-signed checksums; verify-public run 44924998686."
+    },
+    {
+      "build": 904,
+      "version": "158.0.8127.904",
+      "tag": "chromium-beta-windows-158.0.8127.904",
+      "date": "2026-11-21",
+      "sourceCommit": "7721085b030cc61cafb8478c635e21081f0a06c9",
+      "candidate": "windows-x64-24363262869b62ec",
+      "candidateZipSha256": "ad802381b56ac35979e4e654ef1bdd2ab4dc8c0723a96ee6bc947d9bc4d966b3",
+      "setupSHA256": "00491ace6b941c56dedf6ec2095a696cfd5d3035a9e3be9d9dcf5bb05d1c6e33",
+      "installerSHA256": "705cec77e7a37aa0a21aaf264c2ea7543bc14e7a22c7be749bfc86a44ca4c8c1",
+      "packageSHA256": "d9feaa407d583d53d9dc438bff6c778a3293f17f53c3b0515e3038cd14c3194a",
+      "signingRun": 44930878823,
+      "stagingGateRun": 44931963974,
+      "note": "Third Windows Blanc Beta, published 2026-11-21 17:54 UTC as its own GitHub pre-release (not latest) through windows-release.mjs: About checks for updates and reports Windows' platform, build and publisher. Signed by Bananify Creative, owner-signed update package, staging gate passed, Sigstore-signed checksums; verify-public run 44932619481."
+    },
+    {
+      "build": 907,
+      "version": "158.0.8127.907",
+      "tag": "chromium-beta-windows-158.0.8127.907",
+      "date": "2026-11-23",
+      "sourceCommit": "ed21560a73b270f61ce5bc810241310df88b4ab8",
+      "candidate": "windows-x64-357453694e3d4366",
+      "candidateZipSha256": "815d64ee5f23a568f2564e278facaac52e570815610bbe77b495b185e7cff703",
+      "setupSHA256": "d35c827ace25e6a0501ed303c7c77dfe7d70e2157e0391169663794a2aae77c6",
+      "installerSHA256": "806e048e68d9f2063ef38997c592d9430a910559f12b25f2855892ed2899a234",
+      "packageSHA256": "7f0953a0efe448f5f321538e0ef4c946125d56718c76e7f939ef8aa6e054d1f2",
+      "signingRun": 45179328653,
+      "stagingGateRun": 45181495395,
+      "note": "Fourth Windows Blanc Beta and the first from a nightly (20261123-0400, 635 suite cases first try), published 2026-11-23 13:20 UTC as its own GitHub pre-release (not latest) through windows-release.mjs: no \"Chrome was updated\" toast after an update, and no Google AI Mode check, search prewarm or preconnects. Signed by Bananify Creative, owner-signed update package, staging gate passed, Sigstore-signed checksums; verify-public run 45182987084."
+    }
+  ]
 }

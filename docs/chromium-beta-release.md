@@ -1374,3 +1374,74 @@ command again.
 it in the commit. Retire a waiver with `until` (the first beta it no longer
 covers); never delete it, so earlier releases still verify. A changed waiver
 needs a new night, because the evidence binds the descriptor.
+
+### Windows nightly (2026-11-21)
+
+Design `docs/superpowers/specs/2026-11-21-windows-nightly-design.md`, plan
+`docs/superpowers/plans/2026-11-21-windows-nightly.md`. Every day at 04:00 the
+Mac Studio's LaunchAgent `me.bnfy.blanc.desktop-nightly` runs
+`~/Projects/Blanc/scripts/desktop-nightly.sh` (written by
+`chromium/release/daily/install-desktop-nightly.sh`; `--remove` uninstalls).
+The script takes the night lock (`records/nightly/windows/RUNNING/`), moves its
+own worktree `~/Projects/Blanc/desktop-nightly` to chromium/next's tip and runs
+`chromium/release/daily/desktop-nightly.mjs`. One night takes the candidate
+draft's hold, has the build server build `BlancWinPrototype` and `BlancWinBeta`
+(the next free build number) under the checkout lock, uploads both zips, runs
+the beta's install and installer-capture checks and the prototype's full suite
+on GitHub's Windows runners, reruns once what failed, judges, records, and
+lets go of the hold. It never signs, pushes or publishes. The Mac Studio needs
+the build server's key (`~/.ssh/id_ed25519_blanc_android`) and a
+`blanc-android-build` alias in `~/.ssh/config`; the address stays out of this
+repository.
+
+**Reading a night.** `records/nightly/windows/<stamp>/result.json` holds the
+status (`pass`, `fail`, `skipped`), the reason, the build, the run ids and the
+judged suite; `LAST-PASS` names the newest passing night, whose `beta.zip` and
+`prototype.zip` are kept (older passes' zips are removed, and a failed night
+keeps none). `launcher.log` says when each night started and ended. A skip
+gives one of these reasons: the candidate draft is held; a Mac release is
+prepared on the Mac Studio; the desktop checkout is locked on the build server;
+a build is running on the server; nothing new since the last passing night. A
+draft that can't be read, a server that can't be reached or a hold that can't
+be taken fails the night instead. A lock left by a process that ended stops
+every later night until a person clears it (`draft-hold.mjs break`).
+
+**Releasing from a night.** On the MacBook Pro:
+`node chromium/release/daily/windows-beta-prep.mjs` takes the draft's hold for
+the release, reads the Mac Studio's `LAST-PASS` night, claims the night's
+build number for Windows and its exact source on `chromium/next`
+(`chromium/release/build-claims.mjs` `claimExact`, shared with Linux; an
+identical claim is a no-op, and a number already held for other source or
+below a later claim stops prep before it touches the draft), puts that night's
+beta back on the draft if a later night replaced it, writes the schema-2 work
+folder under `~/Projects/Blanc/records/windows-release/<version>` and points
+`CURRENT` at it. Preflight checks the claim again at `chromium/next`'s tip.
+A night whose number is taken can't be released; the next night numbers
+itself above every claim. Rewrite `release-notes.md`, then run the ten
+`windows-release.mjs` stages as before. The release holds the draft until
+`verify-public` is saved, so no night runs meanwhile; `status WORK` reports a
+finished release that still holds it, with the command that frees it.
+
+**Hold commands** (`chromium/windows/draft-hold.mjs`, from the MacBook Pro;
+each takes `--draft fork-windows-candidate-rehearsal` for a rehearsal):
+`status` shows who holds the draft and since when; `acquire-manual NOTE` takes
+it for hand work, and every signing run needs a hold (the signing job refuses
+without `hold_owner_sha256`); `release OWNER` lets go of a hold you own (a prep
+that could not release its own leaves the owner in
+`records/windows-release/PREP-HOLD`, which stops the next prep until it is
+released and removed); `break --confirm [--records ~/DIR]` removes a dead
+night's hold and clears its lock (or the lock alone, when a launcher died
+before taking the hold), and refuses while that night still runs.
+
+**Abandoning a release.** `draft-hold.mjs break --confirm --work WORK` marks
+that release abandoned and removes its hold, only when WORK's state names the
+live hold and no stage of it is running. An abandoned release runs no more
+stages; the next prep of the same version moves its folder aside
+(`<version>.abandoned-<time>`) and starts fresh.
+
+**Rehearsing.** Every path comes from arguments, never the environment:
+`desktop-nightly.sh --records DIR --draft fork-windows-candidate-rehearsal
+--reservations-ref REF`, then `windows-beta-prep.mjs --records DIR --nights
+~/DIR --draft fork-windows-candidate-rehearsal`. Nothing touches the real
+draft, `LAST-PASS`, `CURRENT` or the reservations. A rehearsal's work folder
+answers `status` only: its stages would sign, tag and offer for real.

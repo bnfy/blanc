@@ -19,6 +19,7 @@ DEPOT_TOOLS_COMMIT=382c208a9973e1a6c0867b6d8664dc6dc9116e30
 DEPOT_TOOLS="${HOME}/depot_tools-desktop"
 CHECKOUT="${HOME}/chromium-desktop"
 SRC="${CHECKOUT}/src"
+LOCK="${CHECKOUT}/.blanc-checkout.lock"
 EVIDENCE="${HOME}/blanc-evidence/windows"
 # The packaged Visual Studio and Windows SDK (<name>.zip), made once per pin by
 # .github/workflows/chromium-windows-toolchain.yml and decrypted here by hand.
@@ -95,9 +96,17 @@ if [[ ! -f "${DEPOT_TOOLS}/python3_bin_reldir.txt" ]]; then
   step "initialize depot_tools" "${DEPOT_TOOLS}/ensure_bootstrap"
 fi
 
+if [[ ! -d "${CHECKOUT}" ]]; then
+  step "create the checkout folder" mkdir -p "${CHECKOUT}"
+fi
+# Sync and hooks can also change shared inputs. Hold the guard's lock from the
+# first checkout operation through the source apply and both output generations.
+step "acquire the desktop checkout lock" mkdir "${LOCK}" || die "cannot acquire ${LOCK}."
+trap 'step "release the desktop checkout lock" rmdir "${LOCK}"' EXIT
+trap 'exit 1' HUP INT TERM
+
 if [[ ! -d "${SRC}/.git" ]]; then
   [[ ! -e "${CHECKOUT}/.gclient" ]] || die "${CHECKOUT}/.gclient exists without src; reconcile it by hand."
-  step "create the checkout folder" mkdir -p "${CHECKOUT}"
   step "write the .gclient" write_gclient
   # Only the pinned commit, not Chromium's history (as on the Android lane).
   step "fetch Chromium at the pin (no history, no hooks)" \

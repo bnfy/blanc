@@ -9,13 +9,15 @@ import {fileURLToPath} from 'node:url';
 import {NativeFixture} from './lib/fixture.mjs';
 import {waitFor} from './lib/cdp.mjs';
 import {installDriver,nativeCall} from './lib/test-driver.mjs';
-import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
+import {assertRendering,assertNodeRuntime,EnvironmentStop} from './lib/render-guard.mjs';
 import {matchStep,beforeHooks} from './steps.mjs';
 import {avoidRealPointer} from './lib/real-pointer.mjs';
 import {prepareSyncFixture} from './fork-steps/sync.mjs';
 import {aggregateCases} from './results.mjs';
 import {macosForkExclusions} from './macos-fork-exclusions.mjs';
 import {windowsForkExclusions} from './windows-fork-exclusions.mjs';
+import {matchesLinuxCandidate} from '../linux/candidate.mjs';
+import {linuxForkExclusions} from './linux-fork-exclusions.mjs';
 import {hostPlatform,keepAwake,candidateIdentity,linuxTaggedScenarioRuns} from './lib/platform.mjs';
 import {awaitMemory} from './lib/memory-guard.mjs';
 import {createWorld,missingAdapters} from './world.mjs';
@@ -42,15 +44,19 @@ const inventory=JSON.parse(fs.readFileSync(path.join(root,'scenarios/inventory.j
 // One suite, run on the platform it is on: the tracker, the baseline and
 // the exclusions are all keyed by it.
 const platform=hostPlatform();
-const forkExclusions={macos:macosForkExclusions,windows:windowsForkExclusions}[platform]??{};
-if(tracker.currentCandidates[platform]?.id!==config.candidate)throw Error('Candidate does not match tracker');
+const forkExclusions={macos:macosForkExclusions,windows:windowsForkExclusions,linux:linuxForkExclusions}[platform]??{};
+const currentCandidate=platform==='linux'
+ ? matchesLinuxCandidate(tracker.currentCandidates.linux,process.arch,config) || (config.developmentCandidate===true && !!only)
+ : tracker.currentCandidates[platform]?.id===config.candidate;
+if(!currentCandidate)throw Error('Candidate does not match tracker');
 const forkCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const sourceMapSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'source-map.json'))).digest('hex');
 fs.mkdirSync(out,{recursive:true,mode:0o700});
 const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-fixtures-'));
 // The Island assets the cases ran against: compiled in, or a disk override.
 const islandManifestSha256=crypto.createHash('sha256').update(JSON.stringify(JSON.parse(fs.readFileSync(path.join(root,'blanc/island-assets.json'))).manifest)).digest('hex');
-const baseline={schemaVersion:1,assets:config.diskAssets===false?{source:'embedded',islandManifestSha256}:{source:'disk',folder:path.basename(config.assets)},...((only||selected)?{developmentSubset:only??{caseList:[...selected]}}:{}),platform,candidate:config.candidate,candidateIdentity:candidateIdentity(config),shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
+const baseline={schemaVersion:1,assets:config.diskAssets===false?{source:'embedded',islandManifestSha256}:{source:'disk',folder:path.basename(config.assets)},...((only||selected)?{developmentSubset:only??{caseList:[...selected]}}:{}),platform,...(platform==='linux'?{arch:process.arch,deviceScaleFactor:config.deviceScaleFactor??1,
+ ...(config.archiveExecutableSha256?{archiveExecutableSha256:config.archiveExecutableSha256}:{})}:{}),candidate:config.candidate,candidateIdentity:candidateIdentity(config),shippingTag:inventory.shippingTag,shippingCommit:inventory.shippingCommit,forkCommit,sourceMapSha256,
  qualification:'full shipping declaration inventory; defined steps execute on the native candidate; undefined steps are runner gaps, not inferred product failures',scenarios:[]};
 const xmlEscape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const cases=[];
@@ -79,6 +85,8 @@ async function runCase(matches,steps,tags=[]){
   const name='case-'+String(++executed).padStart(4,'0');entry.fixture=name;
   if(tags.includes('@sync-server')||tags.includes('@sync')||(tags.includes('@F57')&&!tags.includes('@peer-driver'))||matches.some(m=>/injectRemoteDevices|mergeRemoteTabLayout/.test(m.definition.run.toString())))await phase('fixturePreparation',()=>prepareSyncFixture(world));
   await phase('fixturePreparation',async()=>fixture.launch(config,path.join(scratch,name),{testHooks:true,pages:await fixturePages.start(),diskAssets:config.diskAssets!==false}));
+  if(platform==='linux' && config.deviceScaleFactor && await fixture.host.eval('devicePixelRatio')!==config.deviceScaleFactor)
+   throw new EnvironmentStop('The Island did not render at the requested device scale factor '+config.deviceScaleFactor);
   await installDriver(fixture.host);const caps=await nativeCall(fixture.host,'capabilities');if(!caps.testHooks)throw Error('Native test hook unavailable');
   await phase('renderingGuard',()=>assertRendering(e=>fixture.host.eval(e)));
   await phase('reset',()=>world.reset());
@@ -123,6 +131,7 @@ async function runCase(matches,steps,tags=[]){
   // never exits.
   for(const page of world.heldLoadingPages??[])await page.cdp?.send('Fetch.disable').catch(()=>{});
   await world.lifecycleFixture?.close().catch(()=>{});
+  if(platform==='linux'&&world.arcChosenDir)fs.rmSync(world.arcChosenDir,{recursive:true,force:true});
   if(world.pinnedLocalDir)fs.rmSync(world.pinnedLocalDir,{recursive:true,force:true});
   world.linkServer?.closeAllConnections();world.linkServer?.close();
   world.telemetryServer?.closeAllConnections();world.telemetryServer?.close();

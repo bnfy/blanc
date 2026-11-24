@@ -12,6 +12,14 @@ buildflag_header("buildflags") {
     "BLANC_BETA_CHANNEL=$blanc_beta_channel",
     "BLANC_BETA_LOCAL_QUALIFICATION=$blanc_beta_local_qualification",
   ]
+  if (is_linux) {
+    flags += [
+      "BLANC_LINUX_PACKAGE=\"$blanc_linux_package\"",
+      "BLANC_LINUX_KEYRING_LABEL=\"$blanc_linux_keyring_label\"",
+      "BLANC_LINUX_KEY_NAME=\"$blanc_linux_keyring_label Safe Storage\"",
+      "BLANC_LINUX_KWALLET_FOLDER=\"$blanc_linux_keyring_label Keys\"",
+    ]
+  }
 }
 
 # Desktop's views UI. The Android lane loads this file too (its blocker and sync use
@@ -143,5 +151,34 @@ if (blanc_beta_channel && is_win) {
   copy("beta_blocker_engine_win") {
     sources = [ "$blanc_blocker_bundle/engine.js" ]
     outputs = [ "$root_out_dir/blanc_blocker/engine.js" ]
+  }
+}
+
+if (is_linux && target_os == "linux" && blanc_linux_build_packages) {
+  assert(defined(blanc_linux_package),
+         "Linux packages require the browser identity from patch 0113.")
+  assert(blanc_blocker_bundle != "", "Linux packages require the blocker bundle.")
+  action("linux_repository_keyring") {
+    script = "branding/linux/generate-keyring.py"
+    # The committed public key, a byte-identical copy of chromium/linux/keys/blanc-repository.asc
+    # (linux-repository-key.test.mjs), so it is an ordinary mapped source file.
+    inputs = [ "branding/linux/blanc-repository.asc" ]
+    outputs = [ "$root_out_dir/installer/common/blanc-repository.gpg" ]
+    args = [ "--source", rebase_path(inputs[0], root_build_dir),
+             "--output", rebase_path(outputs[0], root_build_dir) ]
+  }
+
+  action("verify_linux_blocker_bundle") {
+    script = "services/blocker/verify_bundle.py"
+    inputs = [ "$blanc_blocker_bundle/engine.js", "services/blocker/bundle_hash.h" ]
+    outputs = [ "$target_gen_dir/blocker-bundle-verified.stamp" ]
+    args = [ "--bundle", rebase_path(inputs[0], root_build_dir),
+             "--hash-header", rebase_path(inputs[1], root_build_dir),
+             "--stamp", rebase_path(outputs[0], root_build_dir) ]
+  }
+  copy("linux_blocker_engine") {
+    sources = [ "$blanc_blocker_bundle/engine.js" ]
+    outputs = [ "$root_out_dir/blanc_blocker/engine.js" ]
+    public_deps = [ ":verify_linux_blocker_bundle" ]
   }
 }

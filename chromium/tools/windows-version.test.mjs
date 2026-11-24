@@ -25,10 +25,10 @@ test('a Windows beta\'s version ends in its build number; other channels keep Ch
   assert.throws(() => windowsVersion('158.0.8127.2', 'beta', 0));
   assert.throws(() => windowsVersion('158.0.8127.2', 'beta', 65536), /16-bit/);
 });
-test('blanc/config.gni sets the version PATCH for the Windows beta only', () => {
+test('only Windows and Linux betas stamp the build number into the Chromium version', () => {
   const config = read('blanc/config.gni');
   assert.match(config, /^blanc_win_version_patch = ""$/m);
-  assert.match(config, /^if \(blanc_channel == "beta" && target_os == "win"\) \{\n  blanc_win_version_patch = "\$blanc_beta_build"\n\}$/m);
+  assert.match(config, /^if \(blanc_channel == "beta" && \(target_os == "win" \|\| target_os == "linux"\)\) \{\n  blanc_win_version_patch = "\$blanc_beta_build"\n\}$/m);
 });
 test('patch 0103 overrides PATCH wherever version.py reads chrome/VERSION', () => {
   const lane = JSON.parse(read('lanes/desktop.json')).patches.map(p => p.split('/').pop());

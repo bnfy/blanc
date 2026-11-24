@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Takes a packaged Windows candidate from the build server to GitHub, from the
+# Takes a packaged Windows candidate from the build server to GitHub, under the
+# draft's hold (BLANC_DRAFT_HOLD_OWNER), from the
 # operator's Mac (the server holds no GitHub credential):
 #
 #   bash chromium/windows/ship-candidate.sh blanc@SERVER ~/blanc-evidence/windows/candidate-1 [~/.ssh/key]
@@ -8,7 +9,7 @@
 # only repository collaborators can read. It is never published. Prints the
 # command that runs it on a hosted Windows runner.
 set -euo pipefail
-DRAFT_TAG=fork-windows-candidate
+DRAFT_TAG="${BLANC_CANDIDATE_DRAFT:-fork-windows-candidate}"
 ASSET=blanc-windows-candidate.zip
 REPO=bnfy/blanc
 
@@ -27,14 +28,10 @@ scp -q "${ssh_opts[@]}" "${server}:${remote}/${ASSET}" "${work}/${ASSET}"
 actual="$(shasum -a 256 "${work}/${ASSET}" | cut -d' ' -f1)"
 [[ "${actual}" == "${expected}" ]] || die "the copied zip is ${actual}, not ${expected}."
 
-# Only ever a draft: refuse to touch a release of this name that was published.
-state="$(gh release view "${DRAFT_TAG}" --repo "${REPO}" --json isDraft --jq .isDraft 2>/dev/null || echo missing)"
-case "${state}" in
-  true) ;;
-  missing) gh release create "${DRAFT_TAG}" --repo "${REPO}" --draft --title "Fork Windows candidate (private transfer, never published)" \
-             --notes "Carries the current cross-compiled Windows preview build to chromium-windows-candidate.yml. A draft, visible to collaborators only. Never publish it." ;;
-  *) die "${DRAFT_TAG} exists and is not a draft; nothing uploaded." ;;
-esac
-gh release upload "${DRAFT_TAG}" "${work}/${ASSET}" --repo "${REPO}" --clobber
+# Only under the draft's hold (chromium/windows/draft-hold.mjs): take one with
+# `node chromium/windows/draft-hold.mjs acquire-manual "<note>"`, set
+# BLANC_DRAFT_HOLD_OWNER to the token it prints, and release it afterwards.
+[[ -n "${BLANC_DRAFT_HOLD_OWNER:-}" ]] || die "set BLANC_DRAFT_HOLD_OWNER to a hold you took with draft-hold.mjs acquire-manual."
+node "$(dirname "$0")/draft-hold.mjs" upload "${work}/${ASSET}" "${ASSET}"
 echo "Uploaded ${candidate} (${actual})."
-echo "Run it: gh workflow run chromium-windows-candidate.yml --repo ${REPO} --ref chromium/next -f sha256=${actual}"
+echo "Run it: gh workflow run chromium-windows-candidate.yml --repo ${REPO} --ref chromium/next -f sha256=${actual} -f draft_tag=${DRAFT_TAG}"

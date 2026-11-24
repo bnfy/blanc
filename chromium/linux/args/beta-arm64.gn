@@ -1,0 +1,15 @@
+# Linux beta development args. setup.sh sets the build number in the output.
+target_os = "linux"
+target_cpu = "arm64"
+is_official_build = true
+is_debug = false
+is_component_build = false
+is_chrome_branded = false
+blanc_channel = "beta"
+enable_widevine = false
+bundle_widevine_cdm = false
+chrome_pgo_phase = 0
+symbol_level = 0
+blanc_beta_version = "2.0.0-beta.900"
+blanc_beta_build = 900
+blanc_blocker_bundle = "/home/blanc/blanc-assets/blocker"

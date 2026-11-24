@@ -105,6 +105,29 @@ export function signedRuntimeConfig(config, originals, read, sha256) {
   }
   return next;
 }
+// Whether an installed chrome.exe and chrome.dll are this candidate's (the
+// nightly's installed-bytes check, Task 2): unsigned, their SHA-256 must be the
+// packaged exeSha256 and dllSha256; signed, each must be the candidate's own
+// file (originalExe, originalDll, hashing to those values) with only a
+// signature added, and each installed hash must be one the signing record
+// (windows-signature.json) verified, so a damaged signature fails too.
+// Returns the installed hashes either way.
+export function installedMatches(candidate, {installedExe, installedDll, originalExe, originalDll}, {signed, read, sha256, signedHashes = null}) {
+  const exe = read(installedExe), dll = read(installedDll);
+  const result = {sha256: {exe: sha256(exe), dll: sha256(dll)}, match: false};
+  if (!signed) {
+    result.match = result.sha256.exe === candidate.exeSha256 && result.sha256.dll === candidate.dllSha256;
+    return result;
+  }
+  if (!signedHashes) throw new Error('A signed install is checked against the signing record (windows-signature.json).');
+  if (!signedHashes.has(result.sha256.exe) || !signedHashes.has(result.sha256.dll)) return result;
+  const originals = [[read(originalExe), exe, candidate.exeSha256], [read(originalDll), dll, candidate.dllSha256]];
+  result.match = originals.every(([original, installed, expected]) => {
+    if (sha256(original) !== expected) return false;
+    try { return signedCopyOf(original, installed); } catch { return false; }
+  });
+  return result;
+}
 // Runs `work`, then restores `file` to the bytes and times it had before
 // (or removes it if it did not exist), whatever `work` did to it.
 export function keepingFile(file, work) {

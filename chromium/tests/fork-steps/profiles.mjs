@@ -52,6 +52,18 @@ async function pageScript(w,host,id,script){
  const target=(await w.fixture.targets()).find(t=>t.id===targets[id]);
  const page=await w.fixture.connectTarget(target);try{return await page.eval(script);}finally{page.close();}
 }
+const clickPersonalCard = `const main=find('profile-picker-main-view');const card=[...main.shadowRoot.querySelectorAll('profile-card')].find(c=>/[\\\\/]Default$/.test(c.profileState.profilePath));if(!card)throw Error('Personal card missing');find('#profileCardButton',card.shadowRoot).click();return true;`;
+export async function selectLinuxPersonalProfile(w,pick,pickerId) {
+ try { await evaluate(pick,clickPersonalCard); }
+ catch (error) {
+  // The click destroys the target that is sending Runtime.evaluate's reply.
+  if (!error.message.startsWith('CDP connection closed:')) throw error;
+ }
+ await w.waitFor(async () => {
+  if ((await w.fixture.targets()).some(t=>t.id===pickerId)) return false;
+  return (await w.snapshot()).windowActive === true;
+ },Boolean,'Personal window active after selecting its profile card');
+}
 export default function register(step){
  step('Personal profile settings are open',async function(){
   assert.equal((await this.native('profileInfo')).directory,'Default');
@@ -109,7 +121,10 @@ export default function register(step){
   const pick=await picker(this);
   await evaluate(pick,`const ask=find('#askOnStartup');if(ask.checked)ask.click();return true;`);
   await this.waitFor(()=>evaluate(pick,`return find('#askOnStartup').checked;`),v=>v===false,'profile picker disabled on startup');
-  await evaluate(pick,`const main=find('profile-picker-main-view');const card=[...main.shadowRoot.querySelectorAll('profile-card')].find(c=>/[\\\\/]Default$/.test(c.profileState.profilePath));if(!card)throw Error('Personal card missing');find('#profileCardButton',card.shadowRoot).click();return true;`);
+  if (process.platform==='linux') {
+   const {targetInfo}=await pick.send('Target.getTargetInfo');
+   await selectLinuxPersonalProfile(this,pick,targetInfo.targetId);
+  } else await evaluate(pick,clickPersonalCard);
  });
  step('I relaunch Blanc with local profiles',async function(){this.profileHosts=new Map();await this.relaunch({afterStop:async()=>{const root=this.fixture.profile;const local=JSON.parse(fs.readFileSync(path.join(root,'Local State')));assert.deepEqual([...local.profile.last_active_profiles].sort(),this.profileRestore.map(p=>p.directory).sort(),'both persistent profiles saved for startup');}});});
  step('Personal and Work restore with their original profile identities',async function(){

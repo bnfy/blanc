@@ -3,14 +3,16 @@
 # owner's account, without root. The test user can't read ~/Documents, so it
 # gets a local clone of this repository at HEAD (hard-linked objects), the one
 # npm package the harness needs, the blocker assets and a runtime config for
-# the current build. Usage: setup.sh [--refresh] [--beta APP] runtime-config.json
+# the current build, with its own copy of the Prototype. Usage: setup.sh [--refresh] [--beta APP] runtime-config.json
 # --beta copies a packaged Blanc Beta (APFS clone) to $DIR/beta for
 # beta-user.sh, replacing any earlier copy.
 # --refresh brings an existing folder to this repository's HEAD and the given
 # build (after a rebuild the runner refuses the old candidate), keeping its
 # state and results, so a running pf log is untouched.
+# BLANC_OUTBOUND_DIR overrides the folder (for a dry run only; the pf rules
+# and the test user expect /Users/Shared/blanc-outbound).
 set -eu
-DIR=/Users/Shared/blanc-outbound
+DIR=${BLANC_OUTBOUND_DIR:-/Users/Shared/blanc-outbound}
 REPO=$(git -C "$(dirname "$0")" rev-parse --show-toplevel)
 REFRESH=false
 [ "${1:-}" != --refresh ] || { REFRESH=true; shift; }
@@ -42,9 +44,17 @@ walk('@cucumber/cucumber-expressions');console.log([...seen].join(' '))"); do
 done
 BLOCKER=$(/usr/local/bin/node -e "console.log(require('$CONFIG').blockerAssets)")
 cp -R "$BLOCKER" "$DIR/blocker-assets"
-/usr/local/bin/node -e "
-const c=require('$CONFIG');c.evidence='$DIR/results';c.blockerAssets='$DIR/blocker-assets';
+# Its own copy of the Prototype (APFS clone), so a rebuild of the shared output
+# while the check runs can't change the files under it (beta.8).
+LOCAL=$(/usr/local/bin/node "$REPO/chromium/tests/outbound/local-config.mjs" "$CONFIG" "$DIR")
+APP=$(printf '%s' "$LOCAL" | /usr/local/bin/node -e "console.log(JSON.parse(require('fs').readFileSync(0,'utf8')).app)")
+rm -rf "$DIR/prototype"; mkdir -p "$DIR/prototype"
+cp -Rc "$APP" "$DIR/prototype/"
+printf '%s' "$LOCAL" | /usr/local/bin/node -e "
+const c=JSON.parse(require('fs').readFileSync(0,'utf8')).config;
 require('fs').writeFileSync('$DIR/runtime-config.json',JSON.stringify(c,null,2)+'\n');"
+# The copy must still be the build the config names (local-config.mjs checked the original).
+/usr/local/bin/node "$REPO/chromium/tests/outbound/local-config.mjs" --check "$DIR/runtime-config.json"
 if [ -n "$BETA" ]; then
   rm -rf "$DIR/beta"; mkdir -p "$DIR/beta"
   cp -Rc "$BETA" "$DIR/beta/Blanc Beta.app"
@@ -52,5 +62,5 @@ if [ -n "$BETA" ]; then
   printf '#!/bin/sh\nexec sh %s/repo/chromium/tests/outbound/beta-user.sh\n' "$DIR" > "$DIR/Run beta outbound check.command"
   chmod 755 "$DIR/Run beta outbound check.command"
 fi
-chmod -R a+rX "$DIR/repo" "$DIR/blocker-assets" "$DIR/runtime-config.json"
+chmod -R a+rX "$DIR/repo" "$DIR/blocker-assets" "$DIR/prototype" "$DIR/runtime-config.json"
 echo "Ready: $DIR (repo at $(git -C "$DIR/repo" rev-parse --short HEAD), candidate $(/usr/local/bin/node -e "console.log(require('$CONFIG').candidate)"))"

@@ -1,8 +1,16 @@
 diff --git a/chrome/browser/ui/views/infobars/infobar_view.cc b/chrome/browser/ui/views/infobars/infobar_view.cc
-index 587a396..16965b6 100644
+index 587a396..62de309 100644
 --- a/chrome/browser/ui/views/infobars/infobar_view.cc
 +++ b/chrome/browser/ui/views/infobars/infobar_view.cc
-@@ -43,6 +43,12 @@
+@@ -32,6 +32,7 @@
+ #include "ui/views/background.h"
+ #include "ui/views/border.h"
+ #include "ui/views/controls/button/image_button.h"
++#include "ui/views/controls/button/md_text_button.h"
+ #include "ui/views/controls/button/image_button_factory.h"
+ #include "ui/views/controls/highlight_path_generator.h"
+ #include "ui/views/controls/image_view.h"
+@@ -43,6 +44,12 @@
  #include "ui/views/view_class_properties.h"
  #include "ui/views/widget/widget.h"
  
@@ -15,7 +23,7 @@ index 587a396..16965b6 100644
  template <typename T>
  void InfoBarView::AssignLabelDetails(T* view) const {
    view->SizeToPreferredSize();
-@@ -292,6 +298,46 @@ void InfoBarView::OnThemeChanged() {
+@@ -292,6 +299,61 @@ void InfoBarView::OnThemeChanged() {
    if (icon_) {
      icon_->SetImage(delegate()->GetIcon());
    }
@@ -32,6 +40,19 @@ index 587a396..16965b6 100644
 +    while (!pending.empty()) {
 +      views::View* view = pending.back();
 +      pending.pop_back();
++      // Blanc (owner, 2026-11-21): a bar's prominent button takes the Sunrise
++      // accent, not Chromium's blue; its label keeps the button's own color.
++      if (auto* button = views::AsViewClass<views::MdTextButton>(view);
++          button && button->GetStyle() == ui::ButtonStyle::kProminent) {
++        const bool dark = color_utils::IsDark(style->background);
++        const SkColor fill = color_utils::BlendForMinContrast(
++            dark ? SkColorSetRGB(0xd4, 0xad, 0x66) : SkColorSetRGB(0x80, 0x5d, 0x28),
++            style->background, std::nullopt, 3.0f).color;
++        button->SetBgColorOverrideDeprecated(fill);
++        button->SetEnabledTextColors(
++            color_utils::IsDark(fill) ? SK_ColorWHITE : SkColorSetRGB(0x17, 0x13, 0x0f));
++        continue;
++      }
 +      if (auto* link = views::AsViewClass<views::Link>(view)) {
 +        link->SetBackgroundColor(style->background);
 +        link->SetEnabledColor(style->link);
@@ -53,7 +74,9 @@ index 587a396..16965b6 100644
 +    const char* icon_name = delegate()->GetVectorIcon().name;
 +    if (icon_ && icon_name &&
 +        (base::EndsWith(icon_name, "kProductRefreshIcon") ||
-+         base::EndsWith(icon_name, "kProductChromeRefreshOldIcon"))) {
++         base::EndsWith(icon_name, "kProductChromeRefreshOldIcon") ||
++         // Dark mode's product icon with rounded icons (owner, 2026-11-21).
++         base::EndsWith(icon_name, "kChromeProductIcon"))) {
 +      const ui::ImageModel mark = blanc_prototype::InfoBarMark();
 +      if (!mark.IsEmpty()) icon_->SetImage(mark);
 +    }

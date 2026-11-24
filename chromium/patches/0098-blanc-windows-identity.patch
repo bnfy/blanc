@@ -113,10 +113,17 @@ index aa9fcf4..929bba4 100644
                             0x6DB4,
                             0x4D6B,
 diff --git a/chrome/installer/util/install_util.cc b/chrome/installer/util/install_util.cc
-index c9b812b..55f85f3 100644
+index c9b812b..4e45a2a 100644
 --- a/chrome/installer/util/install_util.cc
 +++ b/chrome/installer/util/install_util.cc
-@@ -576,14 +576,14 @@ std::wstring InstallUtil::GetAppDescription() {
+@@ -571,19 +571,20 @@ std::wstring InstallUtil::GetDisplayName() {
+ 
+ // static
+ std::wstring InstallUtil::GetAppDescription() {
+-  return installer::GetLocalizedString(IDS_SHORTCUT_TOOLTIP_BASE);
++  // Blanc: the shortcut's tooltip, in Blanc's words rather than Chromium's.
++  return L"Browse the web";
+ }
  
  // static
  std::wstring InstallUtil::GetPublisherName() {
@@ -135,3 +142,105 @@ index c9b812b..55f85f3 100644
  }
  
  // static
+@@ -595,7 +596,8 @@ std::wstring InstallUtil::GetChromeAppsShortcutDirName() {
+ 
+ // static
+ std::wstring InstallUtil::GetLongAppDescription() {
+-  return installer::GetLocalizedString(IDS_PRODUCT_DESCRIPTION_BASE);
++  // Blanc: the description Default Programs registers, rather than Chromium's.
++  return L"A minimal web browser with ad and tracker blocking built in";
+ }
+ 
+ // static
+diff --git a/chrome/browser/ui/window_metadata/window_metadata_controller.cc b/chrome/browser/ui/window_metadata/window_metadata_controller.cc
+index ae89bca..581254e 100644
+--- a/chrome/browser/ui/window_metadata/window_metadata_controller.cc
++++ b/chrome/browser/ui/window_metadata/window_metadata_controller.cc
+@@ -29,6 +29,14 @@
+ #include "ui/gfx/text_elider.h"
+ #include "ui/gfx/text_utils.h"
+ 
++#if BUILDFLAG(IS_WIN)
++// Blanc: the window title names the channel. install_static_util reaches this
++// target through private dependencies (chrome.dll links it); no BUILD.gn
++// change, so the Mac outputs' GN files stay as they are.
++#include "base/strings/string_util.h"
++#include "chrome/install_static/install_util.h"
++#endif
++
+ #if BUILDFLAG(ENABLE_CAPTIVE_PORTAL_DETECTION)
+ #include "components/captive_portal/content/captive_portal_tab_helper.h"
+ #endif
+@@ -252,12 +260,29 @@ std::u16string WindowMetadataController::GetWindowTitleFromWebContents(
+   }
+   // Include the app name in window titles for tabbed browser windows when
+   // requested with |include_app_name|.
++#if BUILDFLAG(IS_WIN)
++  // Blanc: on Windows the title names the channel ("… - Blanc Beta"), as the
++  // taskbar and Start menu do. Only the format's product word changes, so the
++  // localized format stays and a page title that says Blanc is left alone.
++  if ((browser_->GetType() == BrowserWindowInterface::Type::TYPE_NORMAL ||
++       browser_->GetType() == BrowserWindowInterface::Type::TYPE_POPUP) &&
++      include_app_name) {
++    std::u16string format =
++        l10n_util::GetStringUTF16(IDS_BROWSER_WINDOW_TITLE_FORMAT);
++    base::ReplaceFirstSubstringAfterOffset(
++        &format, 0, u"Blanc",
++        base::WideToUTF16(install_static::GetBaseAppName()));
++    return base::ReplaceStringPlaceholders(format, title, nullptr);
++  }
++  return title;
++#else
+   return ((browser_->GetType() == BrowserWindowInterface::Type::TYPE_NORMAL ||
+            browser_->GetType() == BrowserWindowInterface::Type::TYPE_POPUP) &&
+           include_app_name)
+              ? l10n_util::GetStringFUTF16(IDS_BROWSER_WINDOW_TITLE_FORMAT,
+                                           title)
+              : title;
++#endif  // BUILDFLAG(IS_WIN)
+ #endif  // BUILDFLAG(IS_MAC)
+ }
+ 
+diff --git a/chrome/browser/ui/startup/default_browser_prompt/pin_infobar/pin_infobar_controller.cc b/chrome/browser/ui/startup/default_browser_prompt/pin_infobar/pin_infobar_controller.cc
+index 4e029c6..9c32a3e 100644
+--- a/chrome/browser/ui/startup/default_browser_prompt/pin_infobar/pin_infobar_controller.cc
++++ b/chrome/browser/ui/startup/default_browser_prompt/pin_infobar/pin_infobar_controller.cc
+@@ -51,6 +51,14 @@
+ #include "chrome/grit/generated_resources.h"
+ #include "ui/base/l10n/l10n_util.h"
+ 
++#if BUILDFLAG(IS_WIN)
++// Blanc: the channel's name. install_static_util reaches this target through
++// private dependencies (chrome.dll links it); no BUILD.gn change.
++#include "base/strings/string_util.h"
++#include "base/strings/utf_string_conversions.h"
++#include "chrome/install_static/install_util.h"
++#endif
++
+ namespace default_browser {
+ 
+ namespace {
+@@ -132,7 +140,11 @@ std::u16string PinInfoBarController::GetMessageText() {
+ #endif
+ 
+ #if BUILDFLAG(IS_WIN)
+-  return l10n_util::GetStringUTF16(IDS_PIN_INFOBAR_TEXT);
++  // Blanc: the bar names the channel ("Pin Blanc Beta …"), as the taskbar and
++  // Default apps do.
++  return base::ReplaceStringPlaceholders(
++      u"Pin $1 to your taskbar to get to it quickly anytime",
++      base::WideToUTF16(install_static::GetBaseAppName()), nullptr);
+ #elif BUILDFLAG(IS_MAC)
+   return l10n_util::GetStringUTF16(IDS_PIN_INFOBAR_DOCK_TEXT);
+ #endif
+@@ -153,7 +165,9 @@ std::u16string PinInfoBarController::GetButtonLabel() {
+ #endif
+ 
+ #if BUILDFLAG(IS_WIN)
+-  return l10n_util::GetStringUTF16(IDS_PIN_INFOBAR_BUTTON);
++  // Blanc: the button names the channel too.
++  return base::ReplaceStringPlaceholders(
++      u"Pin $1", base::WideToUTF16(install_static::GetBaseAppName()), nullptr);
+ #elif BUILDFLAG(IS_MAC)
+   return l10n_util::GetStringUTF16(IDS_PIN_INFOBAR_DOCK_BUTTON);
+ #endif

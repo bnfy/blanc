@@ -1,0 +1,26 @@
+name = "blanc-linux-packages"
+main = "index.mjs"
+account_id = "4416bdc2e1dfd40864ff4efd7c208584"
+compatibility_date = "2026-11-21"
+workers_dev = false
+preview_urls = false
+
+# Provisioned 2026-11-22 on the BNFY account (owner-approved).
+[env.staging]
+name = "blanc-linux-packages-staging"
+routes = [{ pattern = "pkg-staging.blanc.day", custom_domain = true }]
+
+[[env.staging.r2_buckets]]
+binding = "PACKAGES"
+bucket_name = "blanc-linux-packages-staging"
+remote = true
+
+[env.production]
+name = "blanc-linux-packages"
+routes = [{ pattern = "pkg.blanc.day", custom_domain = true }]
+
+[[env.production.r2_buckets]]
+binding = "PACKAGES"
+bucket_name = "blanc-linux-packages"
+remote = true
+

@@ -40,13 +40,16 @@ function world(answers = [], {confirm = true, files = {}} = {}) {
     ...files,
   };
 }
-function workFolder(state, r = release) {
+function workFolder(state, r = release, hold = undefined) {
   const work = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-win-work-'));
   fs.chmodSync(work, 0o700);
   fs.writeFileSync(path.join(work, 'windows-release.json'), JSON.stringify(r));
-  if (state) fs.writeFileSync(path.join(work, 'state.json'), JSON.stringify({schema: 1, release: sha(fs.readFileSync(path.join(work, 'windows-release.json'))), done: state}));
+  if (state) fs.writeFileSync(path.join(work, 'state.json'), JSON.stringify({schema: 1, release: sha(fs.readFileSync(path.join(work, 'windows-release.json'))), done: state, ...(hold ? {hold} : {})}));
   return work;
 }
+// A hand-held draft (draft-hold.mjs acquire-manual), as a schema-1 signing run needs.
+const heldBy = owner => [['release view fork-windows-candidate --repo bnfy/blanc --json assets', {stdout: JSON.stringify({assets: [{name: 'draft-hold.json', apiUrl: 'https://api.github.com/h/1'}]})}],
+  ['application/octet-stream https://api.github.com/h/1', {stdout: JSON.stringify({kind: 'manual', owner})}]];
 const absent = [['rev-parse -q --verify', {status: 1}], ['ls-remote', {status: 2}], ['releases --jq', {status: 0, stdout: 'v1.49.1\n'}]];
 const draftAssets = zip => ['release view fork-windows-candidate', {stdout: JSON.stringify({assets: [{name: 'blanc-windows-candidate.zip', digest: `sha256:${zip}`}]})}];
 
@@ -94,7 +97,8 @@ function signWorld({record, installer = Buffer.from('MZ signed installer'), setu
     files: [{file: 'blanc-windows-installer-signed.exe', sha256: sha(installer), publisher: PUBLISHER},
       {file: 'Blanc-Beta-Setup.exe', sha256: sha(setup), publisher: PUBLISHER}]};
   return world([
-    ['run list', {stdout: JSON.stringify([{databaseId: 77, createdAt: '2026-11-20T00:00:05Z'}])}],
+    ...heldBy('hand'),
+    ['workflow run', {stderr: 'https://github.com/bnfy/blanc/actions/runs/77\n'}],
     ['run view 77', {stdout: JSON.stringify({conclusion})}],
     ['release download fork-windows-candidate', args => {
       const dir = args[args.indexOf('--dir') + 1];
@@ -107,12 +111,16 @@ function signWorld({record, installer = Buffer.from('MZ signed installer'), setu
 }
 
 test('sign runs the approved signing job from chromium/next and keeps files bound to this candidate', async () => {
-  const work = workFolder(done(['preflight']));
+  const signFolder = () => workFolder(done(['preflight']), release, {owner: 'hand'});
+  const work = signFolder();
   const io = signWorld();
   await runStage('sign', work, io);
   const dispatch = io.calls.find(c => c.includes('workflow run'));
   assert.match(dispatch, /--ref chromium\/next/);
   assert.match(dispatch, /sign=true/);
+  assert.match(dispatch, new RegExp(`source_commit=${release.sourceCommit}`));
+  assert.match(dispatch, new RegExp(`hold_owner_sha256=${sha(Buffer.from('hand'))}`));
+  await assert.rejects(runStage('sign', workFolder(done(['preflight'])), world([])), /signing needs the draft's hold/);
   assert.match(dispatch, new RegExp(`sha256=${release.candidate.zipSha256}`));
   assert.doesNotMatch(dispatch, /update_expect/);
   assert.ok(fs.existsSync(path.join(work, 'signed', 'Blanc-Beta-Setup.exe')));
@@ -120,14 +128,14 @@ test('sign runs the approved signing job from chromium/next and keeps files boun
   assert.equal(recorded.run, 77);
   assert.equal(recorded.setupSHA256, sha(Buffer.from('MZ tagged setup')));
 
-  await assert.rejects(runStage('sign', workFolder(done(['preflight'])), signWorld({conclusion: 'failure'})), /signing run/);
+  await assert.rejects(runStage('sign', signFolder(), signWorld({conclusion: 'failure'})), /signing run/);
   const other = {schemaVersion: 1, candidateZipSha256: 'c'.repeat(64), installer: 'x', files: []};
-  await assert.rejects(runStage('sign', workFolder(done(['preflight'])), signWorld({record: other})), /candidate/);
+  await assert.rejects(runStage('sign', signFolder(), signWorld({record: other})), /candidate/);
   const unsigned = {schemaVersion: 1, candidateZipSha256: release.candidate.zipSha256, installer: 'blanc-windows-installer-signed.exe',
     files: [{file: 'blanc-windows-installer-signed.exe', sha256: sha(Buffer.from('MZ signed installer')), publisher: 'CN=Someone Else'},
       {file: 'Blanc-Beta-Setup.exe', sha256: sha(Buffer.from('MZ tagged setup')), publisher: PUBLISHER}]};
-  await assert.rejects(runStage('sign', workFolder(done(['preflight'])), signWorld({record: unsigned})), /Bananify/);
-  await assert.rejects(runStage('sign', workFolder(done(['preflight'])), signWorld({served: Buffer.from('MZ other')})), /differs/);
+  await assert.rejects(runStage('sign', signFolder(), signWorld({record: unsigned})), /Bananify/);
+  await assert.rejects(runStage('sign', signFolder(), signWorld({served: Buffer.from('MZ other')})), /differs/);
 });
 
 // A work folder past sign, with a signed installer and setup on disk.
@@ -194,11 +202,11 @@ function gateWork() {
   return {work, digest};
 }
 function gateWorld({proof, smoke = {pass: true, updatecheck: 'ok', nextversion: release.version}} = {}) {
-  proof ??= {pass: true, details: {staging: STAGING, installed: {setupExit: 0, pv: release.version}}};
+  proof ??= {pass: true, candidate: release.candidate.id, mode: `online ${release.version}`, details: {staging: STAGING, installed: {setupExit: 0, pv: release.version}}};
   return world([
     draftAssets(release.candidate.zipSha256),
     ['smoke.mjs', {stdout: JSON.stringify(smoke)}],
-    ['run list', {stdout: JSON.stringify([{databaseId: 88, createdAt: '2026-11-20T00:00:05Z'}])}],
+    ['workflow run', {stderr: 'https://github.com/bnfy/blanc/actions/runs/88\n'}],
     ['run view 88', {stdout: JSON.stringify({conclusion: proof.pass ? 'success' : 'failure'})}],
     ['run download 88', args => {
       const dir = path.join(args[args.indexOf('-D') + 1], 'chromium-windows-candidate-88', 'update-proof');
@@ -293,13 +301,14 @@ test('verify-public runs the published setup alone on a clean runner, after chec
   for (const [name, bytes] of Object.entries(files)) fs.writeFileSync(path.join(tmp, name), bytes);
   const {json, checksums} = makeManifest(release, tmp);
   Object.assign(files, {'RELEASE-MANIFEST.json': Buffer.from(json), SHA256SUMS: Buffer.from(checksums), 'SHA256SUMS.sigstore.json': Buffer.from('{}')});
-  const proof = {pass: true, details: {installed: {setupExit: 0, pv: release.version}}};
+  const proof = {pass: true, candidate: release.candidate.id, mode: `online ${release.version}`,
+    details: {installed: {setupExit: 0, pv: release.version}, setupFile: setupName(release), tag: 'read from the file'}};
   const answers = [
     draftAssets(release.candidate.zipSha256),
     [`releases/tags/${release.tag}`, {stdout: JSON.stringify({assets: Object.keys(files).map(name => ({name, browser_download_url: `https://github.com/x/${name}`}))})}],
     ['/usr/bin/curl', args => { fs.writeFileSync(args[args.indexOf('-o') + 1], files[path.basename(args.at(-1))]); return {}; }],
     ['smoke.mjs', {stdout: JSON.stringify({pass: true, updatecheck: 'ok', nextversion: release.version})}],
-    ['run list', {stdout: JSON.stringify([{databaseId: 99, createdAt: '2026-11-20T00:00:05Z'}])}],
+    ['workflow run', {stderr: 'https://github.com/bnfy/blanc/actions/runs/99\n'}],
     ['run view 99', {stdout: JSON.stringify({conclusion: 'success'})}],
     ['run download 99', args => { const d = path.join(args[args.indexOf('-D') + 1], 'a'); fs.mkdirSync(d); fs.writeFileSync(path.join(d, 'update-proof.json'), JSON.stringify(proof)); return {}; }],
   ];
@@ -309,4 +318,35 @@ test('verify-public runs the published setup alone on a clean runner, after chec
 
   files[setupName(release)] = Buffer.from('MZ swapped');
   await assert.rejects(runStage('verify-public', workFolder(state.done), world(answers)), /differs|signed one/);
+  files[setupName(release)] = signed;
+
+  // A staging receipt for the same candidate and version is not the public install.
+  for (const details of [{...proof.details, staging: 'https://blanc-update-staging.bnfy-441.workers.dev', setupFile: 'UpdaterSetup_test.exe'},
+      {...proof.details, setupFile: 'UpdaterSetup.exe'}]) {
+    Object.assign(proof, {details});
+    await assert.rejects(runStage('verify-public', workFolder(state.done), world(answers)), /public setup did not install/);
+  }
+});
+
+test('a failed deploy keeps what the command said in a private log in the work folder', async () => {
+  const work = workFolder({...done(STAGES.slice(0, STAGES.indexOf('publish'))), package: {at: 'test', sha256: 'd'.repeat(64), size: 12, run: 'mini_installer.exe'}});
+  const io = world([['wrangler deploy', {status: 1, stdout: 'deploying', stderr: 'Authentication error [code: 10000]'}]]);
+  await assert.rejects(runStage('publish', work, io), /production update server.*WORK\/logs\/deploy-production\.log/);
+  const log = path.join(work, 'logs', 'deploy-production.log');
+  assert.match(fs.readFileSync(log, 'utf8'), /Authentication error \[code: 10000\]/);
+  assert.equal(fs.statSync(log).mode & 0o077, 0);
+  assert.ok(!io.calls.some(c => c.includes('release edit')), 'nothing is published after a failed deploy');
+});
+
+test('every 1Password step asks for Touch ID instead of needing a signed-in session', async () => {
+  const work = workFolder({...done(STAGES.slice(0, STAGES.indexOf('publish'))), package: {at: 'test', sha256: 'd'.repeat(64), size: 12, run: 'mini_installer.exe'}});
+  const seen = [];
+  const io = world([
+    ['wrangler deploy', (args, options) => { seen.push(options.env?.OP_BIOMETRIC_UNLOCK_ENABLED); return {}; }],
+    ['smoke.mjs', {stdout: JSON.stringify({pass: true, updatecheck: 'ok', nextversion: release.version})}],
+    [`releases/tags/${release.tag}`, {stdout: JSON.stringify({draft: false, prerelease: true})}],
+    ['releases/latest', {stdout: JSON.stringify({tag_name: 'v1.49.1'})}],
+  ]);
+  await runStage('publish', work, io);
+  assert.deepEqual(seen, ['true']);
 });

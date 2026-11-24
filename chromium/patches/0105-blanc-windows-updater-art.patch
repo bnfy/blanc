@@ -115,3 +115,29 @@ index 1660075..3f92dd0 100644
  
  IDD_PROGRESS DIALOGEX 0, 0, 433, 218
  STYLE DS_SETFONT | WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX
+diff --git a/chrome/updater/win/ui/progress_wnd.cc b/chrome/updater/win/ui/progress_wnd.cc
+index 0c22941..56eb86c 100644
+--- a/chrome/updater/win/ui/progress_wnd.cc
++++ b/chrome/updater/win/ui/progress_wnd.cc
+@@ -294,6 +294,13 @@ void ProgressWnd::UpdateAppLogo(UINT target_dpi) {
+   // When the user sets the app theme to Dark but the taskbar to Light (or vice
+   // versa), using the corresponding theme logo for each target prevents dark
+   // logos on light taskbars or vice versa.
++#if defined(BLANC_UPDATER_BRANDING)
++  // Blanc: the window keeps its plain Sunrise (IDI_APP) in the taskbar and
++  // titlebar. IDI_INSTALLER_BADGE aliases IDI_APP, which is the Sunrise here
++  // too, so the badged logo drew two suns.
++  UpdateWindowIcon(/*big_bitmap=*/nullptr, /*small_bitmap=*/nullptr,
++                   effective_dpi);
++#else
+   const bool is_titlebar_dark = is_dark_mode();
+   const bool is_taskbar_dark = is_system_dark_mode();
+ 
+@@ -301,6 +308,7 @@ void ProgressWnd::UpdateAppLogo(UINT target_dpi) {
+   const HBITMAP big_logo = SelectLogoForTheme(is_taskbar_dark);
+ 
+   UpdateWindowIcon(big_logo, small_logo, effective_dpi, IDI_INSTALLER_BADGE);
++#endif  // defined(BLANC_UPDATER_BRANDING)
+ 
+   RECT client_rect = {};
+   ::GetClientRect(hwnd(), &client_rect);

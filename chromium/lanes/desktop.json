@@ -1,11 +1,11 @@
 {
   "lane": "desktop",
   "channel": "preview",
-  "version": "158.0.8127.2",
-  "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
+  "version": "158.0.8127.37",
+  "upstream": "b8c2be851f62f6a394ec57955d7f31335d7cb6d4",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 208,
+  "fileCount": 257,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -112,6 +112,15 @@
     "patches/0104-blanc-skip-chromium-welcome.patch",
     "patches/0105-blanc-windows-updater-art.patch",
     "patches/0106-blanc-spaces-mirror.patch",
-    "patches/0107-blanc-no-api-keys-infobar.patch"
+    "patches/0107-blanc-no-api-keys-infobar.patch",
+    "patches/0108-blanc-no-environment-api-keys.patch",
+    "patches/0109-blanc-default-browser-dialog.patch",
+    "patches/0110-blanc-restore-pages-button.patch",
+    "patches/0111-blanc-windows-about-updates.patch",
+    "patches/0112-blanc-no-update-toast.patch",
+    "patches/0113-blanc-linux-identity.patch",
+    "patches/0114-blanc-linux-frame.patch",
+    "patches/0115-blanc-linux-installer.patch",
+    "patches/0116-blanc-linux-update-notifications.patch"
   ]
 }

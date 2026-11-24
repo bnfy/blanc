@@ -1,0 +1,293 @@
+{
+ "slice": "F0",
+ "platform": "linux",
+ "status": "L0 first build, launch and suite recorded. Gate 1 awaits the Mac nightly and Windows build-plan comparisons.",
+ "candidate": {
+  "id": "linux-x64-2fcae33ab6ecf405",
+  "exeSha256": "2fcae33ab6ecf4059a262c4db98bf126f20b8d068f2696a52d0e3880b77250c7",
+  "version": "158.0.8127.2",
+  "treeCommit": "d827f59a02658f96f8d086114635a50f1cfc2658",
+  "qualification": "x64 preview with test hooks; sandboxed X11 and Wayland launch checks passed (run 44942354424); full suite 2026-11-21 (run 44942589970, fork 83571b839, shipping v1.49.1): 615 of 667 cases pass, 21 fail, 5 undefined, 26 excluded"
+ },
+ "build": {
+  "host": "blanc-android-build, native x86-64 Linux",
+  "checkout": "~/chromium-desktop/src",
+  "output": "out/BlancLinuxPrototype",
+  "args": "chromium/linux/args/prototype-x64.gn",
+  "upstream": "681cd621e82e606d7536eae8ea2576afb3c7d65c",
+  "coldBuild": "57,829 steps in 1 h 10 min 51 s, no compile errors, using the existing amd64 sysroot",
+  "archive": {
+   "draft": "fork-linux-candidate",
+   "file": "blanc-linux-candidate.tar.gz",
+   "bytes": 333858099,
+   "tarSha256": "b04f264edd4a5d037911a52dc0de79b92cf16c32c46d2154cf43212780147a96"
+  }
+ },
+ "checks": {
+  "guardedBuild": "passed, x64 chrome and chrome_sandbox",
+  "localSourceCommit": "eefd9c2d475ff616962271bc9134c9a103332264",
+  "patchReconstruction": "python3 chromium/tools/check-patches.py --lane desktop and --lane android passed (261 and 50 upstream files respectively, 838 custom files each)",
+  "forkUnitSuite": "node --test chromium/tools/*.test.mjs chromium/tests/*.test.mjs chromium/release/*.test.mjs passed (1118 passed, 28 skipped, 0 failed)",
+  "progress": "node chromium/tools/progress.mjs --check passed with the L0 candidate and baseline"
+ },
+ "launchCheck": {
+  "run": "chromium-linux-candidate.yml 44942354424",
+  "host": "GitHub-hosted ubuntu-24.04 (Linux 7.0.0-1014-aws x64)",
+  "uid": 1001,
+  "apparmorRestrictUnprivilegedUserns": "1",
+  "checks": [
+   "launched",
+   "renderer sandbox",
+   "test hooks answer",
+   "Island draws",
+   "blocker ready",
+   "fixture page loaded",
+   "clean quit"
+  ],
+  "displays": {
+   "x11": {
+    "renderers": 6,
+    "seccomp": 2,
+    "pidNamespaceDistinctFromBrowser": true,
+    "exitCode": 0
+   },
+   "wayland": {
+    "renderers": 6,
+    "seccomp": 2,
+    "pidNamespaceDistinctFromBrowser": true,
+    "exitCode": 0
+   }
+  },
+  "evidence": "smoke-x11.json, smoke-wayland.json and the Island and page captures in chromium-linux-candidate-44942354424-1"
+ },
+ "suite": {
+  "run": "chromium-linux-candidate.yml 44942589970",
+  "display": "X11 (Xvfb, 1920x1080)",
+  "shippingTag": "v1.49.1",
+  "shippingCommit": "673ff2eb052011b1efd14438a397a57d457de241",
+  "forkCommit": "83571b839855a5c3a2189e0299883270593afdf2",
+  "baseline": "scenarios/baseline-linux-x64-2fcae33ab6ecf405.json",
+  "baselineSha256": "c9a8304bffd694147fc9ba90434cab56d9943a57ec735de2385c4b222c672ee8",
+  "junit": "reports/f0-linux-junit.xml",
+  "cases": 667,
+  "executableSummary": {
+   "pass": 615,
+   "fail": 21,
+   "undefined": 5,
+   "excluded": 26
+  },
+  "declarations": 618,
+  "declarationSummary": {
+   "pass": 566,
+   "fail": 21,
+   "undefined": 6,
+   "excluded": 25
+  },
+  "s1SummarySource": "chromium/tests/slice-report.mjs on the L0 baseline with slice S1",
+  "s1Summary": {
+   "pass": 251,
+   "fail": 7,
+   "undefined": 4,
+   "excluded": 1
+  },
+  "timedAttempts": 666,
+  "totalAttemptMs": 5486085,
+  "evidence": "f0/baseline.json, f0/junit.xml, f0/progress.json and f0/timing.json in chromium-linux-candidate-44942589970-1"
+ },
+ "failureGroups": [
+  {
+   "group": "Arc discovery fixtures and the file-choice adapter",
+   "cases": 8,
+   "cause": "Seven cases expect local Arc discovery or an Arc preview on Linux, which offers a copied-file chooser. The Linux chooser case stops at the adapter, which only accepts darwin.",
+   "closes": "L2 Task 2, browser import",
+   "caseResults": [
+    {
+     "id": "spec/acceptance/arc-spaces-import.feature:7:plain",
+     "result": "fail",
+     "firstError": "Expected values to be strictly deep-equal:"
+    },
+    {
+     "id": "spec/acceptance/arc-spaces-import.feature:14:plain",
+     "result": "fail",
+     "firstError": "button \"Bring Spaces from Arc\" is available"
+    },
+    {
+     "id": "spec/acceptance/arc-spaces-import.feature:23:plain",
+     "result": "fail",
+     "firstError": "button \"Bring Spaces from Arc\" is available"
+    },
+    {
+     "id": "spec/acceptance/arc-spaces-import.feature:31:plain",
+     "result": "fail",
+     "firstError": "button \"Bring Spaces from Arc\" is available"
+    },
+    {
+     "id": "spec/acceptance/arc-spaces-import.feature:39:plain",
+     "result": "fail",
+     "firstError": "button \"Bring Spaces from Arc\" is available"
+    },
+    {
+     "id": "spec/acceptance/arc-spaces-import.feature:46:plain",
+     "result": "fail",
+     "firstError": "Cannot read properties of undefined (reading 'map')"
+    },
+    {
+     "id": "spec/acceptance/arc-spaces-import.feature:53:plain",
+     "result": "undefined",
+     "firstError": "Arc Linux file-choice copy cannot execute on the native macOS fork"
+    },
+    {
+     "id": "spec/acceptance/arc-spaces-import.feature:60:plain",
+     "result": "fail",
+     "firstError": "button \"Bring Spaces from Arc\" is available"
+    }
+   ]
+  },
+  {
+   "group": "Owner decision 5, no Linux app icon catalog",
+   "cases": 3,
+   "cause": "The three Settings cases look for the Mac app-icon control.",
+   "closes": "L2 Task 2, owner-decision exclusions",
+   "caseResults": [
+    {
+     "id": "spec/acceptance/settings-and-theming.feature:12:plain",
+     "result": "fail",
+     "firstError": "Settings (blanc://settings/) has no #blancAppIcon control"
+    },
+    {
+     "id": "spec/acceptance/supporter-and-session.feature:7:plain",
+     "result": "fail",
+     "firstError": "Settings (blanc://settings/) has no #blancAppIcon control"
+    },
+    {
+     "id": "spec/acceptance/supporter-and-session.feature:12:plain",
+     "result": "fail",
+     "firstError": "Settings (blanc://settings/) has no #blancAppIcon control"
+    }
+   ]
+  },
+  {
+   "group": "Owner decision 4, Linux passkeys",
+   "cases": 1,
+   "cause": "The private-tab case requests a Touch ID ceremony. Chromium on Linux uses a security key or phone for device-bound passkeys.",
+   "closes": "L2 Task 2, owner-decision exclusions",
+   "caseResults": [
+    {
+     "id": "spec/acceptance/private-tabs.feature:40:plain",
+     "result": "undefined",
+     "firstError": "Device-bound Touch ID ceremony requires signed/entitled build and owner interaction; Apple/signing work is outside this queue. Native metadata isolation is checked separately."
+    }
+   ]
+  },
+  {
+   "group": "Owner decision 6, floating Island controls",
+   "cases": 1,
+   "cause": "The floating-pill case asks the strip for window-button geometry. The Linux design assigns the buttons to Chromium.",
+   "closes": "L2 Task 2, owner-decision exclusions",
+   "caseResults": [
+    {
+     "id": "spec/acceptance/island-and-commands.feature:320:plain",
+     "result": "undefined",
+     "firstError": "The fork strip reports no window-button geometry to the host"
+    }
+   ]
+  },
+  {
+   "group": "Interface-language harness",
+   "cases": 5,
+   "cause": "The harness refuses to simulate the OS language on Linux.",
+   "closes": "L2 Task 2, runner environment",
+   "caseResults": [
+    {
+     "id": "spec/acceptance/interface-language.feature:10:plain",
+     "result": "fail",
+     "firstError": "The OS language is not faked on linux"
+    },
+    {
+     "id": "spec/acceptance/interface-language.feature:18:plain",
+     "result": "fail",
+     "firstError": "The OS language is not faked on linux"
+    },
+    {
+     "id": "spec/acceptance/interface-language.feature:26:plain",
+     "result": "fail",
+     "firstError": "The OS language is not faked on linux"
+    },
+    {
+     "id": "spec/acceptance/interface-language.feature:34:plain",
+     "result": "fail",
+     "firstError": "The OS language is not faked on linux"
+    },
+    {
+     "id": "spec/acceptance/interface-language.feature:43:plain",
+     "result": "fail",
+     "firstError": "The OS language is not faked on linux"
+    }
+   ]
+  },
+  {
+   "group": "Single cases",
+   "cases": 8,
+   "cause": "The first observed errors below still need individual diagnosis.",
+   "closes": "L2 Task 2, single cases",
+   "caseResults": [
+    {
+     "id": "spec/acceptance/F41-named-workspaces.feature:236:plain",
+     "result": "fail",
+     "firstError": "Timeout waiting for .space-picker-hex to be visible"
+    },
+    {
+     "id": "spec/acceptance/glance.feature:506:example-516",
+     "result": "fail",
+     "firstError": "the moved frame was saved"
+    },
+    {
+     "id": "spec/acceptance/navigation-and-context-menu.feature:12:example-22",
+     "result": "undefined",
+     "firstError": "V12: Brave is added under chrome://settings → Manage search engines"
+    },
+    {
+     "id": "spec/acceptance/navigation-and-context-menu.feature:32:plain",
+     "result": "undefined",
+     "firstError": "V12: Brave is added under chrome://settings → Manage search engines"
+    },
+    {
+     "id": "spec/acceptance/newtab-layouts.feature:21:plain",
+     "result": "fail",
+     "firstError": "control rail should end inside the board frame"
+    },
+    {
+     "id": "spec/acceptance/split-view.feature:53:plain",
+     "result": "fail",
+     "firstError": "the survivor fills the window: {\"height\":992,\"width\":945,\"x\":0,\"y\":68}"
+    },
+    {
+     "id": "spec/acceptance/sync.feature:162:plain",
+     "result": "fail",
+     "firstError": "Timeout waiting for one protected window: 0"
+    },
+    {
+     "id": "spec/acceptance/sync.feature:181:plain",
+     "result": "fail",
+     "firstError": "Timeout waiting for one protected window: 0"
+    }
+   ]
+  }
+ ],
+ "notCompleted": [
+  "Gate 1 awaits the next Mac nightly built from a source commit containing L0 and the before/after plans for BlancWinPrototype and BlancWinBeta.",
+  "The L0 fixture always set --user-data-dir. Bare-launch profile identity and installed packages belong to L1."
+ ],
+ "laterCandidate": {
+  "qualification": "L1 follow-up only. The L0 launch checks and full suite above ran on the first candidate.",
+  "id": "linux-x64-64f8e6871c8fb16f",
+  "treeCommit": "9f9a0be93c5ab2cfbf5f4051be906a2e49044c07",
+  "patches": [
+   "0113",
+   "0114",
+   "0115"
+  ],
+  "launchCheck": "chromium-linux-candidate.yml 44948948374, X11 and Wayland passed",
+  "windowButtons": "chromium-linux-candidate.yml 44950261755, X11 8 of 8 and Wayland 8 of 8"
+ }
+}
