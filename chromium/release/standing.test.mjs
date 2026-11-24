@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -100,8 +101,16 @@ test('the Chromium version, not the files pinned for a patch, makes a carried ch
   const s = validateStanding({ ...standing, anyChange: [], chromiumVersion: { file: 'chromium/lanes/desktop.json', fields: ['version', 'upstream'] } });
   // A pristine file pinned for a new patch: the passkey check still carries.
   assert.deepEqual(carriedState(s, 'webauthn', ['chromium/upstream/chrome/browser/x.cc', 'chromium/upstream/manifest.json', 'chromium/lanes/desktop.json']), { carried: true, touched: [] });
-  // A new Chromium: every carried check comes due.
+  // A new Chromium: every carried check comes due...
   assert.deepEqual(carriedState(s, 'webauthn', [], true), { carried: false, touched: ['Chromium version (chromium/lanes/desktop.json)'] });
+  // ...except one with chromiumVersion: false, which comes due on its own paths only.
+  const optOut = validateStanding({ ...s, carried: { webauthn: { ...s.carried.webauthn, chromiumVersion: false } } });
+  assert.deepEqual(carriedState(optOut, 'webauthn', [], true), { carried: true, touched: [] });
+  assert.equal(carriedState(optOut, 'webauthn', ['chromium/patches/0054-blanc-private-passkey-secret.patch'], true).carried, false);
+  assert.throws(() => validateStanding({ ...s, carried: { webauthn: { ...s.carried.webauthn, chromiumVersion: true } } }), /chromiumVersion may only be false/);
+  // The owner's decision (2026-11-24): the shipped passkey check doesn't come due on a Chromium update.
+  const shipped = JSON.parse(fs.readFileSync(new URL('./standing.json', import.meta.url), 'utf8'));
+  assert.equal(validateStanding(shipped).carried.webauthn.chromiumVersion, false);
   // Its own code still makes it due.
   assert.equal(carriedState(s, 'webauthn', ['chromium/patches/0054-blanc-private-passkey-secret.patch']).carried, false);
   assert.throws(() => validateStanding({ ...standing, chromiumVersion: { file: 'x' } }), /chromiumVersion/);

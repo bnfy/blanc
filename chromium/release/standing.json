@@ -29,6 +29,7 @@
   "carried": {
     "webauthn": {
       "who": "owner",
+      "chromiumVersion": false,
       "check": "Touch ID passkeys on the notarized build (remote/beta4-5-owner-checks.command's passkey questions)",
       "paths": [
         "chromium/blanc/branding/beta/app-entitlements.plist",
