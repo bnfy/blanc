@@ -37,14 +37,12 @@ BOOL Refuse(NSError** error) {
 }
 @interface BlancBetaUpdater () <SPUUpdaterDelegate>
 @property(nonatomic, strong) SPUStandardUpdaterController* controller;
-@property(nonatomic, strong) NSMenuItem* menuItem;
 @property(nonatomic) BOOL stopping;
 @end
 static __weak BlancBetaUpdater* g_beta_updater;
 
 @implementation BlancBetaUpdater
 @synthesize controller = _controller;
-@synthesize menuItem = _menuItem;
 @synthesize stopping = _stopping;
 - (void)start {
   CHECK(NSThread.isMainThread);
@@ -67,12 +65,9 @@ static __weak BlancBetaUpdater* g_beta_updater;
   self.controller = [[SPUStandardUpdaterController alloc] initWithStartingUpdater:NO
       updaterDelegate:self userDriverDelegate:nil];
   g_beta_updater = self;
-  // The controller owns native menu validation and the standard update UI.
-  NSMenu* menu = NSApp.mainMenu.numberOfItems ? [NSApp.mainMenu itemAtIndex:0].submenu : nil;
-  self.menuItem = [[NSMenuItem alloc] initWithTitle:@"Check for Updates…"
-      action:@selector(checkForUpdates:) keyEquivalent:@""];
-  self.menuItem.target = self.controller;
-  if (menu) [menu insertItem:self.menuItem atIndex:MIN(2, menu.numberOfItems)];
+  // No menu item of its own: the app menu's one Check for Updates… (under
+  // About, app_menus_mac.mm, tag 65042) reaches this controller through
+  // CheckForUpdatesFromMenu. A second item here showed it twice (beta.7–10).
   [self.controller startUpdater];
 }
 - (NSString*)feedURLStringForUpdater:(SPUUpdater*)updater { return Feed(); }
@@ -99,8 +94,6 @@ static __weak BlancBetaUpdater* g_beta_updater;
 - (void)applicationWillTerminate {
   CHECK(NSThread.isMainThread);
   self.stopping = YES;
-  self.menuItem.target = nil;
-  self.menuItem.enabled = NO;
   // Keep the controller alive through the normal NSApplication termination
   // handshake. Chromium closes tabs/profiles and flushes its session/Sync in
   // that path. Never kill the browser or invoke an installer from a renderer.

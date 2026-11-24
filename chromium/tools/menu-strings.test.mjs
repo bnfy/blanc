@@ -48,3 +48,12 @@ test('the update check and the Dock row have shipping\'s English labels', () => 
   const en = catalogs(fields.map(field => LABELS.find(([name]) => name === field))).find(({code}) => code === 'en').values;
   assert.deepEqual(en, ['Check for Updates\u2026', 'Private tab', 'New Tab', 'Loading\u2026']);
 });
+
+// The beta showed Check for Updates… twice (2.0.0-beta.7 to beta.10): app_menus_mac.mm
+// adds the one translated item under About, and Sparkle's setup added its own.
+test('the app menu gets Check for Updates… from one place only', () => {
+  const updater = fs.readFileSync(path.join(root, 'blanc/browser/mac/beta_updater.mm'), 'utf8');
+  assert.doesNotMatch(updater, /NSMenuItem|insertItem|addItem/);
+  const menus = fs.readFileSync(path.join(root, 'blanc/browser/ui/app_menus_mac.mm'), 'utf8');
+  assert.equal(menus.match(/check_for_updates\)/g)?.length, 1);
+});
