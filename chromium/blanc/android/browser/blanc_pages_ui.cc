@@ -79,7 +79,7 @@ namespace blanc::android {
 namespace {
 
 // The pages Android 1.0 opens (tools/android-pages.mjs PAGES).
-constexpr std::string_view kPages[] = {"newtab", "bookmarks", "history", "shortcuts", "error", "mahjong"};
+constexpr std::string_view kPages[] = {"newtab", "bookmarks", "history", "shortcuts", "error"};
 
 // What each page may ask over window.bowserPages. bridges.json grants more; the rest reject with
 // "not-yet" until the milestone that adds them (STATUS.md). The Start Page is the desktop fork's
@@ -89,7 +89,6 @@ constexpr std::pair<std::string_view, std::string_view> kAnswered[] = {
     {"bookmarks", "bookmarks.remove"}, {"bookmarks", "bookmarks.clearFavicon"},
     {"history", "history.list"},       {"history", "history.remove"},
     {"history", "history.clear"},      {"shortcuts", "shortcuts.list"},
-    {"mahjong", "mahjong.played"},
 };
 
 // Shipping's languages; anything else reads English, as on desktop.
@@ -245,7 +244,7 @@ class PagesHandler : public content::WebUIMessageHandler {
     if (method == "history.list") return ListHistory(id, args);
     if (method == "history.remove") return RemoveHistory(id, args);
     if (method == "history.clear") return ClearHistory(id);
-    // bookmarks.clearFavicon and mahjong.played have nothing to do on Android yet.
+    // bookmarks.clearFavicon has nothing to do on Android yet.
     Done(id);
   }
 
@@ -339,13 +338,7 @@ class PagesHandler : public content::WebUIMessageHandler {
     // The line under the clock: the week's blocks, which the blocker records for the regular profile.
     if (method == "blockedWeek")
       return StartReply(id, true, off_the_record ? base::Value() : base::Value(::blanc::BlockedThisWeek(profile())));
-    if (method == "openMahjong") {
-      const bool background = args.size() == 1 && args[0].is_bool() && args[0].GetBool();
-      // A private Start Page's game stays private, as its link says (blanc://mahjong/?private=1).
-      OpenPage(off_the_record ? "mahjong.html?private=1" : "mahjong.html",
-               background ? WindowOpenDisposition::kNewBackgroundTab : WindowOpenDisposition::kNewForegroundTab);
-      return StartReply(id, true, base::Value(true));
-    }
+    // No openMahjong: Blanc doesn't offer Mahjong on phones yet, and its page isn't served here.
     // The Favorites heading opens Android's Favorites page, in this tab.
     if (method == "openSheet" && args.size() == 1 && args[0].is_string() && args[0].GetString() == "bookmarks") {
       OpenPage("bookmarks.html", WindowOpenDisposition::kCurrentTab);

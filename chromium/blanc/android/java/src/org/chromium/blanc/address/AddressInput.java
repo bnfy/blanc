@@ -108,7 +108,7 @@ public final class AddressInput {
     /** DuckDuckGo's address for a query, encoded as JavaScript's encodeURIComponent does. */
     // The pages chrome://blanc/ serves (tools/android-pages.mjs PAGES), as the pages' adapter maps them.
     private static final List<String> SERVED_PAGES =
-            List.of("newtab", "bookmarks", "history", "shortcuts", "error", "mahjong");
+            List.of("newtab", "bookmarks", "history", "shortcuts", "error");
     private static final Pattern BLANC_PAGE =
             Pattern.compile("^blanc://([a-z-]+)/?([?#].*)?$", Pattern.CASE_INSENSITIVE);
 

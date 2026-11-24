@@ -313,5 +313,6 @@ test('blanc:// links open the pages Android serves, and nothing else', () => {
   assert.ok(click('blanc://history/'));
   assert.ok(click('blanc://mahjong/?deal=a-1'));
   assert.ok(click('blanc://tab-import/'));
-  assert.deepEqual(assigned, ['/history.html', '/mahjong.html?deal=a-1']);
+  // Mahjong isn't offered on phones yet: its link goes nowhere.
+  assert.deepEqual(assigned, ['/history.html']);
 });

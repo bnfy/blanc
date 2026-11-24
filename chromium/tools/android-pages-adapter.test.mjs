@@ -134,7 +134,8 @@ test('blanc:// links go to the served pages; others go nowhere', () => {
   const to = window.__blancPageUrl;
   assert.equal(to('blanc://history/'), 'chrome://blanc/history.html');
   assert.equal(to('blanc://newtab/?private=1'), 'chrome://blanc/newtab.html?private=1');
-  assert.equal(to('blanc://mahjong/?deal=a-1'), 'chrome://blanc/mahjong.html?deal=a-1');
+  // Mahjong isn't offered on phones yet, so it isn't a page here.
+  assert.equal(to('blanc://mahjong/?deal=a-1'), null);
   assert.equal(to('blanc://bookmarks/#x'), 'chrome://blanc/bookmarks.html#x');
   assert.equal(to('blanc://settings/'), null);
   assert.equal(to('blanc://tab-import/'), null);

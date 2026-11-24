@@ -31,7 +31,7 @@
 
   // blanc:// links the fork's adapter doesn't take: the pages Android serves open here, Settings
   // through native code; anything else isn't a page on Android.
-  const PAGES = ['bookmarks', 'history', 'mahjong', 'shortcuts'];
+  const PAGES = ['bookmarks', 'history', 'shortcuts'];
   document.addEventListener('click', event => {
     const anchor = event.target?.closest?.('a[href^="blanc:"]');
     if (!anchor || event.defaultPrevented) return;
