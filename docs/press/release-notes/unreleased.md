@@ -1,45 +1,31 @@
 # Unreleased notes
 
-v1.51.0 is the current public release ([notes](v1.51.0.md)). Changes merged
+v1.52.0 is the current public release ([notes](v1.52.0.md)). Changes merged
 since then are below as they're recorded.
-
-## Added
-
-- **Spaces across profiles.** With more than one profile, the Spaces menu
-  lists every profile's Spaces. Choose one to open it in a window of its
-  profile, with its own sign-ins. You can also create a Space in another
-  profile.
-- **Open local HTML files on Windows.** Choosing Blanc under **Open with** for
-  an `.html` file now opens it, as on a Mac, instead of opening Blanc with
-  nothing in it (#1630). The file shows in a separate, static preview window:
-  scripts, network requests and other files on the disk (such as a page's own
-  stylesheets and images) are blocked, so some pages look plainer than they do
-  in other browsers, and files over 8 MB don't open. Blanc is added to the
-  Open with list for HTML files, and making Blanc your default browser
-  doesn't make it the default for them. A preview closes with Blanc's last
-  window.
 
 ## Fixed
 
-- **Pop-up windows close when their page asks first.** A page in a separate
-  pop-up window, such as Proxmox's console while it's connected, can ask
-  before you leave it. Blanc now asks **Leave** or **Stay**, as it does in a
-  tab; before, the window's close button did nothing (#1477).
-- **No passkey prompt on page load on Windows.** Many sign-in pages quietly
-  ask the browser for passkeys as they load. On Windows that opened Windows'
-  **Sign in with a passkey** dialog on every visit, even with no passkey
-  saved. Blanc now tells those pages it can't list passkeys, so they show
-  their own passkey button; choosing it still opens the dialog.
-- **A local HTML file Blanc can't show now says why.** Before, a file over
-  8 MB, or one Blanc couldn't read, opened nothing at all on macOS and Windows.
-- **Downloads show with Auto-hide on.** A download saved without asking
-  gave no sign while the Island was auto-hidden, so a download link seemed to
-  do nothing. Now the Island shows for a few seconds when a download starts,
-  with its downloads button filling, and stays up for the check if the file
-  finishes meanwhile. Nothing changes with Auto-hide off or when the Island is
-  already showing.
+- **Favorites opens with ⌥⌘B on the Mac again.** Since 1.39, ⌥⌘B also
+  turned Auto-hide the Island on or off, and Auto-hide always won, so Show
+  Favorites never opened from the keyboard. Auto-hide the Island is now ⇧⌘B on
+  the Mac; Windows and Linux keep Ctrl+Alt+B. Close Window in the File menu is
+  now ⇧⌘W, since ⌘W already closes the tab.
+- **Ctrl+Y redoes on Windows and Linux.** It used to open History, even
+  while typing in a text field or a web app, so it never redid anything.
+  Ctrl+Y now reaches the page and Edit → Redo, as in Chrome; History is
+  Ctrl+H.
+- **Open local HTML files on Linux.** Choosing Blanc under a file manager's
+  **Open With** for an `.html` file now opens it in the static preview
+  window, as on Windows and the Mac. Before, Blanc only came to the front
+  with nothing opened (#1630).
 
-## Still open for the next release
+## Still open from 1.52
+
+- **Opening local HTML files on Linux** (#1630) by hand from a file manager's
+  Open With (GNOME Files and Dolphin) with the AppImage, at launch and while
+  Blanc is running. CI opens a file in the static preview from the packaged
+  AppImage's command line, as a `file:///` URI at launch and as a path handed
+  to a running Blanc.
 
 - **Download peek with Auto-hide on**, by hand in a packaged build on macOS
   and Windows: a real click on a download link shows the hidden Island in both

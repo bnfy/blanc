@@ -1,7 +1,7 @@
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/background_task_scheduler/ChromeBackgroundTaskFactory.java b/chrome/android/java/src/org/chromium/chrome/browser/background_task_scheduler/ChromeBackgroundTaskFactory.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/background_task_scheduler/ChromeBackgroundTaskFactory.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/background_task_scheduler/ChromeBackgroundTaskFactory.java
-@@ -61,6 +61,8 @@
+@@ -60,6 +60,8 @@
  
      private BackgroundTask createBackgroundTaskFromTaskId(int taskId) {
          switch (taskId) {

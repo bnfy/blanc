@@ -1,0 +1,53 @@
+/* The bronze shield artwork (components/HorizonShield.astro), turned in 3D by
+   horizon-shield.js and upright with reduced motion or without WebGL. Each
+   page sizes and places its .horizon-study; a page on a light ground sets
+   --horizon-shadow-color for a softer cast shadow. */
+.horizon-stage {
+  position: relative;
+  padding: 24px 0 42px;
+  isolation: isolate;
+}
+.horizon-light {
+  position: absolute;
+  inset: -12% -20%;
+  z-index: -1;
+  background: radial-gradient(ellipse at 50% 48%, #e7bf7540, #e7bf7514 38%, transparent 66%);
+  pointer-events: none;
+}
+.horizon-turn {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  margin: auto;
+}
+.horizon-turn img,
+.horizon-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.horizon-turn img {
+  object-fit: contain;
+  user-select: none;
+}
+.horizon-turn.is-3d .horizon-fallback {
+  visibility: hidden;
+}
+.horizon-shadow {
+  position: absolute;
+  bottom: 6px;
+  left: 18%;
+  width: 64%;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--horizon-shadow-color, rgb(0 0 0 / 0.55));
+  filter: blur(10px);
+  transform: scaleX(var(--shield-shadow, 1));
+}
+@media (prefers-reduced-motion: reduce) {
+  .horizon-shadow {
+    transform: none;
+  }
+}

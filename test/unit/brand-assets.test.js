@@ -250,12 +250,15 @@ test('the site lockups keep the Sunrise square and place it by the lockup constr
     assert.match(css, new RegExp(`\\.site-lockup--${size} \\.site-lockup-word \\{\\s*left: ${word[0]};\\s*top: ${word[1]};\\s*width: ${word[2]};`), `${size} word`);
   }
   // The header uses the Text-cut word (about 32px tall and under) and the
-  // footer the Display cut, each beside the square 256px mark.
+  // footer the Display cut, each beside the square 256px mark. The footer is
+  // a white band with the ink word since November 23, 2026, except on the
+  // homepage, whose dark footer keeps the white word.
   const header = source('site/src/components/Header.astro');
   const footer = source('site/src/components/Footer.astro');
   for (const markup of [header, footer]) assert.match(markup, /src="\/lockup\/sunrise-mark-256\.webp"\s+width="256"\s+height="256"/);
   assert.match(header, /site-lockup--small[\s\S]*src="\/lockup\/blanc-word-small-ink\.svg"/);
-  assert.match(footer, /site-lockup--display[\s\S]*src="\/lockup\/blanc-word-display-white\.svg"/);
+  assert.match(footer, /site-lockup--display[\s\S]*"\/lockup\/blanc-word-display-white\.svg"/);
+  assert.match(footer, /site-lockup--display[\s\S]*"\/lockup\/blanc-word-display-ink\.svg"/);
 });
 
 test('the demo island hides the favicon slot on internal pages like the shipped app', () => {

@@ -1,7 +1,7 @@
 diff -ruN a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
 --- a/chrome/browser/BUILD.gn
 +++ b/chrome/browser/BUILD.gn
-@@ -923,6 +923,7 @@
+@@ -1085,6 +1085,7 @@
      ":unexpire_flags",
      ":universal_web_contents_observers",
      "//blanc/android:blocker_bridge",
@@ -12,7 +12,7 @@ diff -ruN a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
 diff -ruN a/chrome/utility/BUILD.gn b/chrome/utility/BUILD.gn
 --- a/chrome/utility/BUILD.gn
 +++ b/chrome/utility/BUILD.gn
-@@ -34,6 +34,7 @@
+@@ -31,6 +31,7 @@
    public_deps = []
    deps = [
      "//blanc/services/blocker:service",
@@ -31,7 +31,7 @@ diff -ruN a/chrome/utility/services.cc b/chrome/utility/services.cc
  
  #include <memory>
  #include <utility>
-@@ -163,6 +164,10 @@
+@@ -167,6 +168,10 @@
    return std::make_unique<blanc::BlockerService>(std::move(receiver));
  }
  
@@ -42,7 +42,7 @@ diff -ruN a/chrome/utility/services.cc b/chrome/utility/services.cc
  auto RunFilePatcher(mojo::PendingReceiver<patch::mojom::FilePatcher> receiver) {
    return std::make_unique<patch::FilePatcherImpl>(std::move(receiver));
  }
-@@ -503,6 +508,7 @@
+@@ -519,6 +524,7 @@
  
  void RegisterMainThreadServices(mojo::ServiceFactory& services) {
    services.Add(RunBlancBlocker);

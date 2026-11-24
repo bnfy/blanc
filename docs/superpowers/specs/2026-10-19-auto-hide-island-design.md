@@ -19,6 +19,9 @@ and the toolbar comes back on demand. Blanc has no such mode.
 - **Toggle:** View → **Auto-hide the Island** (checkbox), ⌘⌥B on macOS and
   Ctrl+Alt+B on Windows and Linux. The shortcut is handled before page dispatch,
   like ⌘⌥V for vertical tabs, so it works whichever view has focus.
+  *(November 23, 2026: on macOS ⌘⌥B was already Show Favorites, and this
+  handler took it, so the owner moved Auto-hide to ⇧⌘B on macOS after
+  v1.52.0; Windows and Linux keep Ctrl+Alt+B. `src/main/menu-accelerators.js`.)*
 - **Hidden:** the active tab, Glance panes and the utility sheet start at
   `y = 0` and take the whole window height. The strip is still loaded
   underneath; only the child-view bounds change. In the vertical layout the

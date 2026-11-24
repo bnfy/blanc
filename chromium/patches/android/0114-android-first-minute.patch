@@ -6,13 +6,13 @@ diff -ruN a/chrome/android/java/AndroidManifest.xml b/chrome/android/java/Androi
          android:manageSpaceActivity="@string/manage_space_activity"
          android:supportsRtl="true"
 +        android:localeConfig="@xml/blanc_locales_config"
-         android:zygotePreloadName="{{ zygote_preload_class }}"
+         android:zygotePreloadName="org.chromium.content_public.app.ZygotePreload"
          {% if backup_key is defined %}
          android:allowBackup="true"
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/tabbed_mode/TabbedRootUiCoordinator.java
-@@ -1841,6 +1841,18 @@
+@@ -1869,6 +1869,18 @@
                                  }
                              }
                          });

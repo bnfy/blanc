@@ -60,11 +60,16 @@ Then('the island uses the private theme', function () {
   assert.ok(now.every(c => c < 64), `the private Island isn't dark: ${now}`);
 });
 
+// The phone Island has no Private chip (#1682, D11): its page menu says the tab is private, and
+// the menu's first item, Close Private Tab, is the quick exit.
 Then('the island shows a {string} chip', function (_chip) {
-  assert.ok(this.device.has({id: 'blanc_island_private'}), 'no private chip');
+  assert.ok(this.device.has({desc: /^Page actions, Private tab$/}), 'the page menu does not say Private tab');
 });
 
-When('I activate the {string} chip', function (_chip) { this.device.tap({id: 'blanc_island_private'}); });
+When('I activate the {string} chip', function (_chip) {
+  this.device.tap({id: 'blanc_island_menu'});
+  this.device.tap({text: 'Close Private Tab'});
+});
 
 Then('the private tab closes', async function () {
   await this.device.waitFor(() => !this.device.grid().tabs.some(t => t.private), 'the private tab to close');

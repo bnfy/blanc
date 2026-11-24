@@ -216,15 +216,22 @@ function pillCenter(device) {
   return [Math.round((b.left + b.right) / 2), Math.round((b.top + b.bottom) / 2)];
 }
 
-// Left goes to the next tab, as on the iPhone.
+// Left goes to the next tab, as on the iPhone. The Island is only as wide as what it holds (#1693),
+// so a short site's can be narrower than the swipe: the finger lands just inside one end and
+// travels 500 px, past the Island if need be, as a thumb would.
+function islandEnds(device) {
+  const b = device.find({id: 'blanc_island_pill'});
+  return {left: b.left + 24, right: b.right - 24, y: Math.round((b.top + b.bottom) / 2)};
+}
+
 When('I swipe the Island toward the next tab', function () {
-  const [x, y] = pillCenter(this.device);
-  this.device.swipe(x + 250, y, x - 250, y);
+  const {right, y} = islandEnds(this.device);
+  this.device.swipe(right, y, right - 500, y);
 });
 
 When('I swipe the Island toward the previous tab', function () {
-  const [x, y] = pillCenter(this.device);
-  this.device.swipe(x - 250, y, x + 250, y);
+  const {left, y} = islandEnds(this.device);
+  this.device.swipe(left, y, left + 500, y);
 });
 
 Then('the tab on {string} is the active tab', async function (name) {

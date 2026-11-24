@@ -1,0 +1,19 @@
+{
+  "versions": [
+    { "type": "appStoreVersions", "id": "v-on-sale", "attributes": { "platform": "IOS", "versionString": "1.0.4", "appStoreState": "READY_FOR_SALE" } },
+    { "type": "appStoreVersions", "id": "v-replaced", "attributes": { "platform": "IOS", "versionString": "1.0.3", "appStoreState": "REPLACED_WITH_NEW_VERSION" } },
+    { "type": "appStoreVersions", "id": "v-draft", "attributes": { "platform": "IOS", "versionString": "1.2", "appStoreState": "PREPARE_FOR_SUBMISSION" } }
+  ],
+  "localizations": {
+    "v-on-sale": [
+      { "type": "appStoreVersionLocalizations", "id": "l1", "attributes": { "locale": "de-DE", "whatsNew": "• Eine neue Startseite." } },
+      { "type": "appStoreVersionLocalizations", "id": "l2", "attributes": { "locale": "en-US", "whatsNew": "• A new Start Page.\n• Hold a shortcut to pin it." } }
+    ],
+    "v-replaced": [
+      { "type": "appStoreVersionLocalizations", "id": "l3", "attributes": { "locale": "en-US", "whatsNew": "• Blanc now runs on iPad." } }
+    ],
+    "v-draft": [
+      { "type": "appStoreVersionLocalizations", "id": "l4", "attributes": { "locale": "en-US", "whatsNew": "• Not out yet." } }
+    ]
+  }
+}

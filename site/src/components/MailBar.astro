@@ -24,9 +24,11 @@ const sections = [
 ---
 <div class="mail-bar" data-mail-bar>
   <nav class="mail-bar-inner" aria-label="Blanc Mail">
-    <!-- The product bar uses the short form of the Blubird Text lockup. -->
+    <!-- The product bar uses the short form of the Blubird Text lockup. Its ?v= is
+         the first 8 hex digits of the SVG's SHA-256, so browsers that cached an
+         older word fetch the new one; mail-bar.test.mjs checks it. -->
     <a class="mail-bar-title" href="/mail"><span class="mail-lockup"><MailIcon decorative /><img
-      class="mail-lockup-word" src="/lockup/mail-word-small-white.svg" width="1817" height="763" alt="Blanc Mail" /></span></a>
+      class="mail-lockup-word" src="/lockup/mail-word-small-white.svg?v=667ed632" width="1713" height="762" alt="Blanc Mail" /></span></a>
     <ul class="mail-bar-links">
       {sections.map(([id, label]) => <li><a href={`/mail#${id}`} data-mail-section={id}>{label}</a></li>)}
     </ul>

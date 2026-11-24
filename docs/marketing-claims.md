@@ -668,6 +668,29 @@ original reports:
   packaged build on Windows or Linux before release, and card dragging was
   never tried with a real mouse or finger, so don't claim either. Describe
   all of it as since v1.51.0.
+- **1.52.0:** With more than one profile, the Spaces menu lists every
+  profile's Spaces under their profile names; choosing one opens it in a
+  window of that profile (its own sign-ins), and a new Space can be made in
+  another profile. With one profile the menu is unchanged. On Windows,
+  choosing Blanc under **Open with** for an `.html` file opens it in a
+  separate static preview window (no scripts, no network, none of the page's
+  other files, 8 MB at most), as on a Mac; Blanc is offered for HTML files
+  but never made their default. A local HTML file Blanc can't show now says
+  why. With Auto-hide on, the Island shows for a few seconds when a download
+  starts. On Windows, quiet passkey requests on page load no longer open
+  Windows' passkey dialog (a sign-in form inside an iframe still can). Pop-up
+  windows whose page asks before leaving now ask **Leave** or **Stay**.
+  Before release, nobody watched the download peek on screen in a packaged
+  build, opened an HTML file from Explorer in an installed build, tried the
+  passkey fix with Windows Hello or on real sites, or closed a real Proxmox
+  console window, so don't claim any of these beyond what the notes say.
+  Describe all of it as since v1.52.0.
+- **Favorites shortcut on the Mac:** Through v1.52.0, ⌥⌘B on the Mac turns
+  Auto-hide the Island on or off and never opens Favorites, because both
+  were bound to it and Auto-hide's handler won (bnfy/blanc#1737 moves
+  Auto-hide to ⇧⌘B on the Mac, unreleased). Until a release ships that fix,
+  don't tell Mac users a key opens Favorites: say **Favorites → Show
+  Favorites**, or `/favorites`. Ctrl+Shift+O on Windows and Linux works.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
   (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,

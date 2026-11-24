@@ -10,7 +10,7 @@ import reservations from '../../data/mail-reservations.json';
 const open = reservations.open;
 const endings = reservations.endings;
 ---
-<BaseLayout title="Reserve your Blanc Mail address" description="Reserve the Blanc Mail address you want, like mira@inbox.day, free. It’s held for you until Blanc Mail addresses open, then for 30 days while you claim it." path="/mail/reserve" header="solid">
+<BaseLayout title="Reserve your Blanc Mail address" description="Reserve the Blanc Mail address you want, like mira@inbox.day. Reserving is free. It’s held until addresses open, then 30 days while you claim it with a paid plan." path="/mail/reserve" header="solid">
   <MailBar />
   <main id="main-content" class="mail-stage">
     <section class:list={['mail-reserve-page', { 'is-open': open }]} aria-labelledby="mail-reserve-title">
@@ -18,7 +18,7 @@ const endings = reservations.endings;
         <p class="mail-eyebrow">Blanc Mail · Your address</p>
         <h1 id="mail-reserve-title"><span class="mail-gold-text">Reserve your address.</span></h1>
         <p class="mail-reserve-lead">Get the name you want before Blanc Mail addresses open. We’ll hold it until then, and for 30 days after while you claim it.</p>
-        <p class="mail-reserve-aside">A Blanc address is optional. Blanc Mail for Mac also works with Gmail, and with Proton Mail through Proton Mail Bridge.</p>
+        <p class="mail-reserve-aside">A Blanc address is optional. Blanc Mail for Mac also works with Gmail.</p>
       </div>
       {open ? <MailReserveAddress endings={endings} /> : <p class="mail-reserve-lead mail-reserve-soon">Reservations open soon. <a href="/mail#address">Read about Blanc Mail addresses</a></p>}
       <ul class="mail-reserve-facts">

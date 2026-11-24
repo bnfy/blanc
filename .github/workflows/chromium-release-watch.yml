@@ -1,0 +1,50 @@
+name: Chromium release watch
+
+# Compares Chrome's stable releases with the Chromium fork's pins every day and
+# keeps one issue open per public lane that is behind, with its deadline: 7 days
+# from the first stable release newer than the pin, 72 hours when Google says a
+# fixed flaw is exploited in the wild (docs/chromium-updates.md). Desktop fork
+# work lands on chromium/next, so its lane file is read from there.
+on:
+  schedule:
+    - cron: "23 13 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/chromium-release-watch.yml
+      - scripts/chromium-release-watch.mjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chromium-release-watch-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write # Open, update and close the lane issues.
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Read the lane files
+        run: |
+          git fetch --no-tags --depth 1 origin chromium/next
+          git show origin/chromium/next:chromium/lanes/desktop.json > "$RUNNER_TEMP/desktop.json"
+          cp chromium/lanes/android.json "$RUNNER_TEMP/android.json"
+      # A pull request only proves the script runs against live data.
+      - name: Check the pins
+        run: >-
+          node scripts/chromium-release-watch.mjs
+          --desktop "$RUNNER_TEMP/desktop.json"
+          --android "$RUNNER_TEMP/android.json"
+          ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}

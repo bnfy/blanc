@@ -65,7 +65,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/dl.js",
-      "sha256": "858ed3b69305e7d64500f360cc4e926f8ee664c28c3048176c606892497c5f6f",
+      "sha256": "b7e64548d8bdf97f19d4b473eff2230323b778554de494810f5c658723bb0a17",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -272,7 +272,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "be27316b4e6d7f11b2be626fbdb0de1b1d89114702f14672b23cec2fa39d53c8",
+      "sha256": "8dfc120fda149edd2c5832f1cc1f20af994bb12ed20daec8b132912b8d436cff",
       "literalChannels": [
         "activate",
         "bang-icons:changed",

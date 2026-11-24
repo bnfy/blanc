@@ -7,6 +7,48 @@
   ],
   "pages": [
     {
+      "release": "1.52",
+      "highlights": [
+        {
+          "id": "spaces-across-profiles",
+          "tile": "Spaces",
+          "title": "Spaces across profiles",
+          "body": "With more than one profile, the Spaces menu lists every profile’s Spaces under its name. Choose one to open it in a window of its profile, with that profile’s own sign-ins, or make a new Space in another profile.",
+          "steps": [
+            "Press `⌘L`, or `Ctrl+L` on Windows and Linux.",
+            "Click the Spaces button at the bottom of the panel."
+          ],
+          "note": "With one profile, the menu looks as it did before.",
+          "learnMore": "/features/workspaces",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/spaces-across-profiles-v1.52.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Spaces menu open below the Island over The Met’s page for Monet’s Bridge over a Pond of Water Lilies, listing Reading and Home under Personal and Sprint and Clients under Work."
+          }
+        },
+        {
+          "id": "download-peek",
+          "tile": "Downloads",
+          "title": "See your download start, even with Auto-hide on",
+          "body": "Blanc saves a clicked download to your Downloads folder without asking. With Auto-hide on, the Island now shows for a few seconds when a download starts, its downloads button filling as the file arrives, so a download link no longer seems to do nothing.",
+          "steps": [
+            "Turn on Auto-hide the Island in Settings → General.",
+            "Click a download link on any page."
+          ],
+          "learnMore": "/features/island",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/download-peek-v1.52.0.webp",
+            "width": 960,
+            "height": 600,
+            "alt": "The Island floating over The Met’s page for Vermeer’s Young Woman with a Water Pitcher just after a download started, its downloads button at the right half filled."
+          }
+        }
+      ]
+    },
+    {
       "release": "1.51",
       "highlights": [
         {
@@ -34,7 +76,7 @@
           "title": "Favorites gets a page of its own",
           "body": "Favorites now opens as a full page in a tab, with your folders on the left. Every favorite has a `⋮` menu to open, pin, move or remove it, and Edit… changes its name, address and folder. A pinned favorite stays pinned.",
           "steps": [
-            "Press `⌥⌘B`, or `Ctrl+Shift+O` on Windows and Linux.",
+            "Type `/favorites` in the Island, or press `Ctrl+Shift+O` on Windows and Linux.",
             "Click `⋮` beside a favorite, then Edit…"
           ],
           "media": {
@@ -56,7 +98,7 @@
           "title": "Folders inside folders, in your order",
           "body": "Favorites now opens a manager with your folders in a sidebar. Make folders inside folders, drag favorites and folders where you want them, select several at once, and search every folder. Deleting a folder keeps what was in it. One Bring my stuff to Blanc button imports favorites and open tabs from another browser, keeping its folders and their order.",
           "steps": [
-            "Press `⌥⌘B`, or `Ctrl+Shift+O` on Windows and Linux.",
+            "Type `/favorites` in the Island, or press `Ctrl+Shift+O` on Windows and Linux.",
             "Click New folder, or drag a favorite onto a folder in the sidebar."
           ],
           "media": {

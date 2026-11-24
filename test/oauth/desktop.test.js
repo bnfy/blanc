@@ -17,6 +17,31 @@ const CLIENT_HINTS = [
   'Sec-CH-UA-WoW64',
 ].join(', ');
 
+// Diagnostics for a popup that never appears: which buttons the page saw
+// clicked, what each window.open returned (null = blocked), whether the page
+// had transient activation, and the page's visibility and focus over time.
+const CLICK_DIAGNOSTICS = `<script>
+  window.clicks = {};
+  window.opens = [];
+  window.pageStates = [];
+  const notePageState = (event) => window.pageStates.push({
+    event, at: Math.round(performance.now()), visibility: document.visibilityState, focus: document.hasFocus(),
+  });
+  notePageState('load');
+  for (const name of ['visibilitychange', 'focus', 'blur']) addEventListener(name, () => notePageState(name), true);
+  document.addEventListener('click', (event) => {
+    const id = '#' + event.target.id;
+    window.clicks[id] = (window.clicks[id] || 0) + 1;
+  }, true);
+  const open = window.open;
+  window.open = function (...args) {
+    const activation = navigator.userActivation?.isActive ?? null;
+    const opened = open.apply(this, args);
+    window.opens.push({ url: String(args[0]), name: args[1] || '', opened: !!opened, activation });
+    return opened;
+  };
+</script>`;
+
 function listen(handler) {
   const server = http.createServer(handler);
   return new Promise((resolve) => {
@@ -94,6 +119,13 @@ function clickWebContents(app, id, selector) {
       return {
         x: Math.round(rect.left + rect.width / 2),
         y: Math.round(rect.top + rect.height / 2),
+        // CLICK_DIAGNOSTICS counters, read in the same round trip so taking
+        // them never delays the click.
+        before: {
+          clicks: window.clicks?.[${JSON.stringify(selector)}] || 0,
+          opens: window.opens?.length || 0,
+          states: window.pageStates?.length || 0,
+        },
       };
     })()`);
     if (!point) throw new Error(`Could not find ${selector}`);
@@ -101,8 +133,35 @@ function clickWebContents(app, id, selector) {
     wc.sendInputEvent({ type: 'mouseMove', x: point.x, y: point.y });
     wc.sendInputEvent({ type: 'mouseDown', x: point.x, y: point.y, button: 'left', clickCount: 1 });
     wc.sendInputEvent({ type: 'mouseUp', x: point.x, y: point.y, button: 'left', clickCount: 1 });
+    return point.before;
   }, { id, selector });
 }
+
+/**
+ * Click `selector` in the opener and wait for a new page matching `matcher`.
+ * Pages that existed before the click never count. On a timeout the failure
+ * says whether the click reached the page, what window.open returned, how the
+ * page's visibility and focus changed, and lists every page.
+ */
+async function clickAndWaitForPage(app, openerId, selector, matcher, label) {
+  const pagesBefore = await webContentsIds(app);
+  const before = await clickWebContents(app, openerId, selector);
+  const opened = await waitForWebContents(app, matcher, undefined, { exclude: pagesBefore });
+  if (opened) return opened;
+  const after = await evaluateWebContents(app, openerId, `({
+    clicks: window.clicks?.[${JSON.stringify(selector)}] || 0,
+    opens: (window.opens || []).slice(${before.opens}),
+    states: (window.pageStates || []).slice(${Math.max(0, before.states - 1)}),
+    now: { at: Math.round(performance.now()), visibility: document.visibilityState, focus: document.hasFocus() },
+  })`);
+  const click = after.clicks > before.clicks ? 'reached the page' : 'never reached the page';
+  assert.fail(`${label}; the ${selector} click ${click}; window.open calls: ${JSON.stringify(after.opens)}; ` +
+    `page states: ${JSON.stringify(after.states)} now ${JSON.stringify(after.now)}; ` +
+    `pages: ${JSON.stringify(await describeWebContents(app))}`);
+}
+
+const openCallbackFromClick = (app, openerId, selector, label) =>
+  clickAndWaitForPage(app, openerId, selector, { pathname: '/callback' }, label);
 
 async function waitForOAuthResult(app, relyingId, mode, timeout = 20_000) {
   const deadline = Date.now() + timeout;
@@ -206,7 +265,8 @@ test('Google OAuth compatibility holds across popup and tab-style flows', { time
           window.oauthResults[event.data.mode] = event.data.payload;
           document.getElementById('result').textContent = JSON.stringify(window.oauthResults);
         });
-      </script>`);
+      </script>
+      ${CLICK_DIAGNOSTICS}`);
   });
   relyingBase = relying.base;
 
@@ -234,15 +294,12 @@ test('Google OAuth compatibility holds across popup and tab-style flows', { time
   assert.ok(relyingWc, 'relying-party tab should load');
 
   for (const mode of ['popup', 'tab']) {
-    await clickWebContents(app, relyingWc.id, `#${mode}-login`);
-
-    const callbackWc = await waitForWebContents(app, {
+    const callbackWc = await clickAndWaitForPage(app, relyingWc.id, `#${mode}-login`, {
       hostname: relyingUrl.hostname,
       port: relyingUrl.port,
       pathname: '/oauth/callback',
       search: `mode=${mode}`,
-    });
-    assert.ok(callbackWc, `${mode} flow should reach the callback`);
+    }, `${mode} flow should reach the callback`);
 
     const result = await waitForOAuthResult(app, relyingWc.id, mode);
     assert.ok(result, `${mode} flow should post its result to the opener`);
@@ -297,12 +354,13 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
       <a id="canva" href="canva://callback?code=test-only&state=opaque">Return to Canva</a>
       <a id="canva-redirect" href="/redirect-canva">Redirect to Canva</a>
       <a id="other-app" href="another-installed-app://callback?code=test-only&state=opaque">Return to another app</a>
-      <button id="popup" onclick="window.popupClicks = (window.popupClicks || 0) + 1; window.open('/callback', 'oauth', 'popup,width=520,height=680')">Popup</button>
+      <button id="popup" onclick="window.open('/callback', 'oauth', 'popup,width=520,height=680')">Popup</button>
       <button id="tab" onclick="window.open('/callback', '_blank')">New tab</button>
       <button id="frame" onclick="document.querySelector('iframe').src='/redirect'">Frame callback</button>
       <button id="newwindow" onclick="window.open('claude://callback?code=test-only&state=opaque')">App window</button>
       <button id="close-after-callback" onclick="location.href='claude://callback?code=test-only&state=opaque'; setTimeout(close, 20)">Close after callback</button>
-      <iframe></iframe>`);
+      <iframe></iframe>
+      ${CLICK_DIAGNOSTICS}`);
   });
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-app-login-'));
   let app;
@@ -321,9 +379,7 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
 
   // The built-in 1Password shortcut must stay on the focused OAuth window.
   // Targeting the opener steals focus and can make Google dismiss the popup.
-  await clickWebContents(app, root.id, '#popup');
-  const fillPopup = await waitForWebContents(app, { pathname: '/callback' });
-  assert.ok(fillPopup, '1Password target popup should open');
+  const fillPopup = await openCallbackFromClick(app, root.id, '#popup', '1Password target popup should open');
   const popupTarget = await callTestHook(app, 'onePasswordTarget');
   assert.equal(popupTarget.kind, 'popup');
   assert.equal(popupTarget.webContentsId, fillPopup.id);
@@ -363,9 +419,7 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
     assert.equal(state.prompts.length, count, `${selector} callback should prompt once`);
   }
   for (const mode of ['popup', 'tab']) {
-    await clickWebContents(app, root.id, `#${mode}`);
-    const child = await waitForWebContents(app, { pathname: '/callback' });
-    assert.ok(child, `${mode} should open`);
+    const child = await openCallbackFromClick(app, root.id, `#${mode}`, `${mode} should open`);
     for (const selector of ['direct', 'redirect']) {
       await clickWebContents(app, child.id, `#${selector}`);
       const state = await waitForLaunch(++count);
@@ -376,17 +430,7 @@ test('external app login callbacks from tabs, redirects, frames and OAuth popups
   // OAuth completion pages often close their popup after attempting the app
   // callback. Delay the native confirmation long enough to prove that the
   // captured callback no longer depends on that WebContents staying alive.
-  const pagesBefore = await webContentsIds(app);
-  const clicksBefore = await evaluateWebContents(app, root.id, 'window.popupClicks || 0');
-  await clickWebContents(app, root.id, '#popup');
-  const closingChild = await waitForWebContents(app, { pathname: '/callback' }, undefined, { exclude: pagesBefore });
-  if (!closingChild) {
-    // Say whether the click reached the page (a lost click) or the page asked
-    // for a popup that never appeared, so a CI failure explains itself.
-    const clicksAfter = await evaluateWebContents(app, root.id, 'window.popupClicks || 0');
-    const click = clicksAfter > clicksBefore ? 'reached the page' : 'never reached the page';
-    assert.fail(`self-closing popup should open; the #popup click ${click}; pages: ${JSON.stringify(await describeWebContents(app))}`);
-  }
+  const closingChild = await openCallbackFromClick(app, root.id, '#popup', 'self-closing popup should open');
   await app.evaluate(() => { globalThis.appHandoffTest.promptDelay = 150; });
   await clickWebContents(app, closingChild.id, '#close-after-callback');
   const afterClose = await waitForLaunch(++count);

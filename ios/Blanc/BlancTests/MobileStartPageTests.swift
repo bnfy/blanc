@@ -253,7 +253,14 @@ final class MobileStartPageTests: XCTestCase {
         }
         let first = try await listed(#"["Blanc"]"#)
         XCTAssertEqual(first, #"["Blanc"]"#, "The widget lists the saved Favorite")
-        let shown = try await webView.evaluateJavaScript("(() => { const w = document.getElementById('favoritesWidget'); return !!w && !w.hidden && w.getClientRects().length > 0; })()") as? Bool
+        // The widget shows when the page applies the widget settings (applyWidgets), which can
+        // arrive after its Favorites list has filled in.
+        var shown: Bool?
+        for _ in 0..<50 {
+            shown = try await webView.evaluateJavaScript("(() => { const w = document.getElementById('favoritesWidget'); return !!w && !w.hidden && w.getClientRects().length > 0; })()") as? Bool
+            if shown == true { break }
+            try await Task.sleep(nanoseconds: 100_000_000)
+        }
         XCTAssertEqual(shown, true, "The Favorites widget shows once it's switched on")
         // Widgets follow the shortcuts down the page, which scrolls (as on Android).
         _ = try await webView.evaluateJavaScript("scrollTo({top: document.scrollingElement.scrollHeight, behavior: 'instant'}); true")

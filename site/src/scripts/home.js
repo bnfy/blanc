@@ -3,6 +3,7 @@ import { initHorizonShield } from "./horizon-shield.js";
 import { initGlanceDemo } from "./glance-demo.js";
 import { initGestureDemo } from "./gesture-demo.js";
 import { initFloatingIslandHero } from "./floating-island-hero.js";
+import { initDeviceTour } from "./device-tour.js";
 import { initMailPromo } from "./mail-promo.js";
 
 // The homepage works without this script: every switching path and every
@@ -62,6 +63,8 @@ export function initFaq(toggle, questions) {
 export function initHome({ document = window.document, view = window } = {}) {
   initHandheldDownload({ document, view });
   initFloatingIslandHero(document.querySelector("[data-float-window]"), { view });
+  // The hero shows Blanc on each device in turn (device-tour.js).
+  initDeviceTour(document.querySelector("[data-device-tour]"), { view });
   // The Blocker shield turns as it scrolls by (three.js, loaded lazily).
   initHorizonShield(document.querySelector(".horizon-study"), { view });
   initGlanceDemo(document.querySelector("#glance"), { view });

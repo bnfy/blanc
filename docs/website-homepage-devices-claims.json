@@ -1,0 +1,104 @@
+{
+  "scope": "The homepage hero's device tour (November 23, 2026; spec docs/superpowers/specs/2026-11-23-homepage-device-tour-design.md): one caption each for Blanc on the desktop, iPhone, iPad and iPhone Duo. The desktop slide is the floating Island window of website-v1.40-claims.json; the other slides are App Store 1.1 captures.",
+  "verified": "2026-11-23",
+  "desktopRelease": "v1.52.0",
+  "iosRelease": "1.1 (202611220258)",
+  "iosSourceSha": "c03aecfed3349b5043fb795cffd9d54825e81daa",
+  "releaseEvidence": "docs/ios/app-store-connect.md",
+  "captures": [
+    { "capture": "docs/ios/app-store/captures/1-start.png", "shown": "site/public/devices/iphone-start-1.1-660.webp" },
+    { "capture": "docs/ios/app-store/captures/ipad-13/2-split.png", "shown": "site/public/devices/ipad-split-view-1.1-1680.webp" },
+    { "capture": "docs/ios/app-store/captures/duo-open/1-start.png", "shown": "site/public/devices/duo-unfolded-start-1.1-1560.webp" },
+    { "capture": "docs/ios/app-store/captures/duo-closed/3-spaces.png", "shown": "site/public/devices/duo-folded-spaces-1.1-640.webp" }
+  ],
+  "prohibitedClaims": [
+    "Blanc hides the Island by default",
+    "Blanc for Android",
+    "default browser on iPhone"
+  ],
+  "evidenceGroups": {
+    "floatStyle": {
+      "ref": "v1.52.0",
+      "evidence": [
+        "src/main/island-autohide.js",
+        "src/main/settings.js",
+        "docs/press/release-notes/v1.40.0.md"
+      ],
+      "qualification": "Auto-hide the Island is opt-in (islandAutoHide defaults to false, Settings → General), which is why the caption says the Island can hide. With it on, the Island floats back over the page from the window's top edge on macOS, Windows and Linux (v1.40.0 and later, unchanged in v1.52.0). On native Wayland the band above a floating window can't reveal it. The window drawn is a v1.40.0 macOS capture shown without its traffic lights (owner, November 23, 2026)."
+    },
+    "iphoneIsland": {
+      "ref": "c03aecfed3349b5043fb795cffd9d54825e81daa",
+      "evidence": [
+        "ios/Blanc/Blanc/IslandLayout.swift",
+        "ios/Blanc/Blanc/IslandSwipe.swift",
+        "ios/Blanc/BlancTests/IslandSwipeTests.swift",
+        "ios/Blanc/BlancUITests/IslandSwipeUITests.swift"
+      ],
+      "records": [
+        "docs/ios/app-store-listing.md",
+        "docs/ios/app-store-connect.md"
+      ],
+      "qualification": "App Store version 1.1 (build 202611220258 from c03aecfed), on sale since November 22, 2026: the Island holds the address and tabs at the bottom of the screen, and swiping it switches tabs (the App Store listing's claim table, IslandSwipe). The capture is the 1.1 App Store Start Page shot from the running app."
+    },
+    "ipadSplitView": {
+      "ref": "c03aecfed3349b5043fb795cffd9d54825e81daa",
+      "evidence": [
+        "ios/Blanc/Blanc/SplitModel.swift",
+        "ios/Blanc/BlancUITests/SplitViewUITests.swift"
+      ],
+      "records": [
+        "docs/ios/app-store-listing.md",
+        "docs/website-ipad-1.0.3-claims.json"
+      ],
+      "qualification": "Split View shows two tabs side by side, kept as one item, in the unfolded layout only (an iPad, the iPhone Duo's inner display); two panes. iPad has run Blanc since App Store version 1.0.3 (website-ipad-1.0.3-claims.json). Trackpad, pointer and Stage Manager are not claimed."
+    },
+    "duo": {
+      "ref": "c03aecfed3349b5043fb795cffd9d54825e81daa",
+      "evidence": [
+        "ios/Blanc/Blanc/IslandLayout.swift",
+        "ios/Blanc/BlancTests/IslandLayoutTests.swift",
+        "ios/Blanc/BlancUITests/DuoUITests.swift",
+        "ios/Blanc/Blanc/SplitModel.swift"
+      ],
+      "records": [
+        "docs/ios/app-store-listing.md",
+        "docs/ios/app-store-connect.md"
+      ],
+      "qualification": "Blanc for iPhone is an iPhone app, so it runs on the iPhone Duo folded (the outer display) and unfolded (the inner display, regular in both size classes: the unfolded Island, Duo-1, #1275), and Split View is shown in the unfolded layout (SplitModel). App Store 1.1 carries the iPhone Duo screenshot set, folded and unfolded (app-store-connect.md item 26). The captures are 1.1's own Duo shots."
+    }
+  },
+  "claims": [
+    {
+      "id": "home-devices-001",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "On your computer, the Island can hide until your pointer reaches the top edge.",
+      "subject": "Blanc",
+      "verdict": "qualified",
+      "evidenceGroups": ["floatStyle"]
+    },
+    {
+      "id": "home-devices-002",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "On iPhone, the Island holds your address and tabs at the bottom. Swipe it to switch tabs.",
+      "subject": "Blanc for iPhone and iPad",
+      "verdict": "verified",
+      "evidenceGroups": ["iphoneIsland"]
+    },
+    {
+      "id": "home-devices-003",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "On iPad, Split View shows two pages at once.",
+      "subject": "Blanc for iPhone and iPad",
+      "verdict": "verified",
+      "evidenceGroups": ["ipadSplitView"]
+    },
+    {
+      "id": "home-devices-004",
+      "source": "site/src/pages/index.astro",
+      "exactWording": "On iPhone Duo, use Blanc folded, or unfold it for Split View.",
+      "subject": "Blanc for iPhone and iPad",
+      "verdict": "qualified",
+      "evidenceGroups": ["duo"]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "version": "158.0.8127.909",
+  "build": 909,
+  "tag": "chromium-beta-linux-158.0.8127.909",
+  "published": "2026-11-23",
+  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-158.0.8127.909",
+  "packages": [
+    {
+      "arch": "x64",
+      "format": "deb",
+      "name": "blanc-beta_158.0.8127.909-1_amd64.deb",
+      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-158.0.8127.909/blanc-beta_158.0.8127.909-1_amd64.deb",
+      "bytes": 157132456,
+      "sha256": "884e80bb31213d521f2da45623eea6bc70a246b180e6cdc60fa3c83f0fcf260b"
+    },
+    {
+      "arch": "x64",
+      "format": "rpm",
+      "name": "blanc-beta-158.0.8127.909-1.x86_64.rpm",
+      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-158.0.8127.909/blanc-beta-158.0.8127.909-1.x86_64.rpm",
+      "bytes": 158722653,
+      "sha256": "dbe5e55ccac709d182ccb8067025046fb6ace18b2c4a0a5897e37f8a21aedcee"
+    },
+    {
+      "arch": "arm64",
+      "format": "deb",
+      "name": "blanc-beta_158.0.8127.909-1_arm64.deb",
+      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-158.0.8127.909/blanc-beta_158.0.8127.909-1_arm64.deb",
+      "bytes": 139786952,
+      "sha256": "2572d5b35fde7f827e0726db2e440dcfce456efa9630aa859f69837a5cc70cfe"
+    },
+    {
+      "arch": "arm64",
+      "format": "rpm",
+      "name": "blanc-beta-158.0.8127.909-1.aarch64.rpm",
+      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-158.0.8127.909/blanc-beta-158.0.8127.909-1.aarch64.rpm",
+      "bytes": 141008885,
+      "sha256": "b1b330e638cc175bbef0b330987b3f14b30a8dd06150524b43eaefa1145acb53"
+    }
+  ],
+  "requirement": "Debian, Ubuntu and Fedora · x64 and arm64",
+  "chromium": "158.0.8127.37",
+  "repository": {
+    "url": "https://pkg.blanc.day",
+    "key": "https://pkg.blanc.day/blanc-repository.asc",
+    "fingerprint": "50D3 6197 4F47 7C8C 87E1 17BD 95AE 97AB CACF EE6C"
+  },
+  "manualSetup": {
+    "source": "chromium/linux/manual-repository.md",
+    "commit": "07f74ae01db4cdf0947c3236315dc1ee893dc111",
+    "guideUrl": "https://github.com/bnfy/blanc/blob/chromium/next/chromium/linux/manual-repository.md",
+    "optOut": "sudo tee -a /etc/default/blanc-beta >/dev/null <<'DEFAULTS'\n\nrepo_add_once=\"false\"\nrepo_managed=\"false\"\nDEFAULTS",
+    "key": "(\n  set -eu\n  work=$(mktemp -d)\n  trap 'rm -rf \"$work\"' EXIT\n  curl --fail --silent --show-error https://pkg.blanc.day/blanc-repository.asc -o \"$work/key.asc\"\n  fingerprint=$(gpg --batch --with-colons --show-keys \"$work/key.asc\" |\n    awk -F: '$1 == \"pub\" { primary=1 } $1 == \"fpr\" && primary { print $10; primary=0 }')\n  if [ \"$fingerprint\" != \"50D361974F477C8C87E117BD95AE97ABCACFEE6C\" ]; then\n    echo 'Unexpected Blanc repository signing key' >&2\n    exit 1\n  fi\n  sudo install -d -m 0755 /usr/share/keyrings\n  sudo install -m 0644 \"$work/key.asc\" /usr/share/keyrings/blanc-beta.asc\n)",
+    "deb": "(\n  set -eu\n  work=$(mktemp -d)\n  trap 'rm -rf \"$work\"' EXIT\n  gpg --dearmor --output \"$work/key.gpg\" /usr/share/keyrings/blanc-beta.asc\n  sudo install -m 0644 \"$work/key.gpg\" /usr/share/keyrings/blanc-beta.gpg\n  printf 'deb [arch=%s signed-by=/usr/share/keyrings/blanc-beta.gpg] https://pkg.blanc.day/deb stable main\\n' \\\n    \"$(dpkg --print-architecture)\" | sudo tee /etc/apt/sources.list.d/blanc-beta.list >/dev/null\n  sudo apt-get update\n)",
+    "rpm": "(\n  set -eu\n  sudo rpm --import /usr/share/keyrings/blanc-beta.asc\n  sudo tee /etc/yum.repos.d/blanc-beta.repo >/dev/null <<'REPO'\n[blanc-beta]\nname=Blanc Beta\nmirrorlist=https://pkg.blanc.day/rpm/stable/$basearch/mirrorlist\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=file:///usr/share/keyrings/blanc-beta.asc\nREPO\n  sudo dnf --repo=blanc-beta --refresh -y makecache\n)"
+  }
+}

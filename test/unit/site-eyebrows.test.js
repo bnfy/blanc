@@ -19,7 +19,7 @@ const SRC = path.join(ROOT, 'site/src');
 const ELEMENT = /<([a-z][a-z0-9]*)\b[^>]*\bclass="[^"]*(?<![\w-])(?:section-kicker|pop-eyebrow|mail-eyebrow|frame-kicker|eyebrow)(?![\w-])[^"]*"[^>]*>([\s\S]*?)<\/\1>/g;
 
 const ALLOWED = [
-  'components/ReleaseEvidence.astro → public v1.27.0 · October 3, 2026',
+  'components/ReleaseEvidence.astro → public v1.52.0 · November 21, 2026',
   'pages/404.astro → 404',
   'pages/about.astro → about blanc',
   'pages/ambassadors.astro → Blanc ambassador pilot',

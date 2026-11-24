@@ -372,3 +372,134 @@ test('offline CLI writes release data and --check fails after it goes stale', ()
   assert.equal(stale.status, 1);
   assert.match(stale.stderr, /stale or missing/);
 });
+
+// ---------- Blanc Beta (Chromium fork) releases: their own file ----------
+
+const BETA_FIXTURE_PATH = path.join(ROOT, 'test/fixtures/site-beta-releases.json');
+const betaFixture = () => JSON.parse(fs.readFileSync(BETA_FIXTURE_PATH, 'utf8'));
+const headingsOf = (entry) => entry.sections.map((section) => section.heading);
+const allTextOf = (entry) => entry.sections.flatMap((section) => [
+  section.heading || '',
+  ...section.blocks.flatMap((block) => (block.type === 'list'
+    ? block.items.map((item) => text(item.spans))
+    : [text(block.spans)])),
+]).join('\n');
+const betaByTag = (tag) => changelog.normalizeBetaReleases(betaFixture()).find((entry) => entry.tag === tag);
+
+test('beta tags map to platforms', () => {
+  assert.equal(changelog.betaPlatform('chromium-beta-2.0.0-beta.9'), 'mac');
+  assert.equal(changelog.betaPlatform('chromium-beta-windows-158.0.8127.904'), 'windows');
+  assert.equal(changelog.betaPlatform('chromium-beta-linux-158.0.8127.906'), 'linux');
+  assert.equal(changelog.betaPlatform('v1.52.0'), null);
+  assert.equal(changelog.betaPlatform('blanc-chromium-preview-l8-20261024-14706b0e'), null);
+});
+
+test('only published chromium-beta pre-releases become beta entries', () => {
+  const betas = changelog.normalizeBetaReleases(betaFixture());
+  assert.deepEqual(betas.map((entry) => entry.tag), [
+    'chromium-beta-linux-158.0.8127.906',
+    'chromium-beta-windows-158.0.8127.904',
+    'chromium-beta-windows-158.0.8127.902',
+    'chromium-beta-2.0.0-beta.9',
+    'chromium-beta-2.0.0-beta.2',
+  ]);
+  for (const entry of betas) assert.equal(entry.product, 'beta');
+  assert.deepEqual(betas.map((entry) => entry.version), [
+    '158.0.8127.906', '158.0.8127.904', '158.0.8127.902', '2.0.0-beta.9', '2.0.0-beta.2',
+  ]);
+  assert.deepEqual(betas.map((entry) => entry.platform), ['linux', 'windows', 'windows', 'mac', 'mac']);
+});
+
+test('beta anchors are namespaced and unique across products', () => {
+  const anchors = changelog.normalizeBetaReleases(betaFixture()).map((entry) => entry.anchor);
+  assert.ok(anchors.includes('beta-mac-2-0-0-beta-9'));
+  assert.ok(anchors.includes('beta-windows-158-0-8127-904'));
+  assert.ok(anchors.includes('beta-linux-158-0-8127-906'));
+  const desktop = new Set(siteReleases.map((release) => release.anchor));
+  for (const anchor of anchors) assert.ok(!desktop.has(anchor), anchor);
+  assert.equal(new Set(anchors).size, anchors.length);
+});
+
+test('Mac and Linux beta bodies keep change sections and limits', () => {
+  const beta9 = betaByTag('chromium-beta-2.0.0-beta.9');
+  assert.deepEqual(headingsOf(beta9), ['Fixed in this beta', 'New in this beta', 'Not in this beta yet']);
+  for (const entry of changelog.normalizeBetaReleases(betaFixture())) {
+    const all = allTextOf(entry);
+    assert.doesNotMatch(all, /Checking the download|Tested on|is an early preview of Blanc|This is a pre-release/, entry.tag);
+  }
+});
+
+test("a platform's first beta keeps What to know", () => {
+  assert.deepEqual(headingsOf(betaByTag('chromium-beta-2.0.0-beta.2')), ['What to know', 'Not in this beta yet']);
+  assert.deepEqual(headingsOf(betaByTag('chromium-beta-linux-158.0.8127.906')), ['What to know', 'Not in this beta yet']);
+  assert.ok(!headingsOf(betaByTag('chromium-beta-2.0.0-beta.9')).includes('What to know'));
+});
+
+test('Windows lead-in paragraphs are kept whole', () => {
+  const entry = betaByTag('chromium-beta-windows-158.0.8127.904');
+  const paragraphs = paragraphsOf(entry);
+  assert.deepEqual(paragraphs.map((paragraph) => paragraph.split('.')[0]), [
+    'Check for updates', 'About tells the truth on Windows', 'Updating', 'Not yet',
+  ]);
+  assert.doesNotMatch(allTextOf(entry), /Blanc 1\.51 stays|SHA256SUMS/);
+  assert.equal(paragraphsOf(betaByTag('chromium-beta-windows-158.0.8127.902'))[0].split('.')[0], 'Install');
+});
+
+test('a beta with nothing but boilerplate still yields an entry', () => {
+  const [, beta9] = betaFixture();
+  const boilerplate = {
+    ...beta9,
+    tag_name: 'chromium-beta-2.0.0-beta.10',
+    published_at: '2026-11-24T00:00:00Z',
+    body: 'Blanc Beta is an early preview.\n\n**What to know**\n\n- **A separate app.** Yes.\n\n**Checking the download**\n\nSigned.',
+  };
+  const entry = changelog.normalizeBetaReleases([...betaFixture(), boilerplate])
+    .find((candidate) => candidate.tag === 'chromium-beta-2.0.0-beta.10');
+  assert.ok(entry);
+  assert.deepEqual(entry.sections, []);
+  assert.equal(entry.url, 'https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.9');
+});
+
+test('desktop release data is unchanged by the beta output', () => {
+  const output = changelog.renderReleasesJson(changelog.normalizeReleases(fixture));
+  const digest = require('node:crypto').createHash('sha256').update(output).digest('hex');
+  assert.equal(digest, 'e43d6e0a924bce82e2b8e28c466df0cda7c726b550d728d32a761135e7020e04');
+});
+
+test('offline CLI writes beta data beside release data and --check names it when stale', () => {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-changelog-'));
+  const combined = path.join(outputDir, 'input.json');
+  fs.writeFileSync(combined, JSON.stringify([...fixture, ...betaFixture()]));
+  const args = ['--input', combined, '--output-dir', outputDir];
+  const generate = spawnSync(process.execPath, [SCRIPT_PATH, ...args], { encoding: 'utf8' });
+  assert.equal(generate.status, 0, generate.stderr);
+  const betaPath = path.join(outputDir, 'beta-releases.json');
+  assert.equal(JSON.parse(fs.readFileSync(betaPath, 'utf8')).length, 5);
+  assert.ok(!fs.readFileSync(path.join(outputDir, 'releases.json'), 'utf8').includes('chromium-beta'));
+
+  fs.appendFileSync(betaPath, '\n');
+  const stale = spawnSync(process.execPath, [SCRIPT_PATH, ...args, '--check'], { encoding: 'utf8' });
+  assert.equal(stale.status, 1);
+  assert.match(stale.stderr, /beta-releases\.json/);
+  assert.doesNotMatch(stale.stderr, /- .*[\\/]releases\.json/);
+});
+
+test('site:deploy refuses a changelog behind GitHub', () => {
+  const scripts = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).scripts;
+  assert.ok(scripts['site:deploy'].startsWith('npm run site:changelog:check && '), scripts['site:deploy']);
+});
+
+test('a beta with limits but no change notes warns', (t) => {
+  const warnings = [];
+  t.mock.method(console, 'warn', (message) => { warnings.push(message); });
+  const [, beta9] = betaFixture();
+  const limitsOnly = {
+    ...beta9,
+    tag_name: 'chromium-beta-2.0.0-beta.11',
+    published_at: '2026-11-25T00:00:00Z',
+    body: 'Intro.\n\n**What to know**\n\n- **A separate app.** Yes.\n\n**Not in this beta yet**\n\n- **Protected video** doesn\'t play.',
+  };
+  changelog.normalizeBetaReleases([...betaFixture(), limitsOnly]);
+  assert.deepEqual(warnings.filter((message) => /beta\.11/.test(message)).length, 1);
+  assert.ok(!warnings.some((message) => /beta\.9\b|beta\.2\b/.test(message)));
+});

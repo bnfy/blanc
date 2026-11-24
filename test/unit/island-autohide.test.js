@@ -14,6 +14,7 @@ const {
   COVERED_STRIP_ROW_PX, coveredStripHeight,
 } = require('../../src/main/island-autohide');
 const { calculateChromeLayout } = require('../../src/main/chrome-layout');
+const { inputMatchesAccelerator, menuAccelerator } = require('../../src/main/menu-accelerators');
 
 const ROOT = path.join(__dirname, '..', '..');
 const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
@@ -102,7 +103,11 @@ test('hover-open never fires on a hidden pill and macOS hides its traffic lights
 });
 
 test('View menu toggle and shortcut', () => {
-  assert.match(main, /label: t\('menu\.autoHideIsland'\),\s+type: 'checkbox',\s+checked: islandAutoHide,\s+accelerator: 'CmdOrCtrl\+Alt\+B'/);
+  assert.match(main, /label: t\('menu\.autoHideIsland'\),\s+type: 'checkbox',\s+checked: islandAutoHide,\s+accelerator: menuAccelerator\('toggle-island-autohide'\)/);
+  // ⌥⌘B is Favorites on the Mac, so Auto-hide is ⇧⌘B there.
+  assert.equal(menuAccelerator('toggle-island-autohide', 'darwin'), 'Cmd+Shift+B');
+  assert.equal(menuAccelerator('toggle-island-autohide', 'win32'), 'Ctrl+Alt+B');
+  assert.equal(menuAccelerator('toggle-island-autohide', 'linux'), 'Ctrl+Alt+B');
   assert.match(main, /installIslandAutoHideShortcut\(webContents, owner\);/);
 });
 
@@ -305,8 +310,14 @@ test('a closed window forgets what its strip was told (macOS Dock reopen gets a 
 
 test('the auto-hide shortcut matches the physical key only on macOS, where Option changes the key value', () => {
   const shortcut = main.slice(main.indexOf('function installIslandAutoHideShortcut('), main.indexOf('// Windows/Linux only: macOS keeps its native menu key equivalent.'));
-  assert.match(shortcut, /String\(input\.key\)\.toLowerCase\(\) === 'b'\s*\|\| \(process\.platform === 'darwin' && input\.code === 'KeyB'\)/);
-  assert.doesNotMatch(shortcut, /input\.code !== 'KeyB'/);
+  assert.match(shortcut, /inputMatchesAccelerator\(input, menuAccelerator\('toggle-island-autohide'\)\)/);
+  const key = (platform, input) => inputMatchesAccelerator({ type: 'keyDown', ...input }, menuAccelerator('toggle-island-autohide', platform), platform);
+  assert.equal(key('darwin', { key: 'B', code: 'KeyB', meta: true, shift: true }), true);
+  assert.equal(key('darwin', { key: '∫', code: 'KeyB', meta: true, alt: true }), false, '⌥⌘B is Favorites');
+  assert.equal(key('win32', { key: 'b', code: 'KeyB', control: true, alt: true }), true);
+  // AltGr+B types { on a Hungarian layout: only the letter counts off the Mac.
+  assert.equal(key('linux', { key: '{', code: 'KeyB', control: true, alt: true }), false);
+  assert.equal(key('darwin', { key: 'B', code: 'KeyB', meta: true, shift: true, type: 'keyUp' }), false);
 });
 
 test('normalizeAutoHideStyle keeps push and turns anything else into float', () => {

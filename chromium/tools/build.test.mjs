@@ -132,7 +132,7 @@ test('desktop lane keeps its defaults', () => {
 });
 test('android lane resolves its out dir and target', () => {
   assert.deepEqual(buildLane(['--lane=android']), { lane: 'android', out: 'AndroidDebug', target: 'chrome_public_apk' });
-  assert.deepEqual(buildLane(['--lane=android', '--out=AndroidDebugX64']), { lane: 'android', out: 'AndroidDebugX64', target: 'chrome_public_apk' });
+  assert.deepEqual(buildLane(['--lane=android', '--out=AndroidDebugX64']), { lane: 'android', out: 'AndroidDebugX64', target: 'chrome_public_apk', extraTargets: ['blanc/android:blanc_android_junit_tests'] });
 });
 test('lanes and outputs never mix', () => {
   for (const options of [['--lane=ios'], ['--lane='], ['--lane=android', '--lane=desktop'], ['--lane=desktop', '--out=AndroidDebug'],

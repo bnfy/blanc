@@ -21,6 +21,7 @@ const {
   page = null,          // <body data-page>; legal pages pass nothing
   header = 'solid',     // 'island' | 'solid' | 'legal' | 'minimal' (lockup only)
   analytics = true,     // footer privacy choices + site.js; false on legal pages
+  footer = 'light',     // 'light' (white band) | 'dark' (the homepage)
   social = 'standard',  // 'rich' | 'standard' | 'none'
   current = null,       // nav highlight
   robots = 'index,follow,max-image-preview:large',
@@ -93,7 +94,7 @@ const ogImageUrl = SITE + ogImage;
 <slot name="before-header" />
 <Header variant={header} current={current} />
 <slot />
-<Footer measurementControls={analytics} notes={Astro.slots.has('footnotes')}>
+<Footer measurementControls={analytics} notes={Astro.slots.has('footnotes')} tone={footer}>
   <slot name="footnotes" slot="notes" />
 </Footer>
 {newsletterPrompt && <NewsletterPrompt />}

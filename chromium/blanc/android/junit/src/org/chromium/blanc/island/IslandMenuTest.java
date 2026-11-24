@@ -3,6 +3,7 @@
 package org.chromium.blanc.island;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -59,7 +60,7 @@ public class IslandMenuTest {
         IslandMenu.Context c = web();
         c.privateTab = true;
         assertEquals(
-                List.of(Item.blocking(true), Item.of(Kind.RELOAD), Item.of(Kind.SHARE), Item.of(Kind.COPY_LINK),
+                List.of(Item.of(Kind.CLOSE_PRIVATE_TAB), Item.blocking(true), Item.of(Kind.RELOAD), Item.of(Kind.SHARE), Item.of(Kind.COPY_LINK),
                         Item.of(Kind.FIND), Item.of(Kind.PAGE_ZOOM), Item.desktopSite(false),
                         Item.of(Kind.NEW_PRIVATE_TAB), Item.of(Kind.SETTINGS)),
                 IslandMenu.items(c));
@@ -98,6 +99,25 @@ public class IslandMenuTest {
         assertEquals(List.of(IslandMenu.Item.of(IslandMenu.Kind.BLOCKING_UNAVAILABLE), IslandMenu.Item.of(IslandMenu.Kind.NEW_PRIVATE_TAB),
                         IslandMenu.Item.of(IslandMenu.Kind.SETTINGS)),
                 IslandMenu.items(c));
+    }
+
+    // #1682: with no Private chip on the Island, Close Private Tab leads a private tab's menu.
+    @Test
+    public void aPrivateTabLeadsWithClosePrivateTab() {
+        IslandMenu.Context c = web();
+        assertFalse(IslandMenu.items(c).contains(Item.of(Kind.CLOSE_PRIVATE_TAB)));
+        c.privateTab = true;
+        assertEquals(Item.of(Kind.CLOSE_PRIVATE_TAB), IslandMenu.items(c).get(0));
+    }
+
+    // #1682: Stop holds New tab's place on the Island while a page loads, so New tab is in the menu.
+    @Test
+    public void newTabIsInTheMenuWhileAPageLoads() {
+        IslandMenu.Context c = web();
+        assertFalse(IslandMenu.items(c).contains(Item.of(Kind.NEW_TAB)));
+        c.loading = true;
+        List<Item> items = IslandMenu.items(c);
+        assertEquals(items.indexOf(Item.of(Kind.NEW_PRIVATE_TAB)) - 1, items.indexOf(Item.of(Kind.NEW_TAB)));
     }
 
     // #1463: the iPhone Island has no Reload button, so Reload sits in the menu before Share (Stop

@@ -191,7 +191,7 @@ function main(argv) {
       const locales = adb('shell', 'cmd', 'locale', 'get-app-locales', PACKAGE);
       if (!/\[de\]/.test(locales)) problems.push(`app locales: ${locales.trim()}`);
       // Blanc restarted itself: its Start Page is German.
-      xml = waitFor('Suche oder URL eingeben', 15) ?? waitFor('Anpassen', 5);
+      xml = waitFor('Suchen oder URL eingeben', 15) ?? waitFor('Anpassen', 5);
       shot('german-start-page');
       if (!xml) problems.push('Blanc did not come back in German');
       stop();

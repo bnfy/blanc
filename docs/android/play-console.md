@@ -93,6 +93,12 @@ script follows (`docs/superpowers/plans/2026-11-03-android-port.md`, A7 and A8;
 Internal (A7) → closed testing → open beta (A8) → production with staged
 rollout (A9). Each promotion is the owner's explicit approval.
 
+Once a stable version is on production, betas keep going to a testing track ahead of it: closed
+testing until production access, then open testing. [`channels.md`](channels.md) has the rules and
+the schedule. Production uploads need the service account's **Release to production** right for
+Blanc, which the owner grants when the first stable is ready. Until then it has only "Release apps
+to testing tracks" and the rights listed above.
+
 ## Listing and Data safety
 
 To come in A8, release-backed only (`docs/marketing-claims.md`): listing copy,

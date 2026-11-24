@@ -38,8 +38,14 @@ import '../styles/features-bento.css';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><span aria-current="page">features</span></nav>
 
   <header class="bento-head">
-    <h1 id="features-title">Everything in Blanc.</h1>
-    <p class="bento-lead"><span>Quiet on the screen, with a lot built in.</span> <span>Click any tile to see it at work.</span></p>
+    <h1 id="features-title">A quiet browser with a lot built in.</h1>
+    <div class="bento-intro">
+      <p class="bento-lead">The Island keeps tabs, search and page controls in one bar. Other tools, from Split View to Reader Mode, stay out of sight until you ask for them. Click any tile to see it at work.</p>
+      <div class="bento-actions">
+        <a class="bento-download" href="/download" data-track="download_click" data-cta-position="feature-hub-head">Download Blanc</a>
+        <a class="bento-new" href="/whats-new" data-track="feature_cta_click" data-feature="whats-new" data-cta-position="feature-hub-head">See what’s new <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
   </header>
 
   <section class="bento-band" aria-labelledby="bento-title">
@@ -56,7 +62,7 @@ import '../styles/features-bento.css';
       </BentoTile>
       <BentoTile id="quiet-tabs" href="/features/quiet-tabs" feature="quiet-tabs" area="R1">
         <div slot="visual" class="ui ui-panel">
-          <div class="ui-sec">trip · 4 tabs</div>
+          <div class="ui-sec">Trip · 4 tabs</div>
           <div class="ui-row is-on"><span class="ui-fav ui-fav--a">W</span><span class="ui-t">Typography</span></div>
           <div class="ui-row ui-quiet"><span class="ui-fav ui-fav--e">V</span><span class="ui-t">Copenhagen</span></div>
           <div class="ui-row ui-extra"><span class="ui-fav ui-fav--c">R</span><span class="ui-t">Radio</span><span class="ui-m">♪</span></div>
@@ -113,13 +119,13 @@ import '../styles/features-bento.css';
         <div class="bento-fade"><span aria-hidden="true">Favorites</span><span aria-hidden="true">Clock</span><h3 class="bento-display bento-accent">Widgets on one Start Page</h3><span aria-hidden="true">Shortcuts</span><span aria-hidden="true">Devices</span></div>
       </BentoTile>
       <BentoTile id="tab-groups" href="/features/tab-groups" feature="tab-groups" area="R4">
-        <div slot="visual" class="ui ui-chips"><span class="ui-chip ui-chip--1">trip <span>3 tabs</span></span><span class="ui-chip ui-chip--2">work <span>4</span></span><span class="ui-chip ui-chip--3">reading <span>2</span></span></div>
+        <div slot="visual" class="ui ui-chips"><span class="ui-chip ui-chip--1">Trip <span>3 tabs</span></span><span class="ui-chip ui-chip--2">Work <span>4</span></span><span class="ui-chip ui-chip--3">Reading <span>2</span></span></div>
         <h3>Named Groups keep tasks together</h3>
       </BentoTile>
       <BentoTile id="workspaces" href="/features/workspaces" feature="named-workspaces" area="R5" tone="gold">
         <div slot="visual" class="ui ui-panel ui-menu"><div class="ui-row is-on"><span class="ui-t">Research desk</span><span class="ui-m">2</span></div><div class="ui-row"><span class="ui-t">Weekend reading</span><span class="ui-m">2</span></div></div>
         <h3>Blanc Spaces save whole windows</h3>
-        <p class="bento-badge">Now free</p>
+        <p class="bento-badge">Now across profiles</p>
       </BentoTile>
     </div>
 
@@ -130,12 +136,21 @@ import '../styles/features-bento.css';
     <div class="bento-more">
       <h2 id="small-details-title">Smaller details that matter.</h2>
       <div class="bento-grid">
+        <BentoSmall id="split-view" href="/whats-new/1.40#split-view" feature="split-view" icon="split"><h3>Two tabs side by side in Split View</h3></BentoSmall>
+        <BentoSmall id="reader-mode" href="/whats-new/1.44#reader-mode" feature="reader-mode" icon="reader"><h3>Reader Mode for articles</h3></BentoSmall>
+        <BentoSmall id="favorites-folders" href="/whats-new/1.51#favorites-page" feature="favorites-folders" icon="folder"><h3>Favorites with folders inside folders</h3></BentoSmall>
+        <BentoSmall id="auto-hide" href="/whats-new/1.39#auto-hide-island" feature="auto-hide-island" icon="autohide"><h3>Auto-hide the Island</h3></BentoSmall>
+        <BentoSmall id="mini-window" href="/whats-new/1.46#mini-window" feature="mini-window" icon="mini"><h3>Mini windows over any app</h3></BentoSmall>
+        <BentoSmall id="tab-archive" href="/whats-new/1.39#tab-archive" feature="tab-archive" icon="archive"><h3>Tab Archive tidies idle tabs</h3></BentoSmall>
         <BentoSmall id="sync" href="/features/sync" feature="sync" icon="lock"><h3>Encrypted sync across devices</h3></BentoSmall>
+        <BentoSmall id="shared-spaces" href="/whats-new/1.45#shared-spaces" feature="shared-spaces" icon="shared"><h3>Shared Spaces on every computer</h3></BentoSmall>
+        <BentoSmall id="send-to-device" href="/features/sync" feature="send-to-device" icon="send"><h3>Send a page to another device</h3></BentoSmall>
         <BentoSmall id="vertical-tabs" href="/features/vertical-tabs" feature="vertical-tabs" icon="rail"><h3>Optional vertical tab rail</h3></BentoSmall>
         <BentoSmall id="mouse-gestures" href="/features/mouse-gestures" feature="mouse-gestures" icon="gesture"><h3>Mouse gestures</h3></BentoSmall>
         <BentoSmall id="1password" href="/features/1password" feature="1password" icon="key"><h3>1Password fill</h3></BentoSmall>
         <BentoSmall id="ublock-origin" href="/features/ad-blocking" feature="ublock-origin" icon="shield"><h3>Full uBlock Origin, optional</h3></BentoSmall>
         <BentoSmall id="dark-websites" href="/features/ad-blocking" feature="dark-websites" icon="moon"><h3>Dark websites</h3></BentoSmall>
+        <BentoSmall id="protected-video" href="/whats-new/1.43#protected-video-playback" feature="protected-video" icon="play"><h3>Protected video and music</h3></BentoSmall>
         <BentoSmall id="passkeys" href="/features/security" feature="passkeys" icon="finger"><h3>Touch ID passkeys on Mac</h3></BentoSmall>
         <BentoSmall id="drag-to-reorder" href="/features/tab-groups" feature="drag-to-reorder" icon="grip"><h3>Drag tabs into order</h3></BentoSmall>
         <BentoSmall id="import" href="/support#bookmark-import" feature="import" icon="import"><h3>Import bookmarks and Arc Spaces</h3></BentoSmall>
@@ -250,7 +265,7 @@ import '../styles/features-bento.css';
           <p class="pop-note">Your widgets and how many shortcuts show stay on this device; the shortcuts come from your history here.</p>
         </FeaturePop>
         <FeaturePop id="tab-groups" label="Named Groups" feature="tab-groups" href="/features/tab-groups" linkText="Read more about Named Groups">
-          <div slot="visual" class="ui ui-chips pop-chips"><span class="ui-chip ui-chip--1">trip <span>3 tabs</span></span><span class="ui-chip ui-chip--2">work <span>4</span></span><span class="ui-chip ui-chip--3">reading <span>2</span></span></div>
+          <div slot="visual" class="ui ui-chips pop-chips"><span class="ui-chip ui-chip--1">Trip <span>3 tabs</span></span><span class="ui-chip ui-chip--2">Work <span>4</span></span><span class="ui-chip ui-chip--3">Reading <span>2</span></span></div>
           <h2 id="pop-tab-groups-title">Named Groups keep a task’s tabs together.</h2>
           <p>Create a group with /group and a name, or from a tab’s right-click menu. The Island shows the current group’s tabs as dots, and other groups fold away in the ⌘L panel. Drag tabs and groups into the order you want.</p>
           <p class="pop-note">You name and fill every group. Blanc never sorts or groups tabs for you.</p>
@@ -268,11 +283,59 @@ import '../styles/features-bento.css';
           <p class="pop-note">Blanc Spaces is free for everyone.</p>
         </FeaturePop>
         <!-- Dense-grid popovers -->
+        <FeaturePop id="split-view" label="Split View" feature="split-view" href="/whats-new/1.40#split-view" linkText="Read about Split View">
+          <BentoIcon slot="visual" name="split" size="pop" />
+          <h2 id="pop-split-view-title">Show two tabs side by side in one window.</h2>
+          <p>Right-click a tab, choose Split with, then pick the tab to show beside it. The pane you click is the current tab, and the split stays together after a relaunch.</p>
+          <p class="pop-note">To end it, choose Remove from Split or Close Split in a tab’s menu.</p>
+        </FeaturePop>
+        <FeaturePop id="reader-mode" label="Reader Mode" feature="reader-mode" href="/whats-new/1.44#reader-mode" linkText="Read about Reader Mode">
+          <BentoIcon slot="visual" name="reader" size="pop" />
+          <h2 id="pop-reader-mode-title">Read articles without the clutter.</h2>
+          <p>Type /reader, or choose Enter Reader Mode when the expanded Island offers it. Blanc lifts the article out of the page on your computer and keeps its headings, links, images and tables. Leaving returns to the page as you left it.</p>
+          <p class="pop-note">Some pages aren’t articles. On those, Blanc says so and leaves the page as it was.</p>
+        </FeaturePop>
+        <FeaturePop id="favorites-folders" label="Favorites" feature="favorites-folders" href="/whats-new/1.51#favorites-page" linkText="Read about Favorites">
+          <BentoIcon slot="visual" name="folder" size="pop" />
+          <h2 id="pop-favorites-folders-title">Keep Favorites in folders, in your order.</h2>
+          <p>Favorites opens as a page in a tab, with your folders on the left. Make folders inside folders, drag favorites and folders where you want them, and search every folder.</p>
+          <p class="pop-note">Deleting a folder keeps what was in it.</p>
+        </FeaturePop>
+        <FeaturePop id="auto-hide" label="Auto-hide" feature="auto-hide-island" href="/whats-new/1.39#auto-hide-island" linkText="Read about Auto-hide">
+          <BentoIcon slot="visual" name="autohide" size="pop" />
+          <h2 id="pop-auto-hide-title">Give the page the whole window.</h2>
+          <p>Turn on Auto-hide the Island in Settings → General, and the page fills the window to its top edge. The Island comes back when you point at the top edge or press ⌘L (Ctrl+L on Windows and Linux).</p>
+          <p class="pop-note">It’s off by default.</p>
+        </FeaturePop>
+        <FeaturePop id="mini-window" label="Mini Window" feature="mini-window" href="/whats-new/1.46#mini-window" linkText="Read about mini windows">
+          <BentoIcon slot="visual" name="mini" size="pop" />
+          <h2 id="pop-mini-window-title">Open a small Blanc window over any app.</h2>
+          <p>Choose File → New Mini Window, or set a shortcut in Settings → General to open one from any app. A mini window isn’t saved and closes by itself after an hour unused. Choose Open in Blanc to keep it.</p>
+          <p class="pop-note">The shortcut is off by default. A mini window with a page in use or unsaved changes stays open.</p>
+        </FeaturePop>
+        <FeaturePop id="tab-archive" label="Tab Archive" feature="tab-archive" href="/whats-new/1.39#tab-archive" linkText="Read about Tab Archive">
+          <BentoIcon slot="visual" name="archive" size="pop" />
+          <h2 id="pop-tab-archive-title">Let idle tabs tidy themselves away.</h2>
+          <p>Choose a time under Archive inactive tabs in Settings → General, and loose tabs you haven’t looked at in that long close into an Archive. Find them in the ⌘L panel or in History, and bring one back with a click.</p>
+          <p class="pop-note">Pinned, grouped and private tabs are never archived. The Archive stays on this device for 30 days.</p>
+        </FeaturePop>
         <FeaturePop id="sync" label="Sync" feature="sync" href="/features/sync" linkText="Read more about sync">
           <BentoIcon slot="visual" name="lock" size="pop" />
           <h2 id="pop-sync-title">Sync Favorites and settings across your devices.</h2>
           <p>Turn on Sync from your Personal profile to carry Favorites and settings to your other devices, and optionally see what each device has open. It is end-to-end encrypted.</p>
           <p class="pop-note">History, cookies and private tabs are never synced.</p>
+        </FeaturePop>
+        <FeaturePop id="shared-spaces" label="Shared Spaces" feature="shared-spaces" href="/whats-new/1.45#shared-spaces" linkText="Read about Shared Spaces">
+          <BentoIcon slot="visual" name="shared" size="pop" />
+          <h2 id="pop-shared-spaces-title">Keep your Spaces the same on every computer.</h2>
+          <p>With Sync on, choose Spaces to share in Settings → Sync. Their tabs, tab names, groups and pinned tabs match on each computer that has them turned on, end-to-end encrypted.</p>
+          <p class="pop-note">Off by default, and for the Personal profile only. Private tabs never sync.</p>
+        </FeaturePop>
+        <FeaturePop id="send-to-device" label="Send to Device" feature="send-to-device" href="/features/sync" linkText="Read more about sync">
+          <BentoIcon slot="visual" name="send" size="pop" />
+          <h2 id="pop-send-to-device-title">Send a page to your other devices.</h2>
+          <p>Right-click a tab and choose Send to Device, or type /send. The page waits on the other device under Sent to this device for up to 7 days, and nothing opens by itself.</p>
+          <p class="pop-note">Sending needs Sync on both devices. Private tabs can’t be sent.</p>
         </FeaturePop>
         <FeaturePop id="vertical-tabs" label="Vertical tabs" feature="vertical-tabs" href="/features/vertical-tabs" linkText="Read more about vertical tabs">
           <BentoIcon slot="visual" name="rail" size="pop" />
@@ -303,6 +366,12 @@ import '../styles/features-bento.css';
           <h2 id="pop-dark-websites-title">Darken websites that have no dark mode.</h2>
           <p>Turn on Dark websites while Blanc is dark, and pages without their own dark mode are darkened as they load. Switch it per site from the shield.</p>
           <p class="pop-note">Off by default. Embedded frames keep their colors.</p>
+        </FeaturePop>
+        <FeaturePop id="protected-video" label="Protected video" feature="protected-video" href="/whats-new/1.43#protected-video-playback" linkText="Read about protected video">
+          <BentoIcon slot="visual" name="play" size="pop" />
+          <h2 id="pop-protected-video-title">Play video and music that sites protect.</h2>
+          <p>Blanc plays video and music protected with Widevine on Mac, Windows and Linux. It downloads the Widevine component from Google in the background the first time.</p>
+          <p class="pop-note">Whether a particular site plays still depends on that site.</p>
         </FeaturePop>
         <FeaturePop id="passkeys" label="Touch ID passkeys" feature="passkeys" href="/features/security" linkText="Read more about security">
           <BentoIcon slot="visual" name="finger" size="pop" />

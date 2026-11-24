@@ -5,7 +5,9 @@
     <string name="blanc_ios_island_search_or_switch">Buscar o cambiar de pestaña, %1$s</string>
     <string name="blanc_ios_island_show_all_tabs">Mostrar todas las pestañas</string>
     <string name="blanc_ios_island_stop">Detener la carga</string>
-    <string name="blanc_ios_palette_placeholder">Busca, escribe una dirección o un /comando</string>
+    <string name="blanc_ios_island_close_private_tab">Cerrar pestaña privada</string>
+    <string name="blanc_tab_private_label">Pestaña privada</string>
+    <string name="blanc_ios_palette_placeholder">Busca, escribe una URL o / para comandos</string>
     <string name="blanc_ios_tabs_start_page">Página de inicio</string>
     <string name="blanc_pages_nav_bookmarks">Favoritos</string>
     <string name="blanc_pages_nav_history">Historial</string>
@@ -15,7 +17,6 @@
     <string name="blanc_pill_back">Atrás</string>
     <string name="blanc_pill_forward">Adelante</string>
     <string name="blanc_pill_placeholder">Busca o escribe una URL</string>
-    <string name="blanc_pill_private_title">Salir del modo privado: cierra esta pestaña</string>
     <string name="blanc_tab_new">Nueva pestaña</string>
     <string name="blanc_menu_new_private_tab">Nueva pestaña privada</string>
     <string name="blanc_share_picker_share">Compartir</string>
@@ -233,6 +234,12 @@
     <string name="blanc_android_settings_more">Más</string>
     <string name="blanc_android_settings_open_source_licenses">Licencias de código abierto</string>
     <string name="blanc_ios_settings_about">Acerca de Blanc</string>
+    <string name="blanc_android_settings_autofill_title">Autocompletar contraseñas</string>
+    <string name="blanc_android_settings_autofill_summary">El gestor de contraseñas que elijas en Android, como Bitwarden, Proton Pass o 1Password, puede introducir contraseñas en Blanc y rellenar otros formularios si son compatibles con el gestor. El Gestor de contraseñas de Google no rellena formularios en Blanc.</string>
+    <string name="blanc_android_settings_autofill_managed">Tu organización administra este ajuste.</string>
+    <string name="blanc_android_settings_autofill_choose">Elegir gestor de contraseñas</string>
+    <string name="blanc_android_settings_autofill_choose_summary">El cambio se aplicará la próxima vez que abras Blanc.</string>
+    <string name="blanc_android_settings_autofill_restart">Reinicia Blanc para aplicar el cambio</string>
     <string name="blanc_ios_settings_add_site">Añadir sitio</string>
     <string name="blanc_ios_settings_blocker">Blanc Blocker</string>
     <string name="blanc_ios_settings_blocker_help">Bloquea anuncios y rastreadores en los sitios web. Al desactivarlo, se desactiva la protección de todas las pestañas y se recargan las páginas web.</string>
@@ -293,6 +300,9 @@
     <string name="blanc_android_default_browser_open">Establecer como predeterminado</string>
     <string name="blanc_settings_language_label">Idioma</string>
     <string name="blanc_settings_language_system">Sistema (%1$s)</string>
+    <string name="blanc_android_context_menu_private_tab">Abrir en una pestaña privada</string>
+    <string name="blanc_android_context_menu_new_blanc_tab">Abrir en una pestaña nueva de Blanc</string>
+    <string name="blanc_mini_open_in_blanc">Abrir en Blanc</string>
     <plurals name="blanc_shared_spaces_waiting_count">
         <item quantity="one">%d Space compartido está esperando</item>
         <item quantity="many">%d Spaces compartidos están esperando</item>

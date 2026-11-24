@@ -1,4 +1,8 @@
+// Searchable answers on Support and Privacy & Security. On Support, answers
+// sit in product panels (radios switch them in CSS): a search shows every
+// panel's matches, and a deep link checks its panel's radio first.
 const topics = [...document.querySelectorAll("[data-search-topic]")];
+const products = document.querySelector("[data-support-products]");
 const input = document.querySelector("#answer-search");
 const clear = document.querySelector("#clear-search");
 const normalize = (value) =>
@@ -26,6 +30,17 @@ function search() {
           ...group.querySelectorAll("[data-search-topic]"),
         ].some((topic) => !topic.hidden)),
     );
+  document
+    .querySelectorAll("[data-search-panel]")
+    .forEach(
+      (panel) =>
+        (panel.hidden =
+          terms.length > 0 &&
+          ![...panel.querySelectorAll("[data-search-topic]")].some(
+            (topic) => !topic.hidden,
+          )),
+    );
+  products?.toggleAttribute("data-searching", terms.length > 0);
   document.querySelector("#search-count").textContent = terms.length
     ? `${count} matching ${count === 1 ? "topic" : "topics"}`
     : "";
@@ -57,6 +72,12 @@ function openDestination() {
     input.value = "";
     search();
   }
+  const panel = target.closest("[data-panel-radio]");
+  if (panel) {
+    const radio = document.getElementById(panel.dataset.panelRadio);
+    radio.checked = true;
+    writeProduct(radio.value, true);
+  }
   let parent = target;
   while (parent) {
     if (parent instanceof HTMLDetailsElement) parent.open = true;
@@ -69,6 +90,34 @@ function openDestination() {
     url.hash = target.id;
     history.replaceState(null, "", url.pathname + url.search + url.hash);
   }
+}
+// Support's opening tab: ?product= (as on /changelog), else iPhone & iPad on
+// an iPhone or iPad, else the desktop tab checked in the markup. A deep link
+// to an answer, handled by openDestination below, wins over both. iPadOS
+// asks for desktop sites with a Mac user agent, so touch decides it is an
+// iPad. Nothing is stored or sent. The address names the tab whenever it
+// differs from the one the page would open by itself, so a reload or a
+// shared link shows what the reader chose.
+const appleDevice =
+  /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+  (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const ownProduct = appleDevice ? "iphone" : "desktop";
+function writeProduct(id, keepHash) {
+  const url = new URL(location.href);
+  if (id === ownProduct) url.searchParams.delete("product");
+  else url.searchParams.set("product", id);
+  if (!keepHash) url.hash = "";
+  history.replaceState(null, "", url.pathname + url.search + url.hash);
+}
+if (products) {
+  products.dataset.scripted = "";
+  const asked = new URLSearchParams(location.search).get("product");
+  const radios = [...products.querySelectorAll('input[name="support-product"]')];
+  const choice =
+    radios.find((radio) => radio.value === asked) ||
+    radios.find((radio) => radio.value === ownProduct);
+  if (choice) choice.checked = true;
+  products.addEventListener("change", (event) => writeProduct(event.target.value, false));
 }
 window.addEventListener("hashchange", openDestination);
 // Same-hash links must also reopen an answer that the reader has closed.

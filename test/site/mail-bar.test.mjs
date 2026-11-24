@@ -11,6 +11,10 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
+import { createHash } from 'node:crypto';
+import { readFileSync as readWord } from 'node:fs';
+// The bar's word carries its own content hash, so a changed SVG reaches every browser.
+const WORD_VERSION = createHash('sha256').update(readWord(new URL('../../site/public/lockup/mail-word-small-white.svg', import.meta.url))).digest('hex').slice(0, 8);
 
 const baseURL = process.env.BLANC_SITE_URL || 'http://127.0.0.1:4322';
 const isWebKit = process.env.BLANC_SITE_BROWSER === 'webkit';
@@ -58,7 +62,7 @@ test('every Mail page names the product, leads back to /mail and links to its se
         };
       });
       const sections = ['/mail#pricing', '/mail#address', '/mail#features', '/mail#support'];
-      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', word: '/lockup/mail-word-small-white.svg', href: '/mail', sections, labels: ['Plans', 'Blanc addresses', 'App features', 'FAQ'], menu: sections, popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
+      assert.deepEqual(bar, { name: 'Blanc Mail', title: 'Blanc Mail', word: `/lockup/mail-word-small-white.svg?v=${WORD_VERSION}`, href: '/mail', sections, labels: ['Plans', 'Blanc addresses', 'App features', 'FAQ'], menu: sections, popovers: ['mail-bar-menu', 'mail-bar-waitlist'] }, path);
     }
   } finally { await context.close(); }
 });

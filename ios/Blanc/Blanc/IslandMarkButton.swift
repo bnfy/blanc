@@ -1,14 +1,17 @@
 import SwiftUI
 import UIKit
 
-/// The Sunrise mark on the Island, as a plain UIKit button that shows its menu
+/// The page menu on the Island, as a plain UIKit button that shows its menu
 /// on tap. On iOS 26 a SwiftUI `Menu` gives its button a glass platter that
 /// stays behind the mark after the menu closes; a plain `UIButton` has none.
 /// The menu is rebuilt each time it opens, so it always shows the page's
 /// current state.
 struct IslandMarkButton: UIViewRepresentable {
-    let image: UIImage?
+    enum Glyph: Equatable { case sunrise, favicon(UIImage), globe }
+
+    let glyph: Glyph
     let tint: Color
+    let accessibilityValue: String?
     let menu: () -> [UIMenuElement]
 
     func makeCoordinator() -> Coordinator { Coordinator(menu: menu) }
@@ -33,7 +36,11 @@ struct IslandMarkButton: UIViewRepresentable {
 
     func updateUIView(_ button: UIButton, context: Context) {
         context.coordinator.menu = menu
-        button.configuration?.image = image.map(Self.sized)
+        button.accessibilityValue = accessibilityValue
+        if context.coordinator.glyph != glyph {
+            button.configuration?.image = Self.image(for: glyph)
+            context.coordinator.glyph = glyph
+        }
         button.tintColor = UIColor(tint)
     }
 
@@ -80,16 +87,32 @@ struct IslandMarkButton: UIViewRepresentable {
     }
 
     final class Coordinator {
+        var glyph: Glyph?
         var menu: () -> [UIMenuElement]
         init(menu: @escaping () -> [UIMenuElement]) { self.menu = menu }
     }
 
-    /// The mark at 22 pt in its own gold, as the Start Page shows it, rather
-    /// than in the Island's ink (owner, 2026-11-11).
-    private static func sized(_ image: UIImage) -> UIImage {
-        let side: CGFloat = 22
-        return UIGraphicsImageRenderer(size: CGSize(width: side, height: side)).image { _ in
-            image.draw(in: CGRect(x: 0, y: 0, width: side, height: side))
+    private static let sunriseMark = Bundle.main
+        .path(forResource: "sunrise-mark", ofType: "png", inDirectory: "pages")
+        .flatMap(UIImage.init(contentsOfFile:))
+
+    private static func image(for glyph: Glyph) -> UIImage? {
+        switch glyph {
+        case .sunrise:
+            return sunriseMark.map { draw($0, side: 20, radius: 0) }
+        case .favicon(let image):
+            return draw(image, side: 16, radius: 4)
+        case .globe:
+            return UIImage(systemName: "globe", withConfiguration: UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold))?
+                .withRenderingMode(.alwaysTemplate)
+        }
+    }
+
+    private static func draw(_ image: UIImage, side: CGFloat, radius: CGFloat) -> UIImage {
+        let rect = CGRect(x: 0, y: 0, width: side, height: side)
+        return UIGraphicsImageRenderer(size: rect.size).image { _ in
+            UIBezierPath(roundedRect: rect, cornerRadius: radius).addClip()
+            image.draw(in: rect)
         }.withRenderingMode(.alwaysOriginal)
     }
 }

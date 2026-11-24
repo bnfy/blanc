@@ -45,6 +45,7 @@ test('the mirror script leaves azure.archive.ubuntu.com and refuses to run off a
   // archive.ubuntu.com was tried first on every index and timed out.
   assert.match(script, /^\s*printf '%s\\n' http:\/\/mirrors\.edge\.kernel\.org\/ubuntu\/ \| sudo tee \/etc\/apt\/apt-mirrors\.txt >\/dev\/null$/m);
   assert.match(script, /azure\.archive\.ubuntu\.com is still configured/);
+  assert.match(script, /Acquire::ForceIPv4 "true";/, 'runners have no IPv6 route to the mirror');
   assert.doesNotMatch(script, /apt-get/, 'the step itself runs apt, after the script');
 });
 
@@ -55,7 +56,12 @@ test('no workflow step installs apt packages before leaving the default mirror',
   for (const name of files) {
     const steps = read('.github', 'workflows', name).split(/\n(?=\s+- (?:name|uses|run|id):)/);
     for (const step of steps) {
-      const apt = step.search(/apt-get (?:update|install)|apt install|--with-deps/);
+      // Only the runner's own apt counts: a `docker run` image keeps its own
+      // sources, which a switch on the runner can't reach (the Linux fork's
+      // candidate workflow installs inside Ubuntu, Debian and Fedora images).
+      const container = step.search(/docker run/);
+      const host = container < 0 ? step : step.slice(0, container);
+      const apt = host.search(/apt-get (?:update|install)|apt install|--with-deps/);
       if (apt < 0) continue;
       checked += 1;
       const script = step.indexOf('ci-apt-mirror.sh');

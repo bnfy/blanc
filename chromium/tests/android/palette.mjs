@@ -1,6 +1,9 @@
 // A2 Task 4 on the emulator: the palette, as the iPhone's.
 //   - The Island's site opens it, with the open tabs listed and the field focused
 //     above the keyboard, at three screen sizes, and it survives a rotation.
+//   - The search row starts with the page's address as a pill, which leaves the
+//     field and the caret their room even for a long address; a tap edits it and
+//     holding it offers Copy Link.
 //   - Tapping a tab in the list switches to it.
 //   - /new, /close, /reopen and /group Research work.
 // Fails closed: a missing control fails.
@@ -23,12 +26,34 @@ export function paletteField(xml) {
   return m ? {left: +m[1], top: +m[2], right: +m[3], bottom: +m[4]} : null;
 }
 
+// The palette field's text, or null when there's no field.
+export function fieldText(xml) {
+  const m = /<node[^>]*text="([^"]*)"[^>]*class="android\.widget\.EditText"/.exec(xml);
+  return m ? m[1] : null;
+}
+
 // The first node whose text (or content-desc) matches `pattern`, as bounds; or null.
 export function matching(xml, pattern, attribute = 'text') {
   for (const m of xml.matchAll(new RegExp(`<node[^>]*?${attribute}="([^"]*)"[^>]*?bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"`, 'g'))) {
     if (pattern.test(m[1])) return {left: +m[2], top: +m[3], right: +m[4], bottom: +m[5]};
   }
   return null;
+}
+
+// The search row's address pill: `address` as a pill on the field's line, before the field, which
+// keeps room for its cursor, and before the collapse caret, which stays on screen.
+export function pillProblems(xml, field, address) {
+  // The pill's label is the address itself (with or without a closing slash): an exact match.
+  const pill = matching(xml, {test: label => label === address || label === `${address}/`}, 'content-desc');
+  const caret = matching(xml, /^Collapse Island$/, 'content-desc');
+  if (!pill) return [`no address pill for ${address}`];
+  const problems = [];
+  if (field && (pill.top > field.bottom || pill.bottom < field.top)) problems.push('the address pill is not in the search row');
+  if (field && pill.right > field.left) problems.push('the address pill overlaps the field');
+  if (field && field.right - field.left < 10) problems.push(`the field has no room beside the pill (${field.right - field.left}px)`);
+  if (!caret) problems.push('no collapse caret');
+  else if (pill.right > caret.left) problems.push('the address pill pushes into the collapse caret');
+  return problems;
 }
 
 // The keyboard's top edge from `dumpsys window` (its inset frame), or null when it's hidden.
@@ -57,6 +82,8 @@ function main(argv) {
   adb('shell', 'pm', 'clear', PACKAGE);
   adb('shell', 'monkey', '-p', PACKAGE, '-c', 'android.intent.category.LAUNCHER', '1');
   sleep(7);
+  // A fresh install opens with the first-run card over the Island: go through it without pairing.
+  for (const label of ['Browse without pairing', 'Continue', 'Not now']) tap({text: label});
   for (const page of PAGES) { adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', page, '-p', PACKAGE); sleep(5); }
 
   for (const [size, density] of SCREENS) {
@@ -72,10 +99,16 @@ function main(argv) {
     if (!field) problems.push('no focused field');
     if (!matching(xml, /^Open tabs {2}\d+$/)) problems.push('the open tabs are not listed');
     if (field && keyboard !== null && field.bottom > keyboard) problems.push(`the field is under the keyboard (${field.bottom} > ${keyboard})`);
-    // The footer (New Tab, Favorites, History) stays reachable above the keyboard too.
-    const footer = matching(xml, /^New tab$/);
+    // The actions (Back, New tab, Favorites, History) stay reachable above the keyboard too; New tab
+    // is a plain button now (#1682), named by its content description.
+    const footer = matching(xml, /^New tab$/, 'content-desc');
     if (!footer) problems.push('no New Tab button');
     else if (keyboard !== null && footer.bottom > keyboard) problems.push(`New Tab is under the keyboard (${footer.bottom} > ${keyboard})`);
+    // #1682: the search field sits on the Island's side (here the bottom), the tabs above it.
+    const heading = matching(xml, /^Open tabs {2}\d+$/);
+    if (field && heading && heading.top > field.top) problems.push('the tabs are under the search field');
+    // The search row starts with the page's address as a pill (owner, 2026-11-21).
+    problems.push(...pillProblems(xml, field, PAGES.at(-1)));
     check(`opens above the keyboard at ${size}`, problems);
     adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
     adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
@@ -89,9 +122,43 @@ function main(argv) {
   shot('palette-rotated');
   adb('shell', 'settings', 'put', 'system', 'user_rotation', '0'); sleep(3);
   // In landscape with the keyboard up there's room for the field and footer; the list scrolls in.
-  check('survives a rotation', paletteField(rotated) && matching(rotated, /^New tab$/) ? [] : ['the palette is gone after rotating']);
+  check('survives a rotation', paletteField(rotated) && matching(rotated, /^New tab$/, 'content-desc') ? [] : ['the palette is gone after rotating']);
   adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
   adb('shell', 'input', 'keyevent', 'KEYCODE_BACK'); sleep(1);
+
+  // A long address keeps the row's other controls in place, fading at its end; a tap puts it in
+  // the field, and holding it offers Copy Link, which copies and closes the palette.
+  const long = 'https://www.iana.org/domains/reserved?blanc-check=a-long-address-that-will-not-fit-in-the-search-row';
+  adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', long, '-p', PACKAGE); sleep(5);
+  openPalette(); sleep(1.5);
+  const longXml = dump();
+  shot('palette-long-address');
+  const longProblems = pillProblems(longXml, paletteField(longXml), long);
+  const longPill = matching(longXml, /^https:\/\/www\.iana\.org\/domains\/reserved\?/, 'content-desc');
+  if (longPill) {
+    adb('shell', 'input', 'tap', ...center(longPill)); sleep(1.5);
+    const edited = dump();
+    shot('palette-edit-address');
+    if (fieldText(edited) !== long) longProblems.push(`a tap does not put the address in the field (${fieldText(edited)})`);
+    // Clearing the field brings the address back.
+    const clear = matching(edited, /^Clear search$/, 'content-desc');
+    if (clear) { adb('shell', 'input', 'tap', ...center(clear)); sleep(1); }
+    const again = matching(dump(), /^https:\/\/www\.iana\.org\/domains\/reserved\?/, 'content-desc');
+    if (!again) longProblems.push('clearing the field does not bring the address back');
+    // A held finger, not a zero-length swipe, which the emulator can deliver as a tap.
+    if (again) {
+      adb('shell', 'input', 'motionevent', 'DOWN', ...center(again)); sleep(1.2);
+      adb('shell', 'input', 'motionevent', 'UP', ...center(again)); sleep(1.2);
+    }
+    const menu = dump();
+    shot('palette-copy-link');
+    const item = nodeBounds(menu, {text: 'Copy Link'});
+    if (!item) longProblems.push('holding the address offers no Copy Link');
+    else { adb('shell', 'input', 'tap', ...center(item)); sleep(1.5); if (paletteField(dump())) longProblems.push('Copy Link leaves the palette open'); }
+  }
+  check('a long address as a pill', longProblems);
+  // The "Link copied" notice stands in the Island's place for a moment.
+  for (let i = 0; i < 8 && !nodeBounds(dump(), {id: 'blanc_island_domain'}); i++) sleep(1);
 
   openPalette();
   const row = matching(dump(), /, www\.iana\.org$/, 'content-desc');
