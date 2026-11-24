@@ -6,6 +6,9 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { ASSET_NAME } from '../linux/candidate.mjs';
 import { STAGES, validateLinuxRelease, runStage, status } from './linux-release.mjs';
+import {CHROME_VERSION as PINNED_CHROME} from './policy.mjs';
+// The pinned Chromium's first three numbers; a build is the last.
+const PIN = PINNED_CHROME.split('.').slice(0, 3).join('.');
 
 const sha = data => createHash('sha256').update(data).digest('hex');
 const json = file => JSON.parse(fs.readFileSync(file));
@@ -14,13 +17,13 @@ const fingerprint = 'A'.repeat(40);
 const arches = ['x64', 'arm64'];
 const candidates = seed => Object.fromEntries(arches.map(arch => [arch, { id: 'linux-' + arch + '-' + sha(seed + arch).slice(0, 16), tarSha256: sha(arch + seed) }]));
 const r = {
-  schema: 1, version: '158.0.8127.906', build: 906, previousBuild: 0, proofBuild: 905,
-  sourceCommit: 'a'.repeat(40), tag: 'chromium-beta-linux-158.0.8127.906',
+  schema: 1, version: `${PIN}.906`, build: 906, previousBuild: 0, proofBuild: 905,
+  sourceCommit: 'a'.repeat(40), tag: `chromium-beta-linux-${PIN}.906`,
   prerelease: true, makeLatest: false, candidates: candidates('public'), proofCandidates: candidates('private')
 };
 const ledger = { schema: 1, builds: [] };
-const names = ['blanc-beta_158.0.8127.906-1_amd64.deb', 'blanc-beta_158.0.8127.906-1_arm64.deb',
-  'blanc-beta-158.0.8127.906-1.x86_64.rpm', 'blanc-beta-158.0.8127.906-1.aarch64.rpm'];
+const names = [`blanc-beta_${PIN}.906-1_amd64.deb`, `blanc-beta_${PIN}.906-1_arm64.deb`,
+  `blanc-beta-${PIN}.906-1.x86_64.rpm`, `blanc-beta-${PIN}.906-1.aarch64.rpm`];
 const ubuntuEvidence = {
   restrictUnprivilegedUserns: '1',
   apparmor: {label: 'blanc-beta (unconfined)', mode: 'unconfined', attachment: '/opt/bnfy/blanc-beta/chrome'}
@@ -159,7 +162,7 @@ test('lifecycle dispatch requires distinct passing mode reports with the staged 
   const adapter = realIO({exec(cmd, args) {
     assert.equal(cmd, 'gh');
     if (args.includes('workflow')) {
-      for (const field of ['check=repo-lifecycle', 'from=158.0.8127.905', 'to=' + r.version, 'repository=staging'])
+      for (const field of ['check=repo-lifecycle', `from=${PIN}.905`, 'to=' + r.version, 'repository=staging'])
         assert.ok(args.includes(field), field);
       return {status: 0, stdout: 'https://github.com/bnfy/blanc/actions/runs/13'};
     }
@@ -200,7 +203,8 @@ test('workflow dispatch watches the returned run and rejects skipped or missing 
     }
   });
   await assert.rejects(adapter.verifyPublic({ work: w.work, r }), /evidence|report/);
-  assert.match(calls[0], /workflow run .*--ref chromium\/next.*check=verify-public.*version=158.0.8127.906/);
+  assert.match(calls[0], /workflow run .*--ref chromium\/next.*check=verify-public.*version=/);
+  assert.ok(calls[0].includes(`version=${PIN}.906`));
   assert.match(calls.join('\n'), /run watch 2345.*--exit-status/);
   assert.ok(!calls.some(c => c.includes('run list')));
 });
@@ -323,7 +327,7 @@ test('the command adapter checks draft tar bytes, per-build GN args and installe
     ['build', r.proofBuild, /build/],
     ['build', undefined, /build/],
     ['treeCommit', 'b'.repeat(40), /source|treeCommit/],
-    ['version', '158.0.8127.905', /version/],
+    ['version', `${PIN}.905`, /version/],
     ['argsSha256', sha(committedArgs), /GN arguments/]
   ]) {
     fs.writeFileSync(path.join(dir, 'candidate.json'), JSON.stringify({ ...meta, [field]: value }));
@@ -454,7 +458,7 @@ test('preflight needs both Linux claims on the same source, in claim order, and 
 
 test('build-check compares evidence for each architecture with the record, even when candidate data includes other fields', async t => {
   const w = world(t);
-  const forged = {...r, candidates: {...r.candidates, arm64: {...r.candidates.arm64, sourceCommit: 'b'.repeat(40), version: '158.0.8127.8'}}};
+  const forged = {...r, candidates: {...r.candidates, arm64: {...r.candidates.arm64, sourceCommit: 'b'.repeat(40), version: `${PIN}.8`}}};
   fs.writeFileSync(path.join(w.work, 'linux-release.json'), JSON.stringify(forged));
   await until(w, 'build-check');
   const buildCheck = w.io.buildCheck;

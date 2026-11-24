@@ -172,7 +172,7 @@ finding changed decision 4 with the owner's agreement.
 
 ### Task 1: The beta channel builds for Linux
 
-Patch 0116 touches 3 upstream files in 6 hunks. The desktop queue through 0116 touches 261 distinct upstream files in 924 hunks.
+Patch 0116 touches 3 upstream files in 6 hunks. The desktop queue through 0116 touches 261 distinct upstream files in 925 hunks. (Measured at the 159.0.8154.33 pin; at 158 the queue was 924 hunks.)
 
 **Files:**
 - Modify: `chromium/blanc/config.gni` (allow `target_os == "linux"` with x64 or arm64 for the beta;

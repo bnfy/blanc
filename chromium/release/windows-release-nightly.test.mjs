@@ -10,12 +10,15 @@ import os from 'node:os';
 import path from 'node:path';
 import {validateWindowsRelease, claimProblem, runStage, load, markAbandoned, proofPasses} from './windows-release.mjs';
 import {prepareRelease} from './daily/windows-beta-prep.mjs';
+import {CHROME_VERSION as PINNED_CHROME} from './policy.mjs';
+// The pinned Chromium's first three numbers; a build is the last.
+const PIN = PINNED_CHROME.split('.').slice(0, 3).join('.');
 
 const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const SOURCE = 'a'.repeat(40);
-const v2 = {schema: 2, product: 'Blanc Beta', platform: 'windows-x64', version: '158.0.8127.905', build: 905, previousBuild: 904,
-  tag: 'chromium-beta-windows-158.0.8127.905', sourceCommit: SOURCE, prerelease: true, makeLatest: false,
-  candidate: {id: 'windows-x64-bbbbbbbbbbbbbbbb', zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: '158.0.8127.905'}};
+const v2 = {schema: 2, product: 'Blanc Beta', platform: 'windows-x64', version: `${PIN}.905`, build: 905, previousBuild: 904,
+  tag: `chromium-beta-windows-${PIN}.905`, sourceCommit: SOURCE, prerelease: true, makeLatest: false,
+  candidate: {id: 'windows-x64-bbbbbbbbbbbbbbbb', zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: `${PIN}.905`}};
 const ledger = {schema: 1, builds: [{build: 904}]};
 const v1 = {...v2, schema: 1, candidate: {id: v2.candidate.id, zipSha256: v2.candidate.zipSha256}};
 const seq = entries => ({schema: 1, sequences: {'desktop-158': entries}});
@@ -33,7 +36,7 @@ test('schema 1 records still load; schema 2 binds the candidate to the source an
   validateWindowsRelease(v1, ledger);
   validateWindowsRelease(v2, ledger);
   assert.throws(() => validateWindowsRelease({...v2, candidate: {...v2.candidate, treeCommit: 'c'.repeat(40)}}, ledger), /treeCommit/);
-  assert.throws(() => validateWindowsRelease({...v2, candidate: {...v2.candidate, version: '158.0.8127.904'}}, ledger), /version/);
+  assert.throws(() => validateWindowsRelease({...v2, candidate: {...v2.candidate, version: `${PIN}.904`}}, ledger), /version/);
   assert.throws(() => validateWindowsRelease({...v2, schema: 3}, ledger), /schema/);
 });
 
@@ -88,7 +91,7 @@ test('an online proof passes only for this release\'s candidate, mode and signed
   const proof = {pass: true, candidate: v2.candidate.id, mode: `online ${v2.version}`, details: {installed: {pv: v2.version}, installedSha256: {exe: 'e'.repeat(64), dll: 'd'.repeat(64)}}};
   assert.equal(proofPasses(ctx, proof, signed), true);
   assert.equal(proofPasses(ctx, {...proof, candidate: 'windows-x64-0000000000000000'}, signed), false);
-  assert.equal(proofPasses(ctx, {...proof, mode: 'expect 158.0.8127.905'}, signed), false);
+  assert.equal(proofPasses(ctx, {...proof, mode: `expect ${PIN}.905`}, signed), false);
   assert.equal(proofPasses(ctx, {...proof, details: {...proof.details, installedSha256: {exe: 'f'.repeat(64), dll: 'd'.repeat(64)}}}, signed), false);
   // Each installed file matches its own entry, never any signed hash (or the same one twice).
   assert.equal(proofPasses(ctx, {...proof, details: {...proof.details, installedSha256: {exe: 'd'.repeat(64), dll: 'e'.repeat(64)}}}, signed), false);
@@ -192,8 +195,8 @@ function prepWorld({hold = null, draftDigest = 'b'.repeat(64), lastPass = true, 
   fs.writeFileSync(path.join(records, 'CURRENT'), '/previous/work');
   let draftHold = hold, digest = draftDigest;
   const calls = [], claims = [];
-  const night = {status: 'pass', stamp: '20261122-0400', sourceCommit: SOURCE, build: 905, version: '158.0.8127.905',
-    beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: '158.0.8127.905', channel: 'beta'}, ...nightChange};
+  const night = {status: 'pass', stamp: '20261122-0400', sourceCommit: SOURCE, build: 905, version: `${PIN}.905`,
+    beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: `${PIN}.905`, channel: 'beta'}, ...nightChange};
   const exec = (command, args) => {
     const line = [command, ...args].join(' ');
     calls.push(line);
@@ -239,7 +242,7 @@ test('prep re-uploads the kept beta when the draft holds another zip, writes a v
   assert.ok(w.calls.some(c => c.includes('release upload') && c.includes('blanc-windows-candidate.zip')));
   const r = JSON.parse(fs.readFileSync(path.join(work, 'windows-release.json'), 'utf8'));
   assert.equal(r.schema, 2);
-  assert.deepEqual(r.candidate, {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: '158.0.8127.905'});
+  assert.deepEqual(r.candidate, {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: `${PIN}.905`});
   assert.equal(JSON.parse(fs.readFileSync(path.join(work, 'state.json'), 'utf8')).hold.owner, owner);
   assert.doesNotMatch(fs.readFileSync(path.join(work, 'windows-release.json'), 'utf8'), new RegExp(owner), 'the token stays out of the public descriptor');
   assert.equal(fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8').trim(), work);
@@ -289,9 +292,9 @@ test('prep reads the nights and writes to the draft it was given, and saves that
   assert.throws(() => prepareRelease({io: prepWorld().io, records: w.records, ledger, draft: 'some-other-release'}), /unknown candidate draft/);
 });
 test('prep checks the night\'s beta in full before uploading anything', () => {
-  for (const change of [{beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: '158.0.8127.905', channel: 'preview'}},
-      {beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: 'c'.repeat(40), version: '158.0.8127.905', channel: 'beta'}},
-      {version: '158.0.8127.906'}]) {
+  for (const change of [{beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: SOURCE, version: `${PIN}.905`, channel: 'preview'}},
+      {beta: {id: v2.candidate.id, zipSha256: 'b'.repeat(64), treeCommit: 'c'.repeat(40), version: `${PIN}.905`, channel: 'beta'}},
+      {version: `${PIN}.906`}]) {
     const w = prepWorld({draftDigest: 'c'.repeat(64), nightChange: change});
     assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger}), /night/);
     assert.ok(!w.calls.some(c => c.includes('release upload') && c.includes('blanc-windows-candidate.zip')), JSON.stringify(change));
@@ -316,7 +319,7 @@ test('a failed write leaves no version folder behind, so the same night can be p
   try { assert.throws(() => prepareRelease({io: w.io, records: w.records, ledger})); } finally { fs.renameSync = rename; }
   assert.deepEqual(fs.readdirSync(w.records).filter(n => n !== 'CURRENT'), []);
   assert.equal(fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8'), '/previous/work');
-  assert.ok(prepareRelease({io: w.io, records: w.records, ledger}).work.endsWith('158.0.8127.905'));
+  assert.ok(prepareRelease({io: w.io, records: w.records, ledger}).work.endsWith(`${PIN}.905`));
 });
 test('a failed git log stops prep before CURRENT moves', () => {
   const w = prepWorld({gitLog: 128});
@@ -356,19 +359,19 @@ test('a take whose readback is lost is undone by the proposed owner it kept', ()
 });
 test('an abandoned release of the same version is moved aside, never reused or deleted', () => {
   const w = prepWorld();
-  const old = path.join(w.records, '158.0.8127.905');
+  const old = path.join(w.records, `${PIN}.905`);
   fs.mkdirSync(old, {mode: 0o700});
   fs.writeFileSync(path.join(old, 'state.json'), JSON.stringify({abandoned: '2026-11-21T00:00:00Z', done: {}}));
   const {work} = prepareRelease({io: w.io, records: w.records, ledger});
   assert.equal(work, old);
   assert.equal(JSON.parse(fs.readFileSync(path.join(work, 'state.json'), 'utf8')).abandoned, undefined);
-  const aside = fs.readdirSync(w.records).filter(n => n.startsWith('158.0.8127.905.abandoned-'));
+  const aside = fs.readdirSync(w.records).filter(n => n.startsWith(`${PIN}.905.abandoned-`));
   assert.equal(aside.length, 1);
   assert.ok(JSON.parse(fs.readFileSync(path.join(w.records, aside[0], 'state.json'), 'utf8')).abandoned);
   // A live (not abandoned) folder still stops prep.
   const again = prepWorld();
-  fs.mkdirSync(path.join(again.records, '158.0.8127.905'));
-  fs.writeFileSync(path.join(again.records, '158.0.8127.905', 'state.json'), JSON.stringify({done: {}}));
+  fs.mkdirSync(path.join(again.records, `${PIN}.905`));
+  fs.writeFileSync(path.join(again.records, `${PIN}.905`, 'state.json'), JSON.stringify({done: {}}));
   assert.throws(() => prepareRelease({io: again.io, records: again.records, ledger}), /already exists/);
 });
 test('a PREP-HOLD left by an earlier prep stops the next one with its recovery step', () => {
@@ -405,7 +408,7 @@ test('once CURRENT names the prepared release, a PREP-HOLD cleanup error keeps t
   const w = prepWorld();
   const rm = fs.rmSync;
   fs.rmSync = (target, options) => { if (String(target).endsWith('PREP-HOLD') && fs.existsSync(path.join(w.records, 'CURRENT'))
-      && fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8').includes('158.0.8127.905')) throw new Error('busy'); return rm(target, options); };
+      && fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8').includes(`${PIN}.905`)) throw new Error('busy'); return rm(target, options); };
   let result;
   try { result = prepareRelease({io: w.io, records: w.records, ledger}); } finally { fs.rmSync = rm; }
   assert.equal(fs.readFileSync(path.join(w.records, 'CURRENT'), 'utf8').trim(), result.work);
@@ -414,7 +417,7 @@ test('once CURRENT names the prepared release, a PREP-HOLD cleanup error keeps t
 });
 test('a failed retry of an abandoned version leaves the abandoned folder where CURRENT names it', () => {
   const w = prepWorld();
-  const old = path.join(w.records, '158.0.8127.905');
+  const old = path.join(w.records, `${PIN}.905`);
   fs.mkdirSync(old, {mode: 0o700});
   fs.writeFileSync(path.join(old, 'state.json'), JSON.stringify({abandoned: '2026-11-21T00:00:00Z', done: {}}));
   fs.writeFileSync(path.join(w.records, 'CURRENT'), old + '\n');

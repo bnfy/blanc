@@ -161,6 +161,9 @@ test('the rules import cleanly from stdin, as the server script loads them', asy
 // build server and GitHub.
 import {runNight, runNights, parseRunId, PLATFORMS} from './daily/desktop-nightly.mjs';
 import crypto2 from 'node:crypto';
+import {CHROME_VERSION as PINNED_CHROME} from './policy.mjs';
+// The pinned Chromium's first three numbers; a build is the last.
+const PIN = PINNED_CHROME.split('.').slice(0, 3).join('.');
 
 const sha2 = text => crypto2.createHash('sha256').update(text).digest('hex');
 const NIGHT_COMMIT = 'a'.repeat(40);
@@ -207,7 +210,7 @@ function world({hold = null, serverReply = null, betaTree = NIGHT_COMMIT, suiteR
         const zip = args.find(a => a.endsWith('.zip'));
         const beta = zip.includes('beta');
         return {status: 0, stdout: JSON.stringify({id: beta ? 'windows-x64-' + 'b'.repeat(16) : protoId, treeCommit: beta ? betaTree : NIGHT_COMMIT,
-          version: beta ? '158.0.8127.905' : '158.0.8127.2', channel: beta ? 'beta' : 'preview', exeSha256: 'e'.repeat(64), dllSha256: 'd'.repeat(64)}), stderr: ''};
+          version: beta ? `${PIN}.905` : `${PIN}.2`, channel: beta ? 'beta' : 'preview', exeSha256: 'e'.repeat(64), dllSha256: 'd'.repeat(64)}), stderr: ''};
       }
       if (command !== 'gh') return {status: 1, stdout: '', stderr: 'unexpected ' + command};
       if (args[0] === 'release' && args[1] === 'view') {

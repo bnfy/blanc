@@ -10,8 +10,11 @@ import {packageNames} from '../linux/candidate.mjs';
 import {sha256} from '../linux/repository/plan-upload.mjs';
 import {assertProduction, proofInputs, stageMetadata, verifyApproval, checkRefusal, proveUpdate} from './linux-update-proof.mjs';
 import {checkCatalog, prepareLifecycleTree} from './linux-repo-lifecycle.mjs';
+import {CHROME_VERSION as PINNED_CHROME} from '../release/policy.mjs';
+// The pinned Chromium's first three numbers; a build is the last.
+const PIN = PINNED_CHROME.split('.').slice(0, 3).join('.');
 
-const from = '158.0.8127.907', to = '158.0.8127.908';
+const from = `${PIN}.907`, to = `${PIN}.908`;
 const inputs = (system = 'ubuntu', arch = 'x64') => proofInputs(system, arch, from, to, 'staging');
 
 test('Fedora accepts regenerated armor and rejects another public key', t => {
@@ -48,7 +51,7 @@ test('Task 5 dispatch selects all six native legs with only from, to and reposit
 
 test('a proof requires staging and consecutive builds of the same pinned Chromium version', () => {
   for (const [a, b, repo] of [[to, from, 'staging'], [from, to, 'production'], [from, to, 'http://localhost'],
-    ['158.0.8127.906', to, 'staging'], [from, '158.0.8128.908', 'staging'], [from, '158.0.8127.0908', 'staging']]) {
+    [`${PIN}.906`, to, 'staging'], [from, '158.0.8128.908', 'staging'], [from, `${PIN}.0908`, 'staging']]) {
     assert.throws(() => proofInputs('ubuntu', 'x64', a, b, repo));
   }
   assert.throws(() => inputs('alpine'));
@@ -196,7 +199,7 @@ test('the proof installers and lifecycle tree are bound to the detached approval
   fs.truncateSync(record, fs.statSync(record).size - 1);
   fs.appendFileSync(path.join(input, spec.newPackage), 'wrong bytes');
   await assert.rejects(stage, /size|digest/);
-  assert.throws(() => check(pub, proofInputs('fedora', 'x64', to, '158.0.8127.909', 'staging')));
+  assert.throws(() => check(pub, proofInputs('fedora', 'x64', to, `${PIN}.909`, 'staging')));
   assert.throws(() => check(fileURLToPath(new URL('../linux/keys/blanc-repository.asc', import.meta.url))), /gpgv/);
   fs.writeFileSync(path.join(input, spec.oldPackage), Buffer.alloc(bytes.length));
   assert.throws(check, /digest/);
@@ -221,8 +224,8 @@ const failures = {
   'rpm-unsigned': 'OpenPGP check for package "blanc-beta.rpm" failed: The package is not signed.',
 };
 test('rpm-foreign accepts the dnf5 wording seen on Fedora', () => {
-  const dnf5 = 'Transaction failed: Signature verification failed.\nOpenPGP check for package "blanc-beta-158.0.8127.906-1.x86_64" ' +
-    '(/tmp/client-rpm-foreign/packages/blanc-beta-158.0.8127.906-1.x86_64.rpm) from repo "client-rpm-foreign" has failed: ' +
+  const dnf5 = `Transaction failed: Signature verification failed.\nOpenPGP check for package "blanc-beta-${PIN}.906-1.x86_64" ` +
+    `(/tmp/client-rpm-foreign/packages/blanc-beta-${PIN}.906-1.x86_64.rpm) from repo "client-rpm-foreign" has failed: ` +
     "Import of the key didn't help, wrong key?";
   assert.doesNotThrow(() => checkRefusal('rpm-foreign', 1, dnf5));
   assert.throws(() => checkRefusal('rpm-unsigned', 1, dnf5));
