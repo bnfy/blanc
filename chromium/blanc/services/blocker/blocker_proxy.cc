@@ -1110,11 +1110,7 @@ content::ContentBrowserClient::WillCreateWebTransportCallback WrapWebTransportCa
       initiator_origin.Serialize(), std::move(callback));
 }
 void BindCosmetics(content::RenderFrameHost* frame, mojo::PendingReceiver<mojom::Cosmetics> receiver) {
-#if BUILDFLAG(IS_ANDROID)
-  new CosmeticDocument(*frame, std::move(receiver));  // Chromium 156's DocumentService has no pass key.
-#else
   base::MakeSelfDeleting<CosmeticDocument>(*frame, std::move(receiver));
-#endif
 }
 void SetDocumentStartPrerenderPolicy(content::MojoBinderPolicyMap& policy_map) {
   // Read-only engine selection, bound to this prerender document. Existing
