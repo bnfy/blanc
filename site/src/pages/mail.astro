@@ -24,23 +24,16 @@ const addressSteps = [
 const { open: reservationsOpen, endings } = reservations;
 const exampleAddress = `mira@${endings[0]}`;
 const addressPremium = (productFor('mail-address-annual').amount - productFor('mail-annual').amount) / 100;
-const plans = [
-  {
-    key: 'mail', name: 'Blanc Mail', periods: ['monthly', 'annual'],
-    benefits: ['The Mac app for your existing email accounts', '14-day local app trial', 'No payment card needed for the trial'],
-  },
-  {
-    key: 'mail-address', name: 'Blanc Mail + Address', periods: ['annual'],
-    benefits: ['Everything in Blanc Mail', 'Your own Blanc address with 15 GB for mail and attachments', `$${addressPremium} more per year than the app alone`],
-  },
-  {
-    key: 'suite', name: 'Blanc Bundle', periods: ['monthly', 'annual'],
-    benefits: ['The Mac app and a 15 GB Blanc mailbox', 'Blanc Browser Patron on desktop',
-      { name: 'Nodding Off', href: 'https://noddingoffapp.com/', detail: ', bedtime stories for iPhone' }],
-  },
-] as const;
+// One plan on the page (owner, November 24, 2026). The address is an annual add-on
+// sold as the Blanc Mail + Address product, and Blanc Bundle is the upgrade for
+// Browser Patrons, named under the card rather than as a plan of its own.
+const plan = {
+  key: 'mail', name: 'Blanc Mail',
+  benefits: ['The Mac app for your existing email accounts', '14-day local app trial', 'No payment card needed for the trial'],
+};
+const addressCheckout = checkoutHrefFor('mail-address-annual');
 ---
-<BaseLayout title="Blanc Mail — A little less inbox" description="A mail app for Mac, coming soon. Bring your Gmail or Proton Mail account, or add a Blanc address of your own. Compare Blanc Mail, Mail + Address, and Blanc Bundle." path="/mail" header="solid">
+<BaseLayout title="Blanc Mail — A little less inbox" description="A mail app for Mac, coming soon. Bring your Gmail or Proton Mail account, or add a Blanc address of your own. Planned at $4.99 a month or $49.99 a year." path="/mail" header="solid">
   <MailBar />
   <main id="main-content" class="mail-overview">
     <section class="offer-hero" aria-labelledby="offer-title">
@@ -79,39 +72,39 @@ const plans = [
           <a class="offer-action" href={reservationsOpen ? '/mail/reserve' : '#address'}>{reservationsOpen ? 'Reserve your address' : 'Explore Blanc addresses'}</a>
         </div>
       </div>
-      <a class="offer-jump" href="#pricing">Compare plans <span aria-hidden="true">↓</span></a>
+      <a class="offer-jump" href="#pricing">See pricing <span aria-hidden="true">↓</span></a>
       {survey.open && <p class="mail-survey-link"><a href="/mail/survey">Help shape Blanc Mail: tell us what you’d want, anonymously.</a></p>}
     </section>
 
     <section id="pricing" class="overview-section pricing-section" aria-labelledby="plans-title">
-      <h2 id="plans-title"><span class="mail-gold-text">Compare plans</span></h2>
+      <h2 id="plans-title"><span class="mail-gold-text">Pricing</span></h2>
       <p class="section-intro">Planned pricing at launch. Purchases are not open yet.</p>
-      <ul class="offer-plans" role="list">
-        {plans.map(plan => (
-          <li class="offer-plan">
-            <h3>{plan.name}</h3>
-            <div class="offer-prices">
-              <p><strong class="mail-gold-text">{priceFor(`${plan.key}-annual`)}</strong> / year</p>
-              <p>{plan.periods.length === 2 ? <>or <strong class="mail-gold-text">{priceFor(`${plan.key}-monthly`)}</strong> / month</> : 'Annual billing only'}</p>
-            </div>
-            <div>
-              <ul class="plan-benefits" role="list">
-                {plan.benefits.map(benefit => <li>{typeof benefit === 'string' ? benefit : <><a href={benefit.href}>{benefit.name}</a>{benefit.detail}</>}</li>)}
-              </ul>
-              {plan.periods.map(period => {
-                const href = checkoutHrefFor(`${plan.key}-${period}`);
-                return href && <a class="plan-checkout" href={href}>Choose {plan.name} — {period}</a>;
-              })}
-            </div>
-          </li>
-        ))}
-      </ul>
+      <div class="offer-plan">
+        <h3>{plan.name}</h3>
+        <div class="offer-prices">
+          <p><strong class="mail-gold-text">{priceFor(`${plan.key}-annual`)}</strong> / year</p>
+          <p>or <strong class="mail-gold-text">{priceFor(`${plan.key}-monthly`)}</strong> / month</p>
+        </div>
+        <ul class="plan-benefits" role="list">
+          {plan.benefits.map(benefit => <li>{benefit}</li>)}
+        </ul>
+        {['annual', 'monthly'].map(period => {
+          const href = checkoutHrefFor(`${plan.key}-${period}`);
+          return href && <a class="plan-checkout" href={href}>Choose {plan.name} — {period}</a>;
+        })}
+        <div class="plan-addon">
+          <h4>Add a Blanc address</h4>
+          <p>${addressPremium} more a year, {priceFor('mail-address-annual')} in all. Your own Blanc address with 15 GB for mail and attachments. Annual billing only.</p>
+          {addressCheckout && <a class="plan-checkout" href={addressCheckout}>Choose Blanc Mail + Address — annual</a>}
+        </div>
+      </div>
+      <p class="plan-upgrade">Browser Patrons can upgrade to Blanc Bundle for {priceFor('suite-annual')} a year or {priceFor('suite-monthly')} a month. It adds Blanc Mail, a Blanc address and <a href="https://noddingoffapp.com/">Nodding Off</a>, bedtime stories for iPhone.</p>
     </section>
 
     <section id="address" class="overview-section address-section" aria-labelledby="address-title">
       <div class="address-intro">
         <h2 id="address-title"><span class="mail-gold-text">A private mailbox of your own.</span></h2>
-        <p>Choose an address like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong> when addresses open. A mailbox comes with Blanc Mail + Address and Blanc Bundle.</p>
+        <p>Choose an address like <strong class="mail-shimmer"><!--email_off-->{exampleAddress}<!--/email_off--></strong> when addresses open. Add a mailbox to Blanc Mail for ${addressPremium} more a year.</p>
       </div>
       <ul id="address-features" class="address-features" aria-label="Blanc mailbox features">
         <li>
