@@ -309,7 +309,7 @@ public class PaletteSheetTest {
         assertEquals(null, sheet.field().getHint());
         sheet.field().setText("x");
         ShadowLooper.idleMainLooper();
-        assertEquals("Search, enter address, or / command", sheet.field().getHint().toString());
+        assertEquals("Search, enter URL or / for commands", sheet.field().getHint().toString());
         sheet.field().setText("");
         ShadowLooper.idleMainLooper();
         assertEquals("Clear search", sheet.clearButton().getContentDescription().toString());

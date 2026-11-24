@@ -286,7 +286,7 @@
     "blanc/android/junit/src/org/chromium/blanc/tabs/FakeTabStore.java": "baf3d96772b862fba29cb50fa12c523404c584e29e94694e68a8afe2bf2cddd3",
     "blanc/android/junit/src/org/chromium/blanc/tabs/GroupNamesFixtures.java": "08e6d510f1c7926e237b9b960ccaf06988ac691c84f9e797371112f885aa478c",
     "blanc/android/junit/src/org/chromium/blanc/tabs/GroupNamesTest.java": "0bd102f8b3e7fedc8731ca8efde120ec65c8bc41f93f0a6fdd6919ef447f0358",
-    "blanc/android/junit/src/org/chromium/blanc/tabs/PaletteSheetTest.java": "207f36f98f14ed127dea343a439bc4cd00aeb94f78c17df41c4d9c372901d98e",
+    "blanc/android/junit/src/org/chromium/blanc/tabs/PaletteSheetTest.java": "d7fde7b400c3e3b1846261a8a5a4d9032acf501e7c7e2495d9fb3e9e33192a70",
     "blanc/android/junit/src/org/chromium/blanc/tabs/QuickSwitcherTest.java": "25ba04b680a9effb9daad4b3a487cf67fe59c38c28d8111ba8204267d314c62d",
     "blanc/android/junit/src/org/chromium/blanc/tabs/QuietTabsTest.java": "fa7e0f2fc7d56664d7ddea1ea4d169a593f5293031ad87edfe9be4d55ab0ccbb",
     "blanc/android/junit/src/org/chromium/blanc/tabs/RecentlyClosedTest.java": "403cdddc04fed8b649ac7d704c6773b3dd81d656dac564b44b0a5845f5c26bd8",
