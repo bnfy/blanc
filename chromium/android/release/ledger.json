@@ -45,6 +45,15 @@
       "state": "uploaded",
       "date": "2026-11-22T03:04:08.427Z",
       "note": "Verified local Android handoff; release/device evidence pending."
+    },
+    {
+      "versionCode": 6,
+      "versionName": "1.0.0-beta.6",
+      "tag": "android-v1.0.0-beta.6-6",
+      "commit": "16742ddf0815456930c7bceda9efc61a2860e49e",
+      "state": "built",
+      "date": "2026-11-23T23:06:48.718Z",
+      "note": "Verified local Android handoff; release/device evidence pending."
     }
   ]
 }
