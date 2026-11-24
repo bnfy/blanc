@@ -11,10 +11,12 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {PAGES, PAGES_DIR, START_DIR, pinned} from './android-pages.mjs';
 
-test('the six pages and the iPhone phone layout are listed', () => {
+test('the five pages and the iPhone phone layout are listed, and no Mahjong', () => {
   const {files, start} = pinned();
-  for (const page of ['bookmarks.html', 'history.html', 'shortcuts.html', 'error.html', 'mahjong.html', 'ios-pages.css'])
+  for (const page of ['bookmarks.html', 'history.html', 'shortcuts.html', 'error.html', 'ios-pages.css'])
     assert.ok(files.includes(page), page);
+  // Blanc doesn't offer Mahjong on phones yet (owner, November 14 and 24, 2026): none of it ships.
+  assert.deepEqual(files.filter(f => f.startsWith('mahjong')), []);
   // The Start Page is the fork's, not shipping's.
   assert.equal(start.from, 'blanc/island/pages');
   for (const file of ['newtab.html', 'newtab.js', 'newtab-adapter.js', 'newtab-prototype.css', 'pages.css', 'strings.js'])
@@ -22,7 +24,7 @@ test('the six pages and the iPhone phone layout are listed', () => {
   for (const file of ['newtab.html', 'newtab.js', 'ios-start-page.css', 'ios-start-page.js', 'ios-start-rules.js'])
     assert.ok(!files.includes(file), `shipping's ${file} is gone`);
   for (const locale of ['en', 'de', 'es', 'fr', 'it', 'pt-BR']) assert.ok(files.includes(`strings.${locale}.js`), locale);
-  assert.deepEqual(PAGES, ['newtab', 'bookmarks', 'history', 'shortcuts', 'error', 'mahjong']);
+  assert.deepEqual(PAGES, ['newtab', 'bookmarks', 'history', 'shortcuts', 'error']);
 });
 
 test('the pin is the current public release, v1.47.1', () => {

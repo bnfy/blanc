@@ -29,7 +29,6 @@ public class IslandTitleTest {
         assertEquals("Start Page", title("chrome", "blanc", "/newtab.html"));
         assertEquals("Favorites", title("chrome", "blanc", "/bookmarks.html"));
         assertEquals("History", title("chrome", "blanc", "/history.html"));
-        assertEquals("Mahjong", title("chrome", "blanc", "/mahjong.html"));
     }
 
     @Test

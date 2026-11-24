@@ -17,8 +17,9 @@ import {fileURLToPath} from 'node:url';
 const chromium = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const LIST = path.join(chromium, 'blanc/android/pages.json');
 export const PAGES_DIR = path.join(chromium, 'blanc/android/pages');
-// The pages Android 1.0 opens, as the iPhone's BlancPageResolver lists them (without Downloads).
-export const PAGES = ['newtab', 'bookmarks', 'history', 'shortcuts', 'error', 'mahjong'];
+// The pages Android 1.0 opens, as the iPhone's BlancPageResolver lists them (without Downloads),
+// and without Mahjong, which Blanc doesn't offer on phones yet (owner, November 14 and 24, 2026).
+export const PAGES = ['newtab', 'bookmarks', 'history', 'shortcuts', 'error'];
 
 // The file's bytes, or null if it isn't there: one read, so nothing can change between a check and it.
 function readIfPresent(file) {
