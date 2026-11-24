@@ -137,6 +137,9 @@ test('the envelope holds still under reduced motion, and otherwise leans toward 
   const full = await openPage('/mail#download', 1440, { reducedMotion: 'no-preference' });
   try {
     await full.page.locator('.envelope-stage').scrollIntoViewIfNeeded();
+    // Scrolled into view, the light sweeps across it once.
+    await full.page.waitForFunction(() => document.querySelector('.mail-envelope').hasAttribute('data-lit'));
+    assert.ok(await full.page.evaluate(() => document.getAnimations().some(a => a.animationName === 'mail-envelope-sweep')), 'the sweep plays in view');
     await full.page.mouse.move(40, 200);
     await full.page.waitForFunction(() => getComputedStyle(document.querySelector('.mail-envelope')).getPropertyValue('--mx').trim() !== '0.5');
     await full.page.waitForTimeout(1000);
