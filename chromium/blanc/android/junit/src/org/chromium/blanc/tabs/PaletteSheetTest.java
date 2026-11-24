@@ -329,6 +329,9 @@ public class PaletteSheetTest {
         go(settings);
         assertEquals(2, mLoaded.size());
         assertFalse(settings.isShowing());
+        // Blanc doesn't offer Mahjong on phones yet: its address opens nothing.
+        go(withText("blanc://mahjong"));
+        assertEquals(2, mLoaded.size());
     }
 
     @Test
