@@ -52,7 +52,7 @@ export function googleRepoSnapshot(root = '/') {
   for (const name of names.filter(name => /\.(?:sources|list)$/.test(name))) {
     const bytes = fs.readFileSync(path.join(apt, name));
     if (/^google-chrome(?:-[\w-]+)?\./.test(name) ||
-        /^.*\bhttps?:\/\/dl(?:-ssl)?\.google\.com\/linux\/chrome(?:-[\w-]+)?\/deb(?:[/\s"']|$)/m.test(bytes.toString('utf8'))) {
+        /(?:^|[\s"'=])https?:\/\/dl(?:-ssl)?\.google\.com\/linux\/chrome(?:-[\w-]+)?\/deb(?:[/\s"']|$)/m.test(bytes.toString('utf8'))) {
       snapshot[path.posix.join(aptSources, name)] = sha(bytes);
     }
   }
