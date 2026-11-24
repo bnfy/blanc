@@ -43,6 +43,7 @@ export function validateStanding(s) {
     must(KNOWN_GATES.includes(gate), `carried check names an unknown gate: ${gate}`);
     must(['owner', 'claude'].includes(c?.who) && typeof c.check === 'string' && c.check, `carried check needs who and what: ${gate}`);
     must(Array.isArray(c.paths) && c.paths.length > 0 && c.paths.every(g => typeof g === 'string' && g), `carried check needs paths: ${gate}`);
+    must(c.chromiumVersion === undefined || c.chromiumVersion === false, `carried check chromiumVersion may only be false: ${gate}`);
     const p = c.lastPass;
     must(betaNumber(p?.version) !== null && /^[a-f0-9]{40}$/.test(p.sourceCommit) && typeof p.evidence === 'string' && p.evidence
       && !p.evidence.startsWith('/') && !p.evidence.split('/').includes('..') && /^[a-f0-9]{64}$/.test(p.sha256), `carried check lastPass: ${gate}`);
@@ -78,13 +79,15 @@ export function globMatch(glob, file) {
 }
 
 // versionChanged: whether the Chromium version (standing.chromiumVersion's
-// fields) differs between the check's last pass and this release.
+// fields) differs between the check's last pass and this release. A check with
+// chromiumVersion: false comes due on its own paths only (the passkey check,
+// owner 2026-11-24): a Chromium update alone doesn't make it due.
 export function carriedState(s, gate, changed, versionChanged = false) {
   const c = s.carried?.[gate];
   must(c, `not a carried gate: ${gate}`);
   const globs = [...c.paths, ...s.anyChange];
   const touched = changed.filter(file => globs.some(g => globMatch(g, file)));
-  if (versionChanged && s.chromiumVersion) touched.push(`Chromium version (${s.chromiumVersion.file})`);
+  if (versionChanged && s.chromiumVersion && c.chromiumVersion !== false) touched.push(`Chromium version (${s.chromiumVersion.file})`);
   return { carried: touched.length === 0, touched };
 }
 

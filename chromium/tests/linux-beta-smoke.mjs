@@ -15,6 +15,7 @@ import { pathToFileURL } from 'node:url';
 import { connect, pause, waitFor } from './lib/cdp.mjs';
 import { TEST_SWITCHES, hasCString } from '../release/hooks-evidence.mjs';
 import { PROBES } from '../release/blocker-evidence.mjs';
+import { pipeSync } from '../linux/pipe.mjs';
 
 const executable = '/opt/bnfy/blanc-beta/chrome';
 const strings = ['blancTest', ...TEST_SWITCHES];
@@ -113,7 +114,9 @@ async function run(version) {
     base + '/'], { env: { ...process.env, HOME: dir, XDG_CONFIG_HOME: path.join(dir, 'config') }, stdio: 'ignore' });
     await once(child, 'spawn');
     exited = once(child, 'exit');
-    const debug = await waitFor(() => fs.readFileSync(path.join(dir, 'DevToolsActivePort'), 'utf8').split('\n')[0], p => /^\d+$/.test(p), 'installed beta debug port');
+    // A port number, not file text, goes into the DevTools URL.
+    const debug = await waitFor(() => +fs.readFileSync(path.join(dir, 'DevToolsActivePort'), 'utf8').split('\n')[0],
+      p => Number.isInteger(p) && p > 0 && p < 65536, 'installed beta debug port');
     const api = 'http://127.0.0.1:' + debug + '/json/';
     browser = await connect(await (await fetch(api + 'version')).json());
     const targets = await waitFor(async () => await (await fetch(api + 'list')).json(), ts => ts.some(t => t.url === base + '/'), 'installed page');
@@ -171,9 +174,9 @@ export async function packageCheck(file, version, installedSha256, references) {
   // The installer strips chrome. Bind the executable we launched to the bytes
   // in this package, not to the unstripped executable in the candidate tar.
   const member = './opt/bnfy/blanc-beta/chrome';
-  const extract = deb ? 'dpkg-deb --fsys-tarfile "$1" | tar -xOf - "$2"' :
-    'rpm2cpio "$1" | cpio --quiet -i --to-stdout "$2"';
-  const exeSha256 = command('bash', ['-o', 'pipefail', '-c', extract + ' | sha256sum', 'check-package', file, member]).split(/\s+/)[0];
+  const bytes = deb ? pipeSync(['dpkg-deb', ['--fsys-tarfile', file]], ['tar', ['-xOf', '-', member]]) :
+    pipeSync(['rpm2cpio', [file]], ['cpio', ['--quiet', '-i', '--to-stdout', member]]);
+  const exeSha256 = createHash('sha256').update(bytes).digest('hex');
   assert.equal(exeSha256, installedSha256, 'installed executable differs from the selected package');
   const hash = createHash('sha256');
   for await (const bytes of fs.createReadStream(file)) hash.update(bytes);

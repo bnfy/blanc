@@ -225,7 +225,7 @@ test('the beta\'s logo is served for the install window, light, dark and legacy'
   const id = '%7b459fd3cf-456c-4a06-8b37-2084cf64ddce%7d';
   const l = await get(`/update/icons/${id}_light.bmp?lang=en`);
   assert.equal(l.status, 200); assert.equal(l.type, 'image/bmp'); assert.ok(l.bytes.equals(light));
-  assert.ok((await get(`/update/icons/${id.toUpperCase().replace('%7B', '%7B')}_dark.bmp?lang=en`)).bytes.equals(dark), 'escapes in either case');
+  assert.ok((await get(`/update/icons/${id.toUpperCase()}_dark.bmp?lang=en`)).bytes.equals(dark), 'escapes in either case');
   assert.ok((await get(`/update/icons/${id}.bmp`)).bytes.equals(light), 'the legacy name gets the light logo');
   assert.equal((await get('/update/icons/%7b00000000-0000-0000-0000-000000000000%7d_light.bmp')).status, 404, 'another app');
   assert.equal((await get(`/update/icons/${id}_light.png`)).status, 404);

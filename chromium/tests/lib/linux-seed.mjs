@@ -52,7 +52,7 @@ export function googleRepoSnapshot(root = '/') {
   for (const name of names.filter(name => /\.(?:sources|list)$/.test(name))) {
     const bytes = fs.readFileSync(path.join(apt, name));
     if (/^google-chrome(?:-[\w-]+)?\./.test(name) ||
-        /https?:\/\/dl(?:-ssl)?\.google\.com\/linux\/chrome(?:-[\w-]+)?\/deb\b/.test(bytes.toString('utf8'))) {
+        /(?:^|[\s"'=])https?:\/\/dl(?:-ssl)?\.google\.com\/linux\/chrome(?:-[\w-]+)?\/deb(?:[/\s"']|$)/m.test(bytes.toString('utf8'))) {
       snapshot[path.posix.join(aptSources, name)] = sha(bytes);
     }
   }
@@ -75,19 +75,31 @@ export function sessionEnvironment(home, parent = process.env) {
   return env;
 }
 
+// One profile entry, judged from the descriptor that reads it: a symlink
+// refuses O_NOFOLLOW (ELOOP), and O_NONBLOCK keeps a FIFO from hanging the walk.
+function profileEntry(file) {
+  const {O_RDONLY, O_NOFOLLOW, O_NONBLOCK} = fs.constants;
+  let fd;
+  try { fd = fs.openSync(file, O_RDONLY | O_NOFOLLOW | O_NONBLOCK); } catch (error) {
+    if (error.code === 'ELOOP') return ['link', fs.readlinkSync(file)];
+    throw error;
+  }
+  try {
+    const stat = fs.fstatSync(fd);
+    if (stat.isFile()) return ['file', sha(fs.readFileSync(fd))];
+    if (stat.isDirectory()) return ['directory'];
+  } finally { fs.closeSync(fd); }
+  throw Error('Unexpected profile entry: ' + file);
+}
+
 export function profileDigest(dir) {
   const hash = createHash('sha256');
   function walk(folder) {
     for (const name of fs.readdirSync(folder).sort()) {
       const file = path.join(folder, name);
-      const stat = fs.lstatSync(file);
-      let value;
-      if (stat.isSymbolicLink()) value = ['link', fs.readlinkSync(file)];
-      else if (stat.isFile()) value = ['file', sha(fs.readFileSync(file))];
-      else if (stat.isDirectory()) value = ['directory'];
-      else throw Error('Unexpected profile entry: ' + file);
+      const value = profileEntry(file);
       hash.update(JSON.stringify([path.relative(dir, file), ...value]) + '\n');
-      if (stat.isDirectory()) walk(file);
+      if (value[0] === 'directory') walk(file);
     }
   }
   walk(dir);

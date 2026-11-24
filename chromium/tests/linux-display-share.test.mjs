@@ -80,7 +80,7 @@ test('the pages: the target sets its capture handle, the sharer reports its trac
   const sharer = pageHtml('/sharer');
   for (const part of ['getDisplayMedia(options)', "addEventListener('ended'", 'getCaptureHandle', 'displaySurface'])
     assert.ok(sharer.includes(part), part);
-  assert.doesNotMatch(pageHtml('/<script>'), /<script>/);
+  assert.ok(!pageHtml('/<script>').toLowerCase().includes('<script>'), 'a requested path never reaches the page as markup');
 });
 
 test('the report passes only with both cases, in order, passed', () => {

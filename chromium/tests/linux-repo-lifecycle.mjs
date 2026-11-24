@@ -62,12 +62,18 @@ export async function prepareLifecycleTree(spec, input, tree, readStaging, publi
   } finally { fs.rmSync(scratch, {recursive: true, force: true}); }
 }
 
-function manual(heading) {
+async function manual(heading) {
   const section = doc.split('\n## ' + heading + '\n')[1]?.split('\n## ')[0];
   const block = section?.match(/^```sh\n([\s\S]*?)\n```$/m);
   assert.ok(block, 'Missing manual commands under ' + heading);
-  // This CLI runs as root even in minimal containers without sudo.
-  return run('bash', ['-euo', 'pipefail', '-c', 'sudo() { "$@"; }\n' + block[1]]);
+  // This CLI runs as root even in minimal containers without sudo. The block
+  // runs from a private file, not as a -c argument, so no command text is
+  // ever an argument; its stdin stays the test's, as it would for a person.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-manual-'));
+  const script = path.join(dir, 'commands.sh');
+  fs.writeFileSync(script, 'sudo() { "$@"; }\n' + block[1] + '\n', {mode: 0o600, flag: 'wx'});
+  try { return await run('bash', ['-euo', 'pipefail', script]); }
+  finally { fs.rmSync(dir, {recursive: true, force: true}); }
 }
 
 async function approvedPackages(approved, tree, work, format) {

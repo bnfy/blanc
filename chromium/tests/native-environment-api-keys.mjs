@@ -21,8 +21,12 @@ import {connect, waitFor, pause} from './lib/cdp.mjs';
 
 const [app, out] = process.argv.slice(2);
 if (!app || !out) throw Error('Usage: native-environment-api-keys.mjs <Blanc Beta.app | executable> <new-output-dir>');
-if (fs.existsSync(out)) throw Error('Refusing to overwrite ' + out);
-fs.mkdirSync(out, {recursive: true, mode: 0o700});
+// Creating the folder itself is the check: an existing one is refused.
+fs.mkdirSync(path.dirname(path.resolve(out)), {recursive: true});
+try { fs.mkdirSync(out, {mode: 0o700}); } catch (error) {
+  if (error.code === 'EEXIST') throw Error('Refusing to overwrite ' + out);
+  throw error;
+}
 
 const ENV_KEY = 'blanc-env-key-marker', ENV_CLIENT = 'blanc-env-client-marker', CONTROL = 'blanc-gaia-control-marker';
 

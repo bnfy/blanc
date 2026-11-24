@@ -1,6 +1,6 @@
 import {isDeepStrictEqual} from 'node:util';
 import {createHash} from 'node:crypto';
-import {open, readFile, stat} from 'node:fs/promises';
+import {open, readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {jsonBytes, planUpload, pruneKeys, sha256, withPublisherLock} from '../plan-upload.mjs';
@@ -13,6 +13,11 @@ async function digestStream(stream) {
   return hash.digest('hex');
 }
 
+async function putBytes(bucket, op, options, bytes) {
+  if (sha256(bytes) !== op.sha256) throw Error('Local tree differs: ' + op.file);
+  await bucket.put(op.key, bytes, {...options, sha256: op.sha256});
+}
+
 async function putFile(bucket, directory, signed, op) {
   const options = {httpMetadata: {cacheControl: op.cacheControl}};
   const file = path.join(directory, op.file);
@@ -21,15 +26,12 @@ async function putFile(bucket, directory, signed, op) {
     if (await digestStream(existing.body) !== op.sha256) throw Error('Immutable object differs: ' + op.key);
     return;
   }
-  if (op.file === 'signed-tree.json' || (await stat(file)).size <= partSize) {
-    const bytes = op.file === 'signed-tree.json' ? Buffer.from(jsonBytes(signed)) : await readFile(file);
-    if (sha256(bytes) !== op.sha256) throw Error('Local tree differs: ' + op.file);
-    await bucket.put(op.key, bytes, {...options, sha256: op.sha256});
-    return;
-  }
-  // Each request to the remote R2 binding stays below the Worker body limit.
+  if (op.file === 'signed-tree.json') return putBytes(bucket, op, options, Buffer.from(jsonBytes(signed)));
+  // One handle for the size check and every read, so they see the same file.
   const handle = await open(file, 'r');
   try {
+    if ((await handle.stat()).size <= partSize) return await putBytes(bucket, op, options, await handle.readFile());
+    // Each request to the remote R2 binding stays below the Worker body limit.
     const upload = await bucket.createMultipartUpload(op.key, options);
     try {
       const hash = createHash('sha256');

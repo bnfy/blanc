@@ -96,7 +96,7 @@ test('Linux beta build and packaging verify the applied source map', t => {
   stale.upstreamFiles['browser.cc'] = hash('other source');
   fs.writeFileSync(f.marker, JSON.stringify(stale));
   assert.notEqual(f.guard('--build').status, 0, 'a stale apply record cannot authorize compilation');
-  assert.equal(fs.existsSync(f.record), false);
+  assert.throws(() => fs.readFileSync(f.record), {code: 'ENOENT'});
   fs.writeFileSync(f.marker, good);
   fs.writeFileSync(path.join(f.src, 'browser.cc'), 'unapplied');
   assert.notEqual(f.guard('--build').status, 0, 'a matching marker cannot vouch for changed source bytes');

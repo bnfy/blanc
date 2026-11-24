@@ -55,6 +55,7 @@ try{
  const about=app.findIndex(t=>/^About /.test(t));
  assert.ok(about>=0,`expected an About item; found ${JSON.stringify(app)}`);
  assert.equal(app[about+1],'Check for Updates…',`expected Check for Updates… directly under About; found ${JSON.stringify(app)}`);
+ assert.equal(app.filter(t=>t==='Check for Updates…').length,1,`expected one Check for Updates…; found ${JSON.stringify(app)}`);
  result.checks.push('the application menu has Check for Updates… directly under About');
 
  // This build has no updater, so the item opens About (where the version is).

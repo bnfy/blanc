@@ -128,10 +128,16 @@ export function installedMatches(candidate, {installedExe, installedDll, origina
   });
   return result;
 }
+// A file's bytes and times read through one descriptor, or null if it is absent.
+function snapshot(file) {
+  let fd;
+  try { fd = fs.openSync(file, 'r'); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+  try { return { bytes: fs.readFileSync(fd), stat: fs.fstatSync(fd) }; } finally { fs.closeSync(fd); }
+}
 // Runs `work`, then restores `file` to the bytes and times it had before
 // (or removes it if it did not exist), whatever `work` did to it.
 export function keepingFile(file, work) {
-  const before = fs.existsSync(file) ? { bytes: fs.readFileSync(file), stat: fs.statSync(file) } : null;
+  const before = snapshot(file);
   try { return work(); } finally {
     if (!before) fs.rmSync(file, { force: true });
     else { fs.writeFileSync(file, before.bytes); fs.utimesSync(file, before.stat.atime, before.stat.mtime); }

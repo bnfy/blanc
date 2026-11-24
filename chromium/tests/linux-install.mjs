@@ -13,6 +13,7 @@ import {installedRuntime, runSmoke} from './linux-smoke.mjs';
 import {assertEnrolledKey, defaultBrowser, googleRepoSnapshot, hashFile, launchAppImage, seedDefaultBrowser, seedInstallHome, seedSnapshot, sessionEnvironment} from './lib/linux-seed.mjs';
 import {NativeFixture} from './lib/fixture.mjs';
 import {pause, waitFor} from './lib/cdp.mjs';
+import { jsLiteral } from './lib/js-literal.mjs';
 
 const self = fileURLToPath(import.meta.url);
 const key = fileURLToPath(new URL('../linux/keys/blanc-repository.asc', import.meta.url));
@@ -198,13 +199,13 @@ async function fixturePassword(fixture, password, save) {
   const page = await browserPage(fixture, 'chrome://password-manager/passwords', '!!globalThis.chrome?.passwordsPrivate');
   if (save) {
     const options = {url: origin, username, password, note: '', useAccountStore: false};
-    await page.eval('chrome.passwordsPrivate.addPassword(' + JSON.stringify(options) + ')');
+    await page.eval('chrome.passwordsPrivate.addPassword(' + jsLiteral(options) + ')');
   }
   const id = await waitFor(() => page.eval(`(async()=>{
     const rows=await chrome.passwordsPrivate.getSavedPasswordList();
-    return rows.find(r=>r.username===${JSON.stringify(username)})?.id;
+    return rows.find(r=>r.username===${jsLiteral(username)})?.id;
   })()`), Number.isInteger, 'saved fixture login');
-  assert.ok(await page.eval(`(async()=>await chrome.passwordsPrivate.requestPlaintextPassword(${id},'VIEW')===${JSON.stringify(password)})()`),
+  assert.ok(await page.eval(`(async()=>await chrome.passwordsPrivate.requestPlaintextPassword(${jsLiteral(id)},'VIEW')===${jsLiteral(password)})()`),
     'Browser could not decrypt the disposable login');
 }
 function storedVersion(home) {

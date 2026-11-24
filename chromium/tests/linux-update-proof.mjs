@@ -442,8 +442,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     assert.equal(field('ID'), system);
     assert.equal(field('VERSION_ID'), {ubuntu: '24.04', debian: '12', fedora: '45'}[system]);
     const output = path.join(results, spec.report);
-    assert.ok(!fs.existsSync(output), 'Refusing to reuse a completed report');
     if (mode === 'run') {
+      // The session below writes the report with 'wx'; refuse early here too.
+      assert.ok(!fs.existsSync(output), 'Refusing to reuse a completed report');
       const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-update-proof-'));
       try {
         // Package managers drop privileges for downloads. Let their helpers

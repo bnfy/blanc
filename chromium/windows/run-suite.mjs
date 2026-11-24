@@ -93,8 +93,12 @@ function main() {
     // The runner exits 1 when cases fail or are undefined: a recorded result,
     // not a broken run. Only a crash or a guard stop fails this step.
     const baseline = path.join(results, 'baseline.json');
-    if (!fs.existsSync(baseline)) throw new Error(`The runner stopped without a baseline (exit ${run.status ?? run.signal}).`);
-    if (nightly) fs.writeFileSync(baseline, JSON.stringify(stampNightly(JSON.parse(fs.readFileSync(baseline, 'utf8')), nightly), null, 2) + '\n');
+    let written;
+    try { written = fs.readFileSync(baseline, 'utf8'); } catch (error) {
+      if (error.code === 'ENOENT') throw new Error(`The runner stopped without a baseline (exit ${run.status ?? run.signal}).`);
+      throw error;
+    }
+    if (nightly) fs.writeFileSync(baseline, JSON.stringify(stampNightly(JSON.parse(written), nightly), null, 2) + '\n');
   } finally {
     fs.writeFileSync(trackerFile, originalTracker);
   }
