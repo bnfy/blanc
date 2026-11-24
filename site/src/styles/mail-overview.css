@@ -196,7 +196,7 @@
 .offer-plan a { color: #e6cf9a; }
 .plan-checkout { display: block; margin-top: 20px; }
 .plan-addon { margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0c08433; }
-.plan-addon h4 { margin: 0 0 6px; font: 400 20px/1.2 var(--site-font-display); letter-spacing: .02em; }
+.plan-addon h4 { margin: 0 0 6px; font-family: var(--site-font-display); font-size: 20px; font-weight: 400; line-height: 1.2; letter-spacing: .02em; }
 .plan-addon p { margin: 0; font-size: 15.5px; line-height: 1.5; }
 .plan-upgrade { max-width: 520px; margin: 18px auto 0; font-size: 15px; line-height: 1.55; }
 .faq-spread, .signup-spread {
