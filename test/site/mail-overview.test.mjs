@@ -214,36 +214,36 @@ test('the address setup previews stay labelled and switch by mouse or keyboard',
   } finally { await context.close(); }
 });
 
-test('visitors can compare the three launch plans and their billing periods without opening checkout', async () => {
+test('visitors see one plan, the address add-on and the Patron upgrade without opening checkout', async () => {
   const { page, context } = await openPage('/mail');
   try {
     assert.match(await page.locator('#pricing .section-intro').innerText(), /Planned pricing at launch.*Purchases are not open/);
-    const plans = page.locator('.offer-plan');
-    assert.deepEqual(await plans.locator('h3').allTextContents(), ['Blanc Mail', 'Blanc Mail + Address', 'Blanc Bundle']);
-    assert.deepEqual(await plans.locator('.offer-prices p').allTextContents(), [
-      '$49.99 / year', 'or $4.99 / month', '$69.99 / year', 'Annual billing only', '$79.99 / year', 'or $7.99 / month',
-    ]);
-    assert.match(await plans.first().innerText(), /existing email accounts/);
-    assert.match(await plans.nth(1).innerText(), /15 GB/);
-    assert.match(await plans.last().innerText(), /Nodding Off/);
-    assert.equal(await plans.getByRole('link', { name: 'Nodding Off' }).getAttribute('href'), 'https://noddingoffapp.com/');
+    const plan = page.locator('.offer-plan');
+    assert.equal(await plan.count(), 1);
+    assert.equal(await plan.locator('h3').innerText(), 'Blanc Mail');
+    assert.deepEqual(await plan.locator('.offer-prices p').allTextContents(), ['$49.99 / year', 'or $4.99 / month']);
+    assert.match(await plan.innerText(), /existing email accounts/);
+    const addOn = plan.locator('.plan-addon');
+    assert.equal(await addOn.locator('h4').innerText(), 'Add a Blanc address');
+    assert.match(await addOn.innerText(), /\$20 more a year, \$69\.99 in all.*15 GB.*Annual billing only/s);
+    const upgrade = page.locator('#pricing .plan-upgrade');
+    assert.match(await upgrade.innerText(), /Browser Patrons can upgrade to Blanc Bundle for \$79\.99 a year or \$7\.99 a month/);
+    assert.equal(await upgrade.getByRole('link', { name: 'Nodding Off' }).getAttribute('href'), 'https://noddingoffapp.com/');
     assert.equal(await page.locator('main a[href*="polar.sh"]').count(), 0);
-    assert.doesNotMatch(await plans.allInnerTexts().then(lines => lines.join(' ')), /recommended|most popular/i);
+    assert.doesNotMatch(await page.locator('#pricing').innerText(), /recommended|most popular/i);
   } finally { await context.close(); }
 });
 
-test('pricing cards share a row from 640px and stack on narrow phones', async () => {
+test('the plan card fits from narrow phones to wide screens', async () => {
   const { page, context } = await openPage('/mail#pricing');
   try {
     for (const width of [320, 390, 639, 640, 768, 884, 901, 1440]) {
       await page.setViewportSize({ width, height: 900 });
-      const cards = await page.locator('.offer-plan').evaluateAll(elements => elements.map(card => {
-        const { top, left, right } = card.getBoundingClientRect();
-        return { top, left, right, fits: card.scrollWidth <= card.clientWidth };
-      }));
-      assert.equal(cards.length, 3);
-      assert.ok(cards.every(card => card.fits && card.left >= 0 && card.right <= width), `content fits at ${width}px`);
-      assert.equal(new Set(cards.map(card => card.top)).size, width < 640 ? 3 : 1, `rows at ${width}px`);
+      const card = await page.locator('.offer-plan').evaluate(el => {
+        const { left, right } = el.getBoundingClientRect();
+        return { left, right, fits: el.scrollWidth <= el.clientWidth };
+      });
+      assert.ok(card.fits && card.left >= 0 && card.right <= width, `content fits at ${width}px`);
     }
   } finally { await context.close(); }
 });
