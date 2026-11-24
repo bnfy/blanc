@@ -21,7 +21,7 @@
         <span id="mjPrivateChip" class="mj-private-chip" data-i18n="mahjong.head.private">private</span>
       </div>
 
-      <div class="mj-session" aria-label="Current game" data-i18n-aria-label="mahjong.head.currentGame">
+      <div class="mj-session" role="group" aria-label="Current game" data-i18n-aria-label="mahjong.head.currentGame">
         <span id="mjDailyBadge" class="mj-daily-badge" hidden data-i18n="mahjong.head.daily">daily</span>
         <strong id="mjLayoutName" data-i18n="mahjong.layout.turtle">Turtle</strong>
         <span aria-hidden="true">/</span>
@@ -29,7 +29,7 @@
         <span id="mjRulesBadge" class="mj-rules-badge" data-i18n="mahjong.rulesName.ranked">Ranked</span>
       </div>
 
-      <div class="mj-meters" aria-label="Game status" data-i18n-aria-label="mahjong.head.status">
+      <div class="mj-meters" role="group" aria-label="Game status" data-i18n-aria-label="mahjong.head.status">
         <span class="mj-meter">
           <span class="mj-meter-label" data-i18n="mahjong.head.pairs">pairs</span>
           <strong id="mjPairs" class="mj-pairs"></strong>
@@ -295,7 +295,7 @@
           <button id="mjRecordsClose" class="mj-close" type="button" aria-label="Close records" data-i18n-aria-label="mahjong.records.close">×</button>
         </header>
 
-        <div class="mj-records-overview" aria-label="Overview" data-i18n-aria-label="mahjong.records.overview">
+        <div class="mj-records-overview" role="group" aria-label="Overview" data-i18n-aria-label="mahjong.records.overview">
           <span><small data-i18n="mahjong.records.boardsCleared">boards cleared</small><strong id="mjRecordsCleared">0</strong></span>
           <span><small data-i18n="mahjong.records.dailyStreak">daily streak</small><strong id="mjRecordsStreak">0</strong></span>
           <span><small data-i18n="mahjong.records.longestStreak">longest streak</small><strong id="mjRecordsLongest">0</strong></span>
