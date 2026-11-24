@@ -48,7 +48,7 @@ index 587a396..62de309 100644
 +        const SkColor fill = color_utils::BlendForMinContrast(
 +            dark ? SkColorSetRGB(0xd4, 0xad, 0x66) : SkColorSetRGB(0x80, 0x5d, 0x28),
 +            style->background, std::nullopt, 3.0f).color;
-+        button->SetBgColorOverrideDeprecated(fill);
++        button->SetBgColorOverride(fill);
 +        button->SetEnabledTextColors(
 +            color_utils::IsDark(fill) ? SK_ColorWHITE : SkColorSetRGB(0x17, 0x13, 0x0f));
 +        continue;

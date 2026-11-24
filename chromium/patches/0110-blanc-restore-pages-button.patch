@@ -26,7 +26,7 @@ index 087d580..da76946 100644
 +      restore && restore->GetColorProvider()) {
 +    const bool dark = color_utils::IsDark(
 +        restore->GetColorProvider()->GetColor(ui::kColorDialogBackground));
-+    restore->SetBgColorOverrideDeprecated(
++    restore->SetBgColorOverride(
 +        dark ? SkColorSetRGB(0xd4, 0xad, 0x66) : SkColorSetRGB(0x80, 0x5d, 0x28));
 +    restore->SetEnabledTextColors(
 +        dark ? SkColorSetRGB(0x17, 0x13, 0x0f) : SK_ColorWHITE);
