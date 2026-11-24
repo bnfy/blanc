@@ -3,7 +3,7 @@
 // `id` is used only on /support (prefixed mail-), where every answer is a
 // deep link; /mail renders these without ids.
 export const mailQuestions = [
-  { id: 'mail-new-address', title: 'Do I need a new email address?', answer: 'You can keep your current address. Connect a Google account directly, or a Proton account through Proton Mail Bridge on your Mac. You can also use a Blanc address on its own.' },
+  { id: 'mail-new-address', title: 'Do I need a new email address?', answer: 'You can keep your current address. Connect a Google account directly. You can also use a Blanc address on its own.' },
   { id: 'mail-tools', title: 'Which tools help me keep up with mail?', answer: 'Bring up to five Gmail accounts into one inbox. Snooze a conversation, reuse a reply template, or schedule a message to go out when Blanc Mail is running and online on your Mac.' },
   { id: 'mail-ghost-mode', title: 'How can I keep conversations off my screen?', answer: 'Ghost Mode hides a conversation or Gmail label and locks it again on a timer. Touch ID or your password brings it back into view. Ghost Mode controls what appears on screen.' },
   { id: 'mail-reserve', title: 'What does reserving a name get me?', answer: 'A confirmed reservation holds your name across the Blanc endings until 30 days after addresses open. Use the email you reserved with to claim it. The mailbox starts when you claim the address with an eligible paid plan.' },

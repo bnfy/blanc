@@ -49,7 +49,8 @@ test('the hero shows both ways to use Mail with equal actions before pricing', a
       assert.match(await page.locator('.mail-eyebrow').innerText(), /coming soon/i);
       const paths = page.locator('.offer-path');
       assert.deepEqual(await paths.locator('h2').allTextContents(), ['Keep your email address', 'Get a Blanc address']);
-      assert.match(await paths.first().innerText(), /Proton Mail Bridge/);
+      assert.match(await paths.first().innerText(), /Gmail/);
+      assert.doesNotMatch(await page.locator('main').innerText(), /Proton/);
       const open = JSON.parse(readFileSync(new URL('../../site/src/data/mail-reservations.json', import.meta.url))).open;
       const address = paths.last().getByRole('link');
       assert.equal(await address.getAttribute('href'), open ? '/mail/reserve' : '#address');
@@ -184,7 +185,7 @@ test('the app grid shows mail tools and privacy protections at each breakpoint',
       const grid = section.getByRole('list');
       assert.deepEqual(await grid.getByRole('heading', { level: 3 }).allTextContents(), [
         'Every account together', 'Groups', 'Read with scripts blocked',
-        'Gmail and Proton Mail', 'Blanc adds no tracking', 'Later, on your terms',
+        'Your Gmail account', 'Blanc adds no tracking', 'Later, on your terms',
         'Ghost Mode', 'Share photos without geotags', 'Drafts that keep up',
       ]);
       assert.equal(await grid.locator('.mail-feature-badge svg').count(), 9);
