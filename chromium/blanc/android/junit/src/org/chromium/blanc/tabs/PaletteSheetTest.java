@@ -304,7 +304,14 @@ public class PaletteSheetTest {
     @Test
     public void controlsHaveTheIphonesLabels() {
         PaletteSheet sheet = show();
+        // While nothing's typed the current page's address shows in its pill and the placeholder
+        // steps aside (#1693); typing brings the placeholder back to the field.
+        assertEquals(null, sheet.field().getHint());
+        sheet.field().setText("x");
+        ShadowLooper.idleMainLooper();
         assertEquals("Search, enter address, or / command", sheet.field().getHint().toString());
+        sheet.field().setText("");
+        ShadowLooper.idleMainLooper();
         assertEquals("Clear search", sheet.clearButton().getContentDescription().toString());
         assertEquals("Collapse Island", sheet.collapseButton().getContentDescription().toString());
         assertEquals("Favorites", sheet.favoritesButton().getContentDescription().toString());

@@ -583,6 +583,12 @@ robolectric_binary("blanc_android_junit_tests") {
     "//base:callback_java",
     "//chrome/browser/preferences:java",
     "//chrome/browser/preferences:pref_service_java",
+    # Since Chromium 159 the resources this suite reaches (the browser_ui theme, tab and bookmark
+    # layouts) name others they don't depend on. Chrome's own Robolectric suites take Chrome's whole
+    # resource set this way.
+    "//chrome/android:chrome_app_java_resources",
+    "//chrome/android:chrome_java",
+    "//chrome/android/features/tab_ui:java_resources",
     "//components/prefs/android:java",
     "//third_party/androidx:androidx_preference_preference_java",
     "//third_party/junit",

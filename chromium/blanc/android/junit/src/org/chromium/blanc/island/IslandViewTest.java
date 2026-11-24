@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
+import org.robolectric.annotation.GraphicsMode;
 
 import org.chromium.base.test.BaseRobolectricTestRunner;
 
@@ -201,7 +202,10 @@ public class IslandViewTest {
 
     // #1682: the desktop Island's resting shape, 17 corners at any height, never a capsule, with 4
     // at its ends.
+    // Real text measuring: Robolectric's LEGACY graphics counts about a pixel per character, so a
+    // long site never fills the room and a larger font never makes the pill taller.
     @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void thePillIsARoundedRectangleWithRoomAtItsEnds() {
         float d = mActivity.getResources().getDisplayMetrics().density;
         View pill = mView.findViewById(R.id.blanc_island_pill);
@@ -231,7 +235,10 @@ public class IslandViewTest {
 
     // #1682: only as wide as what it holds; a long site fills at most the room inside 16 of padding,
     // and never more than 600.
+    // Real text measuring: Robolectric's LEGACY graphics counts about a pixel per character, so a
+    // long site never fills the room and a larger font never makes the pill taller.
     @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void thePillFitsItsSiteUpTo600AndPadded16() {
         float d = mActivity.getResources().getDisplayMetrics().density;
         View pill = mView.findViewById(R.id.blanc_island_pill);
