@@ -162,3 +162,11 @@ test('a new candidate may rewrite the generated progress block; any change outsi
   assert.equal(onlyGeneratedProgress(committed, '# Status\n- notes\n'), false);
   assert.equal(onlyGeneratedProgress('# Status\n', '# Status\n'), false);
 });
+
+// `export { x } from` binds no local name, and this file's tests reach the
+// judge through that re-export, so they passed while every night stopped on a
+// ReferenceError as soon as its suite finished (2026-11-23).
+test('night() can call the judge: nightly.mjs imports it, not only re-exports it', () => {
+  const source = fs.readFileSync(new URL('./daily/nightly.mjs', import.meta.url), 'utf8');
+  assert.match(source, /^import \{[^}]*\bjudgeSuite\b[^}]*\} from '\.\/judge\.mjs';$/m);
+});

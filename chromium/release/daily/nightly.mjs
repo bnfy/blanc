@@ -105,8 +105,10 @@ export function onlyArgsChanged(guardOutput) {
 }
 
 // The suite verdict lives in judge.mjs (no imports), so other nights can load it
-// without this file's I/O.
-export { judgeSuite } from './judge.mjs';
+// without this file's I/O. A re-export alone binds no local name, so night()
+// imports it too (the 2026-11-23 night stopped on that ReferenceError).
+import { judgeSuite } from './judge.mjs';
+export { judgeSuite };
 
 const stampNow = (d = new Date()) => d.toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
 const readJSON = file => JSON.parse(fs.readFileSync(file, 'utf8'));
