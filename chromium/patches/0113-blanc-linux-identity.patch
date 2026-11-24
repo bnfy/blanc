@@ -1,7 +1,8 @@
 diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+index 601bbca..d379871 100644
 --- a/chrome/browser/BUILD.gn
 +++ b/chrome/browser/BUILD.gn
-@@ -1911,6 +1911,7 @@
+@@ -1915,6 +1915,7 @@ source_set("core") {
      deps += [
        ":fullscreen",
        ":shell_integration_linux",
@@ -10,9 +11,10 @@ diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
        "//components/os_crypt/browser:posix_key_provider",
        "//third_party/libxml:xml_writer",
 diff --git a/chrome/browser/browser_process_impl.cc b/chrome/browser/browser_process_impl.cc
+index f0c5126..f6e7f2d 100644
 --- a/chrome/browser/browser_process_impl.cc
 +++ b/chrome/browser/browser_process_impl.cc
-@@ -277,6 +277,7 @@
+@@ -280,6 +280,7 @@ void OnLocalStatePrefsLoaded();
  #endif
  
  #if BUILDFLAG(IS_LINUX) && BUILDFLAG(USE_DBUS)
@@ -20,7 +22,7 @@ diff --git a/chrome/browser/browser_process_impl.cc b/chrome/browser/browser_pro
  #include "chrome/browser/browser_features.h"
  #include "components/os_crypt/async/browser/freedesktop_secret_key_provider.h"
  #include "components/os_crypt/async/browser/secret_portal_key_provider.h"
-@@ -1680,7 +1681,7 @@
+@@ -1681,7 +1682,7 @@ void BrowserProcessImpl::PreMainMessageLoopRun() {
    providers.emplace_back(
        /*precedence=*/10u,
        std::make_unique<os_crypt_async::FreedesktopSecretKeyProvider>(
@@ -30,9 +32,10 @@ diff --git a/chrome/browser/browser_process_impl.cc b/chrome/browser/browser_pro
  
  #if BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_MAC)
 diff --git a/chrome/browser/shell_integration_linux.cc b/chrome/browser/shell_integration_linux.cc
+index 3d186e0..fd5052d 100644
 --- a/chrome/browser/shell_integration_linux.cc
 +++ b/chrome/browser/shell_integration_linux.cc
-@@ -43,6 +43,10 @@
+@@ -46,6 +46,10 @@
  #include "base/threading/thread_restrictions.h"
  #include "build/branding_buildflags.h"
  #include "build/build_config.h"
@@ -43,7 +46,7 @@ diff --git a/chrome/browser/shell_integration_linux.cc b/chrome/browser/shell_in
  #include "chrome/browser/shell_integration.h"
  #include "chrome/browser/ui/ui_features.h"
  #include "chrome/browser/web_applications/os_integration/web_app_shortcut.h"
-@@ -528,6 +532,12 @@
+@@ -534,6 +538,12 @@ std::string GetProgramClassClass(const base::CommandLine& command_line,
    if (command_line.HasSwitch(switches::kWmClass))
      return command_line.GetSwitchValueASCII(switches::kWmClass);
    std::string desktop_base_name = GetDesktopBaseName(desktop_file_name);
@@ -56,7 +59,7 @@ diff --git a/chrome/browser/shell_integration_linux.cc b/chrome/browser/shell_in
    if (auto* platform_utils =
            ui::OzonePlatform::GetInstance()->GetPlatformUtils()) {
      return platform_utils->GetWmWindowClass(desktop_base_name);
-@@ -917,10 +927,17 @@
+@@ -998,10 +1008,17 @@ base::FilePath GetMimeTypesRegistrationFilename(
      const webapps::AppId& app_id) {
    CHECK(!profile_path.empty() && !app_id.empty(), base::NotFatalUntil::M162);
  
@@ -75,9 +78,10 @@ diff --git a/chrome/browser/shell_integration_linux.cc b/chrome/browser/shell_in
    // Replace illegal characters and spaces in |filename|.
    base::i18n::ReplaceIllegalCharactersInPath(&filename, '_');
 diff --git a/chrome/common/BUILD.gn b/chrome/common/BUILD.gn
+index df6966f..03a1326 100644
 --- a/chrome/common/BUILD.gn
 +++ b/chrome/common/BUILD.gn
-@@ -86,6 +86,9 @@
+@@ -86,6 +86,9 @@ source_set("channel_info") {
      "channel_info.h",
    ]
    deps = [ "//build:branding_buildflags" ]
@@ -87,7 +91,7 @@ diff --git a/chrome/common/BUILD.gn b/chrome/common/BUILD.gn
    public_deps = [
      "//base",
      "//components/version_info",
-@@ -606,6 +609,9 @@
+@@ -605,6 +608,9 @@ static_library("constants") {
      # implemented in //ui/base, so we need that dependency.
      deps += [ "//ui/base" ]
    }
@@ -98,6 +102,7 @@ diff --git a/chrome/common/BUILD.gn b/chrome/common/BUILD.gn
      sources += [ "chrome_paths_linux.cc" ]
      deps += [ ":channel_info" ]
 diff --git a/chrome/common/channel_info_posix.cc b/chrome/common/channel_info_posix.cc
+index ab5771c..aa01c20 100644
 --- a/chrome/common/channel_info_posix.cc
 +++ b/chrome/common/channel_info_posix.cc
 @@ -16,6 +16,10 @@
@@ -111,16 +116,27 @@ diff --git a/chrome/common/channel_info_posix.cc b/chrome/common/channel_info_po
  #include "components/version_info/version_info.h"
  
  namespace chrome {
-@@ -148,7 +152,7 @@
-   if (name.has_value() && !name.value().empty()) {
-     return name.value();
-   }
--  return "chromium-browser.desktop";
+@@ -121,7 +125,18 @@ std::string GetChannelSuffixForExtraFlagsEnvVarName() {
+ 
+ #if BUILDFLAG(IS_LINUX)
+ std::string GetDesktopName(base::Environment* env) {
++#if BUILDFLAG(CHROMIUM_BRANDING)
++  // Blanc (L1): the package's own desktop file where Chromium names
++  // "chromium-browser.desktop" (base/version_info/nix since 159). As there,
++  // $CHROME_DESKTOP overrides it.
++  std::optional<std::string> name = env->GetVar("CHROME_DESKTOP");
++  if (name.has_value() && !name.value().empty()) {
++    return name.value();
++  }
 +  return base::StrCat({BUILDFLAG(BLANC_LINUX_PACKAGE), ".desktop"});
- #endif
++#else
+   return version_info::nix::GetDesktopName(*env);
++#endif
  }
  #endif  // BUILDFLAG(IS_LINUX)
+ 
 diff --git a/chrome/common/chrome_paths_linux.cc b/chrome/common/chrome_paths_linux.cc
+index e8dd514..a9cc30e 100644
 --- a/chrome/common/chrome_paths_linux.cc
 +++ b/chrome/common/chrome_paths_linux.cc
 @@ -15,6 +15,10 @@
@@ -134,28 +150,29 @@ diff --git a/chrome/common/chrome_paths_linux.cc b/chrome/common/chrome_paths_li
  #include "chrome/common/channel_info.h"
  #include "chrome/common/chrome_paths_internal.h"
  
-@@ -90,6 +94,9 @@
+@@ -90,6 +94,9 @@ bool GetDefaultUserDataDirectory(base::FilePath* result) {
          GetXDGDirectory(env.get(), kXdgConfigHomeEnvVar, kDotConfigDir);
    }
  
 +#if BUILDFLAG(IS_LINUX)
 +  *result = config_dir.Append(BUILDFLAG(BLANC_LINUX_PACKAGE));
 +#else
+   // LINT.IfChange(DataDirBasename)
  #if BUILDFLAG(GOOGLE_CHROME_FOR_TESTING_BRANDING)
    std::string data_dir_basename = "google-chrome-for-testing";
- #elif BUILDFLAG(GOOGLE_CHROME_BRANDING)
-@@ -98,6 +105,7 @@
-   std::string data_dir_basename = "chromium";
+@@ -100,6 +107,7 @@ bool GetDefaultUserDataDirectory(base::FilePath* result) {
  #endif
+   // LINT.ThenChange(//chrome/installer/linux/snap/build.py:ConfigDirName)
    *result = config_dir.Append(data_dir_basename + GetChannelSuffixForDataDir());
 +#endif  // BUILDFLAG(IS_LINUX)
    return true;
  }
  
 diff --git a/components/os_crypt/async/browser/BUILD.gn b/components/os_crypt/async/browser/BUILD.gn
+index 96537a4..b6db809 100644
 --- a/components/os_crypt/async/browser/BUILD.gn
 +++ b/components/os_crypt/async/browser/BUILD.gn
-@@ -48,6 +48,9 @@
+@@ -50,6 +50,9 @@ source_set("test_support") {
  
  source_set("key_provider_interface") {
    sources = [ "key_provider.h" ]
@@ -165,7 +182,7 @@ diff --git a/components/os_crypt/async/browser/BUILD.gn b/components/os_crypt/as
  
    public_deps = [
      "//base",
-@@ -139,7 +142,10 @@
+@@ -141,7 +144,10 @@ if (is_linux && use_dbus) {
        "//crypto",
        "//dbus",
      ]
@@ -178,9 +195,10 @@ diff --git a/components/os_crypt/async/browser/BUILD.gn b/components/os_crypt/as
  
    source_set("test_secret_portal") {
 diff --git a/components/os_crypt/async/browser/freedesktop_secret_key_provider.cc b/components/os_crypt/async/browser/freedesktop_secret_key_provider.cc
+index 689a960..7a86bdf 100644
 --- a/components/os_crypt/async/browser/freedesktop_secret_key_provider.cc
 +++ b/components/os_crypt/async/browser/freedesktop_secret_key_provider.cc
-@@ -250,6 +250,12 @@
+@@ -325,6 +325,12 @@ bool FreedesktopSecretKeyProvider::UseForEncryption() {
    return true;
  }
  
@@ -194,20 +212,21 @@ diff --git a/components/os_crypt/async/browser/freedesktop_secret_key_provider.c
    dbus_utils::CheckForServiceAndStart(
        bus_, kSecretServiceName,
 diff --git a/components/os_crypt/async/browser/freedesktop_secret_key_provider.h b/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
+index 011e0d4..057a6ac 100644
 --- a/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
 +++ b/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
-@@ -26,6 +26,10 @@
- #include "dbus/bus.h"
+@@ -28,6 +28,10 @@
  #include "dbus/object_path.h"
  #include "dbus/object_proxy.h"
-+
+ 
 +#if BUILDFLAG(IS_LINUX)
 +#include "blanc/buildflags.h"
 +#endif
- 
++
  namespace os_crypt_async {
  
-@@ -70,6 +74,9 @@
+ // FreedesktopSecretKeyProvider uses the org.freedesktop.secrets interface
+@@ -72,6 +76,9 @@ class FreedesktopSecretKeyProvider : public KeyProvider {
    // KeyProvider:
    void GetKey(KeyCallback callback) override;
    bool UseForEncryption() override;
@@ -217,7 +236,7 @@ diff --git a/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
  
   private:
    FRIEND_TEST_ALL_PREFIXES(FreedesktopSecretKeyProviderTest, BasicHappyPath);
-@@ -153,7 +160,11 @@
+@@ -167,7 +174,11 @@ class FreedesktopSecretKeyProvider : public KeyProvider {
    static constexpr int kKWalletInvalidHandle = -1;
    static constexpr int kKWalletInvalidTransactionId = -1;
  
@@ -232,6 +251,7 @@ diff --git a/components/os_crypt/async/browser/freedesktop_secret_key_provider.h
    static constexpr char kAppName[] = "chrome";
 diff --git a/components/os_crypt/async/browser/key_provider.cc b/components/os_crypt/async/browser/key_provider.cc
 new file mode 100644
+index 0000000..b690299
 --- /dev/null
 +++ b/components/os_crypt/async/browser/key_provider.cc
 @@ -0,0 +1,11 @@
@@ -247,6 +267,7 @@ new file mode 100644
 +
 +}  // namespace os_crypt_async
 diff --git a/components/os_crypt/async/browser/key_provider.h b/components/os_crypt/async/browser/key_provider.h
+index cac88b4..3487fdb 100644
 --- a/components/os_crypt/async/browser/key_provider.h
 +++ b/components/os_crypt/async/browser/key_provider.h
 @@ -10,6 +10,7 @@
@@ -257,7 +278,7 @@ diff --git a/components/os_crypt/async/browser/key_provider.h b/components/os_cr
  #include "components/os_crypt/async/common/encryptor.h"
  
  namespace os_crypt_async {
-@@ -69,6 +70,12 @@
+@@ -69,6 +70,12 @@ class KeyProvider {
    // data encrypted previously with the key.
    virtual bool UseForEncryption() = 0;
  
@@ -271,9 +292,10 @@ diff --git a/components/os_crypt/async/browser/key_provider.h b/components/os_cr
    KeyProvider() = default;
  };
 diff --git a/components/os_crypt/async/browser/os_crypt_async.cc b/components/os_crypt/async/browser/os_crypt_async.cc
+index 3ea6763..611bde4 100644
 --- a/components/os_crypt/async/browser/os_crypt_async.cc
 +++ b/components/os_crypt/async/browser/os_crypt_async.cc
-@@ -89,6 +89,9 @@
+@@ -89,6 +89,9 @@ void OSCryptAsync::HandleKey(
      key_ring_.emplace(tag, std::move(*key));
      if ((*current)->UseForEncryption()) {
        provider_for_encryption_ = tag;
@@ -283,7 +305,7 @@ diff --git a/components/os_crypt/async/browser/os_crypt_async.cc b/components/os
      }
    } else {
      switch (key.error()) {
-@@ -142,6 +145,13 @@
+@@ -142,6 +145,13 @@ void OSCryptAsync::SetEncryptorInstance(scoped_refptr<Encryptor> encryptor) {
        number_of_failing_key_providers_);
  }
  
@@ -298,9 +320,10 @@ diff --git a/components/os_crypt/async/browser/os_crypt_async.cc b/components/os
    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
  
 diff --git a/components/os_crypt/async/browser/os_crypt_async.h b/components/os_crypt/async/browser/os_crypt_async.h
+index e4c421e..479442a 100644
 --- a/components/os_crypt/async/browser/os_crypt_async.h
 +++ b/components/os_crypt/async/browser/os_crypt_async.h
-@@ -63,6 +63,11 @@
+@@ -63,6 +63,11 @@ class COMPONENT_EXPORT(OS_CRYPT_ASYNC) OSCryptAsync {
    // Encryptor is already available.
    virtual void GetInstance(InitCallback callback);
  
@@ -312,7 +335,7 @@ diff --git a/components/os_crypt/async/browser/os_crypt_async.h b/components/os_
   private:
    using ProviderIterator =
        std::vector<std::unique_ptr<KeyProvider>>::const_iterator;
-@@ -81,6 +86,10 @@
+@@ -81,6 +86,10 @@ class COMPONENT_EXPORT(OS_CRYPT_ASYNC) OSCryptAsync {
    std::list<base::OnceClosure> callbacks_ GUARDED_BY_CONTEXT(sequence_checker_);
    Encryptor::KeyRing key_ring_ GUARDED_BY_CONTEXT(sequence_checker_);
    std::string provider_for_encryption_ GUARDED_BY_CONTEXT(sequence_checker_);
@@ -324,9 +347,10 @@ diff --git a/components/os_crypt/async/browser/os_crypt_async.h b/components/os_
        GUARDED_BY_CONTEXT(sequence_checker_) = 0;
  
 diff --git a/components/os_crypt/async/browser/secret_portal_key_provider.cc b/components/os_crypt/async/browser/secret_portal_key_provider.cc
+index 72f4ccc..e166175 100644
 --- a/components/os_crypt/async/browser/secret_portal_key_provider.cc
 +++ b/components/os_crypt/async/browser/secret_portal_key_provider.cc
-@@ -80,6 +80,12 @@
+@@ -88,6 +88,12 @@ bool SecretPortalKeyProvider::UseForEncryption() {
    return use_for_encryption_;
  }
  
@@ -340,9 +364,10 @@ diff --git a/components/os_crypt/async/browser/secret_portal_key_provider.cc b/c
    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
    if (version == 0) {
 diff --git a/components/os_crypt/async/browser/secret_portal_key_provider.h b/components/os_crypt/async/browser/secret_portal_key_provider.h
+index 338f6be..de9bf64 100644
 --- a/components/os_crypt/async/browser/secret_portal_key_provider.h
 +++ b/components/os_crypt/async/browser/secret_portal_key_provider.h
-@@ -105,6 +105,9 @@
+@@ -126,6 +126,9 @@ class SecretPortalKeyProvider : public KeyProvider {
    // KeyProvider:
    void GetKey(KeyCallback callback) override;
    bool UseForEncryption() override;

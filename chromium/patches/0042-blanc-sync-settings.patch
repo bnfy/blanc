@@ -1,6 +1,8 @@
+diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+index c9c357a..2136dbb 100644
 --- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
 +++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
-@@ -226,6 +226,7 @@
+@@ -226,6 +226,7 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
    // Blanc's own controls (S1.7): the Island, Bangs and Blocking switches.
    // Their readers normalize what they read, as for Blanc's own pages.
    (*s_allowlist)["blanc.island.size"] = settings_api::PrefType::kString;
@@ -8,9 +10,11 @@
    (*s_allowlist)["blanc.app_icon"] = settings_api::PrefType::kString;
    (*s_allowlist)["blanc.island.hover_open"] = settings_api::PrefType::kBoolean;
    (*s_allowlist)["blanc.island.auto_hide"] = settings_api::PrefType::kBoolean;
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 246a619..58657ff 100644
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
-@@ -2099,6 +2099,7 @@
+@@ -2161,6 +2161,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
    // hover, auto-hide it, and how a hidden Island comes back.
    // Shipping's islandSize (#1292): default, large or extra-large.
    registry->RegisterStringPref("blanc.island.size", "default");
@@ -18,17 +22,19 @@
    // Tab Archive's first-run offer (F52 spec D5); F52 itself is S3.
    registry->RegisterStringPref("blanc.tabs.archive", "off");
    registry->RegisterDictionaryPref("blanc.spaces.meta");
+diff --git a/chrome/browser/resources/settings/BUILD.gn b/chrome/browser/resources/settings/BUILD.gn
+index 954872a..2e2b354 100644
 --- a/chrome/browser/resources/settings/BUILD.gn
 +++ b/chrome/browser/resources/settings/BUILD.gn
-@@ -51,6 +51,7 @@
+@@ -51,6 +51,7 @@ build_webui("build") {
  
    # -----------------web_component_files start ---------------------------------
    web_component_files = [
 +    "blanc_sync_page/blanc_sync_page.ts",
-     "controls/collapse_radio_button.ts",
-     "controls/controlled_radio_button.ts",
-     "controls/settings_checkbox.ts",
-@@ -564,6 +565,7 @@
+     "privacy_page/privacy_page_index.ts",
+     "site_settings/ads_page.ts",
+     "site_settings/all_sites.ts",
+@@ -611,6 +612,7 @@ build_webui("build") {
    }
  
    css_files = [
@@ -36,13 +42,14 @@
      "settings_columned_section.css",
      "settings_columned_section_lit.css",
      "settings_shared.css",
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+index ee719bd..7411146 100644
 --- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
 +++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
-@@ -79,6 +79,17 @@
-           </option>
+@@ -79,6 +79,17 @@ export function getHtml(this: SettingsAppearancePageElement) {
          `)}
        </select>
-+    </div>
+     </div>
 +    <div class="cr-row">
 +      <div class="flex cr-padded-text" aria-hidden="true">
 +        <div>$i18n{blancVerticalTabsTextSize}</div>
@@ -53,12 +60,15 @@
 +          label="$i18n{blancVerticalTabsTextSize}"
 +          .menuOptions="${this.blancIslandSizeOptions_}">
 +      </settings-dropdown-menu>
-     </div>
++    </div>
      <!-- Blanc's Island (S1.7). -->
      <div id="blancIslandSizeRow" class="cr-row">
+       <div class="flex cr-padded-text" aria-hidden="true">
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+index 832cf7f..f0ce544 100644
 --- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
 +++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
-@@ -280,3 +280,66 @@
+@@ -280,3 +280,66 @@ blancSettings.listen(state => {
    }
  });
  loadBlancFont().catch(() => {});
@@ -125,6 +135,9 @@
 +      addWebUiListener('blanc-sync-changed', callback),
 +  stopListening: (listener: WebUiListener) => removeWebUiListener(listener),
 +};
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css
+new file mode 100644
+index 0000000..3301ecb
 --- /dev/null
 +++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.css
 @@ -0,0 +1,91 @@
@@ -219,6 +232,9 @@
 +  color: var(--cr-primary-text-color);
 +  overflow-wrap: anywhere;
 +}
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
+new file mode 100644
+index 0000000..00a5052
 --- /dev/null
 +++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.html
 @@ -0,0 +1,112 @@
@@ -334,6 +350,9 @@
 +    </div>
 +  </div>
 +</settings-section>
+diff --git a/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
+new file mode 100644
+index 0000000..5c8253c
 --- /dev/null
 +++ b/chrome/browser/resources/settings/blanc_sync_page/blanc_sync_page.ts
 @@ -0,0 +1,375 @@
@@ -712,17 +731,19 @@
 +
 +customElements.define(
 +    BlancSyncPageElement.is, BlancSyncPageElement);
+diff --git a/chrome/browser/resources/settings/page_visibility.ts b/chrome/browser/resources/settings/page_visibility.ts
+index 1b4be22..b0ee538 100644
 --- a/chrome/browser/resources/settings/page_visibility.ts
 +++ b/chrome/browser/resources/settings/page_visibility.ts
-@@ -17,6 +17,7 @@
-   extensions?: boolean;
+@@ -19,6 +19,7 @@ export interface PageVisibility {
+   home?: boolean;
    languages?: boolean;
    onStartup?: boolean;
 +  blancSync?: boolean;
    people?: boolean;
    performance?: boolean;
    privacy?: boolean|PrivacyPageVisibility;
-@@ -44,7 +45,7 @@
+@@ -46,7 +47,7 @@ export interface PrivacyPageVisibility {
  
  function createPageVisibility(): PageVisibility|undefined {
    if (!loadTimeData.getBoolean('isGuest')) {
@@ -731,7 +752,7 @@
      // sections; their routes are left out with them. The People section
      // stays for Chromium's profiles (S2, V18), without its Google rows.
      // Nor the home button, bookmarks bar, hover cards or side panel: the
-@@ -74,6 +75,7 @@
+@@ -76,6 +77,7 @@ function createPageVisibility(): PageVisibility|undefined {
      extensions: false,
      languages: false,
      onStartup: false,
@@ -739,17 +760,19 @@
      people: false,
      performance: false,
      privacy: false,
-@@ -87,6 +89,7 @@
-   const pageVisibility = {
+@@ -89,6 +91,7 @@ function createPageVisibility(): PageVisibility|undefined {
+   const pageVisibility: PageVisibility = {
      ai: false,
      autofill: false,
 +    blancSync: false,
      people: false,
      onStartup: false,
      reset: false,
+diff --git a/chrome/browser/resources/settings/route.ts b/chrome/browser/resources/settings/route.ts
+index ebc2df1..bb5f21f 100644
 --- a/chrome/browser/resources/settings/route.ts
 +++ b/chrome/browser/resources/settings/route.ts
-@@ -155,6 +155,11 @@
+@@ -190,6 +190,11 @@ function createRoutes(): SettingsRoutes {
  
    const visibility = pageVisibility || {};
  
@@ -758,12 +781,14 @@
 +        '/sync', 'blancSync', loadTimeData.getString('blancSyncTitle'));
 +  }
 +
-   if (visibility.people !== false) {
-     r.PEOPLE = r.BASIC.createSection(
-         '/people', 'people', loadTimeData.getString('peoplePageTitle'));
+   if (isSettingsRefresh2026Enabled) {
+     if (visibility.home !== false) {
+       addSharedPeopleRoutes(r, r.BASIC);
+diff --git a/chrome/browser/resources/settings/router.ts b/chrome/browser/resources/settings/router.ts
+index 69edaad..26739c0 100644
 --- a/chrome/browser/resources/settings/router.ts
 +++ b/chrome/browser/resources/settings/router.ts
-@@ -47,6 +47,7 @@
+@@ -50,6 +50,7 @@ export interface SettingsRoutes {
    ON_STARTUP: Route;
    PASSKEYS: Route;
    PAYMENTS: Route;
@@ -771,11 +796,11 @@
    PEOPLE: Route;
    PERFORMANCE: Route;
    PRELOADING: Route;
-diff --git a/chrome/browser/resources/settings/settings_main/settings_main.html b/chrome/browser/resources/settings/settings_main/settings_main.html
-index a7e073c..4e13206 100644
---- a/chrome/browser/resources/settings/settings_main/settings_main.html
-+++ b/chrome/browser/resources/settings/settings_main/settings_main.html
-@@ -12,6 +12,14 @@ ${this.showResetProfileBanner_ ? html`
+diff --git a/chrome/browser/resources/settings/settings_main/settings_main.html.ts b/chrome/browser/resources/settings/settings_main/settings_main.html.ts
+index 790d5b2..0736c0a 100644
+--- a/chrome/browser/resources/settings/settings_main/settings_main.html.ts
++++ b/chrome/browser/resources/settings/settings_main/settings_main.html.ts
+@@ -22,6 +22,14 @@ ${this.showResetProfileBanner_ ? html`
  ` : ''}
  
  <cr-view-manager id="switcher" ?show-all="${this.shouldShowAll_()}">
@@ -787,12 +812,14 @@ index a7e073c..4e13206 100644
 +    </div>
 +  ` : ''}
 +
-   ${this.showPage_(this.pageVisibility_?.people) ? html`
-     <div slot="view" id="people">
-       ${this.renderPlugin_(this.routes_.PEOPLE) ? html`
+   ${this.settingsRefresh2026Enabled_ &&
+           this.showPage_(this.pageVisibility_?.home) ?
+       html`
+diff --git a/chrome/browser/resources/settings/settings_main/settings_main.ts b/chrome/browser/resources/settings/settings_main/settings_main.ts
+index 5aabe79..6c21872 100644
 --- a/chrome/browser/resources/settings/settings_main/settings_main.ts
 +++ b/chrome/browser/resources/settings/settings_main/settings_main.ts
-@@ -15,6 +15,7 @@
+@@ -15,6 +15,7 @@ import '../appearance_page/appearance_page_index.js';
  import '../autofill_page/autofill_page_index.js';
  import '../on_startup_page/on_startup_page.js';
  import '../people_page/people_page_index.js';
@@ -800,25 +827,29 @@ index a7e073c..4e13206 100644
  import '../performance_page/performance_page_index.js';
  import '../privacy_page/privacy_page_index.js';
  import '../reset_page/reset_profile_banner.js';
---- a/chrome/browser/resources/settings/settings_menu/settings_menu.html
-+++ b/chrome/browser/resources/settings/settings_menu/settings_menu.html
-@@ -2,6 +2,13 @@
-       <cr-menu-selector id="menu" selectable="a:not(#extensionsLink)"
-           attr-for-selected="href" @iron-activate="${this.onIronActivate_}"
-           @click="${this.onLinkClick_}" selected-attribute="selected">
-+        <a role="menuitem" id="blancSync" href="/sync"
-+            ?hidden="${this.shouldHideMenuItem_(this.pageVisibility_?.blancSync)}"
-+            class="cr-nav-menu-item">
-+          <cr-icon icon="cr:sync"></cr-icon>
-+          <span class="menu-label">$i18n{blancSyncTitle}</span>
-+          <cr-ripple></cr-ripple>
-+        </a>
-         <a role="menuitem"
-             id="people" href="/people"
-             ?hidden="${this.shouldHideMenuItem_(this.pageVisibility_?.people)}"
+diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.html.ts b/chrome/browser/resources/settings/settings_menu/settings_menu.html.ts
+index a2dd519..a9c9016 100644
+--- a/chrome/browser/resources/settings/settings_menu/settings_menu.html.ts
++++ b/chrome/browser/resources/settings/settings_menu/settings_menu.html.ts
+@@ -12,6 +12,13 @@ export function getHtml(this: SettingsMenuElement) {
+   <cr-menu-selector id="menu" selectable="a:not(#extensionsLink)"
+       attr-for-selected="href" @iron-activate="${this.onIronActivate_}"
+       @click="${this.onLinkClick_}" selected-attribute="selected">
++    <a role="menuitem" id="blancSync" href="/sync"
++        ?hidden="${this.shouldHideMenuItem_(this.pageVisibility_?.blancSync)}"
++        class="cr-nav-menu-item">
++      <cr-icon icon="cr:sync"></cr-icon>
++      <span class="menu-label">$i18n{blancSyncTitle}</span>
++      <cr-ripple></cr-ripple>
++    </a>
+     ${this.settingsRefresh2026Enabled_ ? html`
+       <a role="menuitem" id="home" href="/"
+           ?hidden="${this.shouldHideMenuItem_(this.pageVisibility_?.home)}"
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index c178195..f175dfd 100644
 --- a/chrome/browser/ui/webui/settings/settings_ui.cc
 +++ b/chrome/browser/ui/webui/settings/settings_ui.cc
-@@ -281,6 +281,68 @@
+@@ -277,6 +277,68 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
      html_source->AddString(string.name, std::u16string(string.value));
    }
  

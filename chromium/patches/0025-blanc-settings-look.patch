@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
-index ef91880..b7475e4 100644
+index 0c86c5f..d0c9012 100644
 --- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
 +++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
-@@ -49,7 +49,8 @@ export function getHtml(this: SettingsAppearancePageElement) {
+@@ -48,7 +48,8 @@ export function getHtml(this: SettingsAppearancePageElement) {
        </div>
  </if>
      </div>
@@ -12,7 +12,7 @@ index ef91880..b7475e4 100644
        <cr-link-row id="customizeToolbar" label="$i18n{customizeToolbar}"
            @click="${this.onCustomizeToolbarClick_}" external>
        </cr-link-row>
-@@ -190,6 +191,9 @@ export function getHtml(this: SettingsAppearancePageElement) {
+@@ -189,6 +190,9 @@ export function getHtml(this: SettingsAppearancePageElement) {
        </div>
      ` : ''}
  
@@ -22,7 +22,7 @@ index ef91880..b7475e4 100644
  <if expr="is_macosx">
      ${this.showGlassEffectEnabled_ ? html`
        <div class="cr-row hr">
-@@ -311,6 +315,7 @@ export function getHtml(this: SettingsAppearancePageElement) {
+@@ -310,6 +314,7 @@ export function getHtml(this: SettingsAppearancePageElement) {
          </settings-dropdown-menu>
        </div>
      </div>
@@ -30,20 +30,20 @@ index ef91880..b7475e4 100644
      ${!this.showHoverCardImagesOption_ ? html`
        <div class="hr" ?hidden="${!this.pageVisibility_.hoverCard}"></div>
        <settings-toggle-button id="hoverCardMemoryUsageToggle"
-@@ -384,7 +389,7 @@ export function getHtml(this: SettingsAppearancePageElement) {
+@@ -383,7 +388,7 @@ export function getHtml(this: SettingsAppearancePageElement) {
      </settings-toggle-button>
  </if>
    </div>
 -  <settings-toggle-button class="hr" id="splitViewDragAndDrop"
 +  <settings-toggle-button class="hr" id="splitViewDragAndDrop" hidden
        pref-key="browser.split_view_drag_and_drop_enabled"
-       label="${this.i18n(
-           this.splitViewHorizontalEnabled_ ?
+       label="$i18n{allowSplitViewDragAndDrop}">
+   </settings-toggle-button>
 diff --git a/chrome/browser/resources/settings/autofill_page/autofill_page.html.ts b/chrome/browser/resources/settings/autofill_page/autofill_page.html.ts
-index 2f5ab2a..016c15d 100644
+index d53009d..40388cf 100644
 --- a/chrome/browser/resources/settings/autofill_page/autofill_page.html.ts
 +++ b/chrome/browser/resources/settings/autofill_page/autofill_page.html.ts
-@@ -68,7 +68,8 @@ export function getHtml(this: SettingsAutofillPageElement) {
+@@ -67,7 +67,8 @@ export function getHtml(this: SettingsAutofillPageElement) {
    <collapsible-autofill-settings-card></collapsible-autofill-settings-card>
  </settings-section>
  
@@ -219,19 +219,20 @@ index e482623..eedec79 100644
 +});
 +loadBlancFont().catch(() => {});
 diff --git a/chrome/browser/resources/settings/languages_page/languages_page_index.html.ts b/chrome/browser/resources/settings/languages_page/languages_page_index.html.ts
-index d3ae95e..fd2789d 100644
+index a0875b6..fd2789d 100644
 --- a/chrome/browser/resources/settings/languages_page/languages_page_index.html.ts
 +++ b/chrome/browser/resources/settings/languages_page/languages_page_index.html.ts
-@@ -17,7 +17,8 @@ export function getHtml(this: SettingsLanguagesPageIndexElement) {
+@@ -17,7 +17,9 @@ export function getHtml(this: SettingsLanguagesPageIndexElement) {
    <settings-spell-check-page slot="view" id="spellCheck">
    </settings-spell-check-page>
  
--  <settings-translate-page slot="view" id="translate">
+-  <settings-translate-page slot="view" id="translate"></settings-translate-page>
 +  <!-- Blanc (S1.7, owner): no Google Translate section. -->
 +  <settings-translate-page slot="view" id="translate" hidden>
-   </settings-translate-page>
++  </settings-translate-page>
  
  <if expr="not is_macosx">
+   <settings-edit-dictionary-page slot="view" id="editDictionary"
 diff --git a/chrome/browser/resources/settings/languages_page/languages_page_index.ts b/chrome/browser/resources/settings/languages_page/languages_page_index.ts
 index 6240ce8..06406d1 100644
 --- a/chrome/browser/resources/settings/languages_page/languages_page_index.ts
@@ -247,10 +248,10 @@ index 6240ce8..06406d1 100644
    }
  
 diff --git a/chrome/browser/resources/settings/page_visibility.ts b/chrome/browser/resources/settings/page_visibility.ts
-index 617cf97..1b2ecab 100644
+index b08a321..eecc140 100644
 --- a/chrome/browser/resources/settings/page_visibility.ts
 +++ b/chrome/browser/resources/settings/page_visibility.ts
-@@ -46,7 +46,21 @@ function createPageVisibility(): PageVisibility|undefined {
+@@ -48,7 +48,21 @@ function createPageVisibility(): PageVisibility|undefined {
    if (!loadTimeData.getBoolean('isGuest')) {
      // Blanc (S1.7, owner): no Google account, Sync, AI or Safety Check
      // sections; their routes are left out with them.
@@ -274,12 +275,12 @@ index 617cf97..1b2ecab 100644
  
    // <if expr="not is_chromeos">
 diff --git a/chrome/browser/resources/settings/performance_page/performance_page.html.ts b/chrome/browser/resources/settings/performance_page/performance_page.html.ts
-index dc4a07f..37c6c4c 100644
+index ce66f5b..72dddeb 100644
 --- a/chrome/browser/resources/settings/performance_page/performance_page.html.ts
 +++ b/chrome/browser/resources/settings/performance_page/performance_page.html.ts
-@@ -17,7 +17,8 @@ export function getHtml(this: PerformancePageElement) {
-       sub-label-with-link="$i18n{performanceInterventionEnabledDescription}"
-       @sub-label-link-clicked="${this.onPerformanceInterventionSubLabelLinkClicked_}">
+@@ -18,7 +18,8 @@ export function getHtml(this: PerformancePageElement) {
+       @sub-label-link-clicked="${
+           this.onPerformanceInterventionSubLabelLinkClicked_}">
    </settings-toggle-button>
 -  <settings-toggle-button id="discardRingTreatmentToggleButton"
 +  <!-- Blanc (S1.7): tab strip appearance; the Island replaces it. -->
@@ -287,20 +288,20 @@ index dc4a07f..37c6c4c 100644
        @change="${this.onDiscardRingChange_}"
        pref-key="performance_tuning.discard_ring_treatment.enabled"
        label="$i18n{discardRingTreatmentEnabledLabel}"
-@@ -25,7 +26,7 @@ export function getHtml(this: PerformancePageElement) {
-             $i18n{discardRingTreatmentEnabledDescriptionWithLearnLink}"
-       @sub-label-link-clicked="${this.onDiscardRingTreatmentSubLabelLinkClicked_}">
+@@ -28,7 +29,7 @@ export function getHtml(this: PerformancePageElement) {
+           this.onDiscardRingTreatmentSubLabelLinkClicked_}">
    </settings-toggle-button>
--  <cr-link-row
-+  <cr-link-row hidden
-       label="$i18n{tabHoverPreviewCardLinkTitle}"
-       sub-label="$i18n{tabHoverPreviewCardLinkSubtitle}"
-       @click="${this.onTabHoverPreviewCardLinkClick_}" external>
+   ${!this.settingsRefresh2026Enabled_ ? html`
+-    <cr-link-row label="$i18n{tabHoverPreviewCardLinkTitle}"
++    <cr-link-row hidden label="$i18n{tabHoverPreviewCardLinkTitle}"
+         sub-label="$i18n{tabHoverPreviewCardLinkSubtitle}"
+         @click="${this.onTabHoverPreviewCardLinkClick_}" external>
+     </cr-link-row>
 diff --git a/chrome/browser/resources/settings/settings_shared_lit.css b/chrome/browser/resources/settings/settings_shared_lit.css
-index 17212b6..9cfad28 100644
+index 441c06a..2548984 100644
 --- a/chrome/browser/resources/settings/settings_shared_lit.css
 +++ b/chrome/browser/resources/settings/settings_shared_lit.css
-@@ -404,3 +404,21 @@ iron-list,
+@@ -409,3 +409,21 @@ iron-list,
  .flex {
    flex: 1;
  }
@@ -323,10 +324,10 @@ index 17212b6..9cfad28 100644
 +      transparent calc(100% - var(--cr-section-padding))) 1 0 0 0;
 +}
 diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
-index 32ac3f3..ff66857 100644
+index ed2e9e7..42e6ecf 100644
 --- a/chrome/browser/ui/webui/settings/settings_ui.cc
 +++ b/chrome/browser/ui/webui/settings/settings_ui.cc
-@@ -407,10 +407,8 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+@@ -410,10 +410,8 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
    html_source->AddBoolean("isOSSettings", false);
  #endif  // BUILDFLAG(IS_CHROMEOS)
  
