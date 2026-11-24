@@ -115,7 +115,6 @@ test('the privacy page describes the survey contract', () => {
 // customer build (November 24, 2026 record).
 const PROVIDER_LINES = [
   'A mail app for Mac. Bring your Gmail account, or add a Blanc address of your own.',
-  'Connect your Gmail account directly with Google Sign-In.',
 ];
 const SURVEY_LINK = 'Help shape Blanc Mail: tell us what you’d want, anonymously.';
 const WAITLIST_INVITE = 'While you’re here, you can tell us what you’d want in Blanc Mail.';
@@ -143,7 +142,7 @@ test('joining the waitlist offers the survey without tracking', () => {
 
 test('every new Mail page sentence has a ledger row', () => {
   // Lines reworded later are recorded in the later ledger.
-  const ledger = read('docs/website-mail-claims-2026-11-12.md') + read('docs/website-mail-claims-2026-11-17.md') + read('docs/website-mail-offers-2026-11-20.md') + read('docs/website-mail-no-proton-2026-11-24.md');
+  const ledger = read('docs/website-mail-claims-2026-11-12.md') + read('docs/website-mail-claims-2026-11-17.md') + read('docs/website-mail-offers-2026-11-20.md') + read('docs/website-mail-no-proton-2026-11-24.md') + read('docs/website-mail-hero-2026-11-24.md');
   for (const line of [...PROVIDER_LINES, SURVEY_LINK, WAITLIST_INVITE]) assert.ok(ledger.includes(line), line);
   assert.ok(ledger.includes('What would you want?'));
   assert.ok(ledger.includes('This survey has closed. Thank you to everyone who answered.'));
