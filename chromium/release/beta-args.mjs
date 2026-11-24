@@ -54,8 +54,10 @@ function main(argv) {
   if (argv.length !== 3 || !number) throw new Error('Usage: beta-args.mjs --build=N COMMITTED_TEMPLATE OUTPUT_ARGS');
   const committed = execFileSync('git', ['-C', path.dirname(template), 'show', 'HEAD:./' + path.basename(template)], {encoding: 'utf8'});
   const written = betaArgsFor(committed, {build: Number(number)});
-  if (fs.lstatSync(output, {throwIfNoEntry: false})) {
-    const current = fs.readFileSync(output, 'utf8');
+  // Read once: a missing file is the only reason to skip the drift check.
+  let current = null;
+  try { current = fs.readFileSync(output, 'utf8'); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (current !== null) {
     if (current === written) return;
     const drift = argsDrift(written, current);
     if (drift.length) throw new Error(`${output} differs from the committed template:\n${drift.join('\n')}`);

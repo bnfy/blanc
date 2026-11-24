@@ -7,12 +7,15 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { candidateId, runtimeConfig } from '../linux/candidate.mjs';
+import { pipeSync } from '../linux/pipe.mjs';
 import { NativeFixture } from './lib/fixture.mjs';
 import { hashFile, sessionEnvironment } from './lib/linux-seed.mjs';
 import { waitFor } from './lib/cdp.mjs';
 import { assertNodeRuntime, assertRendering } from './lib/render-guard.mjs';
 import { installDriver, nativeCall } from './lib/test-driver.mjs';
+import { claimEvidence } from './lib/evidence-file.mjs';
 
 // Take one process-tree snapshot. Renderers can be grandchildren via the zygote.
 function rendererPids(browserPid) {
@@ -58,10 +61,8 @@ export function verifiedSmokePackage(dir, candidate, format) {
 }
 
 export function debExecutableSha256(deb) {
-  const output = execFileSync('bash', ['-o', 'pipefail', '-c',
-    'dpkg-deb --fsys-tarfile "$1" | tar -xOf - "./${2#/}" | sha256sum', 'package-hash', deb, installedChrome],
-    {encoding: 'utf8'});
-  const digest = output.split(' ')[0];
+  const bytes = pipeSync(['dpkg-deb', ['--fsys-tarfile', deb]], ['tar', ['-xOf', '-', `./${installedChrome.replace(/^\//, '')}`]]);
+  const digest = crypto.createHash('sha256').update(bytes).digest('hex');
   assert.match(digest, /^[0-9a-f]{64}$/, 'Missing packaged chrome SHA-256');
   return digest;
 }
@@ -97,7 +98,7 @@ export async function runSmoke({display, candidateFolder, installed, metadata, r
   const out = path.resolve(resultsFolder);
   fs.mkdirSync(out, { recursive: true });
   const report = path.join(out, `smoke-${display}.json`);
-  if (fs.existsSync(report)) throw new Error(`Refusing to overwrite ${report}`);
+  const evidence = claimEvidence(report);
   const record = { platform: process.platform, host: `${os.type()} ${os.release()} ${os.arch()}`, display, checks: {} };
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-linux-smoke-'));
   const caseDir = path.join(scratch, 'case');
@@ -182,7 +183,8 @@ export async function runSmoke({display, candidateFolder, installed, metadata, r
   }
   record.pass = !record.error && !record.closeError && record.exit?.code === 0;
   const json = JSON.stringify(record, null, 2);
-  fs.writeFileSync(report, json + '\n');
+  evidence.write(json + '\n');
+  evidence.close();
   console.log(json);
   if (!record.pass) throw Error(record.error ?? record.closeError ?? 'Browser exited abnormally');
   return record;

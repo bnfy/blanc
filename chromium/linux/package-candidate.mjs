@@ -10,6 +10,7 @@ import { keepingFile, windowsVersion } from '../windows/candidate.mjs';
 import { betaArgsFor, betaBuildNumber } from '../release/beta-args.mjs';
 import { ASSET_NAME, candidateId, installedChrome, packageNames, runtimeFiles } from './candidate.mjs';
 import { scanPackage } from './package-scan.mjs';
+import {pipeSync} from './pipe.mjs';
 
 const tree = fileURLToPath(new URL('../', import.meta.url));
 const readJson = file => JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -99,11 +100,9 @@ async function stagePackages({src, out, stage, folder, names, channel, fingerpri
       fs.copyFileSync(source, staged);
       const result = scan(staged, {fingerprint});
       if (!result.ok) throw new Error(`${file}: ${result.findings.join('; ')}`);
-      const extract = file.endsWith('.deb')
-        ? 'dpkg-deb --fsys-tarfile "$1" | tar -xf - "./$2"'
-        : 'rpm2cpio "$1" | cpio -id --quiet "./$2" "$2"';
       const payload = fs.mkdtempSync(path.join(checks, 'payload-'));
-      execFileSync('bash', ['-o', 'pipefail', '-c', extract, 'verify-browser', staged, browser], {cwd: payload});
+      if (file.endsWith('.deb')) pipeSync(['dpkg-deb', ['--fsys-tarfile', staged]], ['tar', ['-xf', '-', `./${browser}`]], {cwd: payload});
+      else pipeSync(['rpm2cpio', [staged]], ['cpio', ['-id', '--quiet', `./${browser}`, browser]], {cwd: payload});
       const installed = path.join(payload, browser);
       if (!fs.lstatSync(installed, {throwIfNoEntry: false})?.isFile() || await sha256(installed) !== expected) {
         throw new Error(`${file}: installed chrome differs from the staged runtime after stripping.`);

@@ -678,10 +678,14 @@ export function realIO(commands = ownerIO()) {
         const packages = await bytes('deb/dists/stable/main/binary-' + deb + '/Packages');
         check(packages.toString().split('\n').includes('Version: ' + ctx.r.version + '-1'), 'production apt index names another version');
         const base = 'rpm/stable/' + rpm + '/repodata/';
-        await bytes(base + 'repomd.xml'); await bytes(base + 'repomd.xml.asc');
+        const repomd = (await bytes(base + 'repomd.xml')).toString(); await bytes(base + 'repomd.xml.asc');
         const primary = files.filter(e => e.path.startsWith(base) && /-primary\.xml\.gz$/.test(e.path));
         check(primary.length === 1, 'missing signed dnf primary index');
-        check(gunzipSync(await bytes(primary[0].path)).toString().includes('ver="' + ctx.r.version + '"'), 'production dnf index names another version');
+        // The index's name comes from the public repomd.xml just bound to the
+        // signed tree, as dnf reads it; it must be the one signed primary index.
+        const digest = /<data type="primary">[\s\S]*?<location href="repodata\/([0-9a-f]{64})-primary\.xml\.gz"\/>/.exec(repomd)?.[1];
+        check(digest && base + digest + '-primary.xml.gz' === primary[0].path, 'repomd.xml names another dnf primary index');
+        check(gunzipSync(await bytes(base + digest + '-primary.xml.gz')).toString().includes('ver="' + ctx.r.version + '"'), 'production dnf index names another version');
       }
     },
   };

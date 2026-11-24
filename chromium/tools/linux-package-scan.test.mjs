@@ -48,7 +48,7 @@ for (const [name, files, expected] of [
     'opt/bnfy/blanc-beta/blanc_blocker/engine.js': 'fixture',
     'opt/bnfy/blanc-beta/notices/THIRD_PARTY_NOTICES.txt': 'different product',
   }, /THIRD_PARTY_NOTICES/],
-  ['Google URL in postinst', {'DEBIAN/postinst': '#!/bin/sh\necho dl.google.com\n'}, /DEBIAN\/postinst.*dl\.google\.com/],
+  ['Google URL in postinst', {'DEBIAN/postinst': '#!/bin/sh\necho dl.google.com\n'}, /^.*DEBIAN\/postinst: contains dl\.google\.com$/m],
   ['foreign binary keyring with no key extension', {'opt/bnfy/blanc-prototype/resource': () => execFileSync('gpg', ['--batch', '--dearmor'], {input: otherKey})}, /resource.*fingerprint/i],
   ['mixed embedded armor', {'DEBIAN/postinst': Buffer.concat([Buffer.from('#!/bin/sh\n'), key, otherKey])}, /postinst.*fingerprint/i],
   ['reserved AppArmor declaration in a channel-named file', {
@@ -105,7 +105,8 @@ echo /opt/chromium.org
   const pkg = path.join(dir, 'RPMS/noarch/blanc-prototype-1-1.noarch.rpm');
   const result = scanPackage(pkg, {fingerprint: fingerprint(dir)});
   assert.equal(result.ok, false);
-  assert.match(result.findings.join('\n'), /script.*dl\.google\.com/i);
-  assert.match(result.findings.join('\n'), /trigger.*google\.com\/linux/i);
-  assert.match(result.findings.join('\n'), /trigger.*\/opt\/chromium\.org/i);
+  const found = (part, token) => result.findings.some(line => line.toLowerCase().includes(part) && line.endsWith(': contains ' + token));
+  assert.ok(found('script', 'dl.google.com'), result.findings.join('\n'));
+  assert.ok(found('trigger', 'google.com/linux'), result.findings.join('\n'));
+  assert.ok(found('trigger', '/opt/chromium.org'), result.findings.join('\n'));
 });

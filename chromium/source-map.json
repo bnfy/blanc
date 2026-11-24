@@ -472,7 +472,7 @@
     "blanc/browser/mac/beta_profile_guard.h": "fec768ed79c6364b22e8e7141343d01ce00bdb14ac8d680616670adde225c03a",
     "blanc/browser/mac/beta_update_policy.h": "e04a309075010eec196b86b933ef62a747b8f9d70c70a599cd391b10f1fe5424",
     "blanc/browser/mac/beta_updater.h": "d57ffd4b8fb76b4e3fa613eb313bdff22b3202075f8a9844f9a2f51d02cd5348",
-    "blanc/browser/mac/beta_updater.mm": "5ebe464956b245400f91c1788cf9ac29010bd883fb1f2a72d0fecd2f3cf89dd9",
+    "blanc/browser/mac/beta_updater.mm": "ed1b6dc0a51ce76ae3b5fcfffab084b77053881274be5f1da666bc4a52cca84d",
     "blanc/browser/sync/BUILD.gn": "800e1b6401b3ca9343753c3f8b7ce23c1c65f764724c5822ea62cfb7afa8130b",
     "blanc/browser/sync/desktop_sync_platform.cc": "3e83b5055b698d75cfc9e431d4628f3f9c6b5c4d03d7e738dfe16c66f925cecc",
     "blanc/browser/sync/desktop_sync_platform.h": "ccce0bc9c4a0b501a48752db7d877e2ae71e71e4c8666ff9fe555d2bef659a26",

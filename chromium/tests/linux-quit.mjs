@@ -13,6 +13,7 @@ import { NativeFixture } from './lib/fixture.mjs';
 import { click, windowGeometry } from './lib/native-input-linux.mjs';
 import { assertNodeRuntime } from './lib/render-guard.mjs';
 import { installDriver, nativeCall } from './lib/test-driver.mjs';
+import { claimEvidence } from './lib/evidence-file.mjs';
 
 const EXIT_MS = 10_000;
 const run = (tool, args) => execFileSync(tool, args, { encoding: 'utf8', timeout: 5000 }).trim();
@@ -340,7 +341,7 @@ async function main([folder, resultDir, mode, ...extra]) {
   const out = path.resolve(resultDir);
   fs.mkdirSync(out, { recursive: true });
   const report = path.join(out, 'quit-' + process.arch + '.json');
-  assert.ok(!fs.existsSync(report), 'Refusing to overwrite earlier quit evidence');
+  const evidence = claimEvidence(report, 'Refusing to overwrite earlier quit evidence');
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-linux-quit-'));
   const record = { candidate: candidate.id, arch: process.arch, executable: config.executable,
     executableSha256: config.executableSha256, cases: [] };
@@ -348,12 +349,13 @@ async function main([folder, resultDir, mode, ...extra]) {
     for (const scenario of cases) {
       const result = await runCase(scenario, config, scratch, out);
       record.cases.push(result);
-      fs.writeFileSync(report, JSON.stringify(record, null, 2) + '\n');
+      evidence.write(JSON.stringify(record, null, 2) + '\n');
       console.log(JSON.stringify(result));
       if (!result.passed) process.exitCode = 1;
     }
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
+    evidence.close();
   }
 }
 
