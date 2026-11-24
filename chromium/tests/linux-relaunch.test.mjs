@@ -23,7 +23,8 @@ test('any other request to the dictionary host still fails', () => {
 });
 
 test('a resolution of the dictionary host with no dictionary request fails', () => {
-  assert.throws(() => checkUpdateNetLog(log({host: 'redirector.gvt1.com'}), control), error => error.message.includes('redirector.gvt1.com'));
+  assert.throws(() => checkUpdateNetLog(log({host: 'redirector.gvt1.com'}), control),
+    {message: /^Browser contacted an update or Chrome releases host: redirector\.gvt1\.com$/});
 });
 
 test('other gvt1 and Google update hosts still fail beside a dictionary download', () => {
