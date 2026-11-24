@@ -21,8 +21,15 @@ above (`revamp.css`; see `docs/brand-usage.md`). The masthead is
 the small lockup and the direct links fed by `src/data/navigation.mjs` and kept
 in step by `test/unit/site-navigation.test.js`. At 920px and narrower the links
 fold behind a Menu button (an inline script, so phones never flash the full
-row; without scripting they wrap onto a second row). It never hides on scroll:
-the homepage's sticky Island stage sits just below it. While `src/data/mail-reservations.json`
+row; without scripting they wrap onto a second row). From 921px up it is three
+columns (#1735): the lockup, the links centered, and search, Download and Menu
+held together on the right; the Browser menu's All features link is its one
+primary button (`primary: true` in `navigation.mjs`). It never hides on scroll:
+the homepage's sticky Island stage sits just below it. On the homepage and on
+the night heroes of Privacy & Security (`/trust`, #1721) and Support
+(`/support`, #1741) the bar starts clear over the first screen and turns solid
+once the page scrolls (`overlayTone`, chosen by path in Header.astro; dark-tone
+pages only from 921px up); without scripting it stays solid. While `src/data/mail-reservations.json`
 says `open`, `components/MailReserveBanner.astro` puts a slim dark strip above
 the bar, one link to `/mail/reserve` naming the default ending, which scrolls
 away while the bar stays put; Header.astro leaves it off the Mail, legal and
@@ -340,6 +347,33 @@ A command merged on main stays in `src/data/unreleased-slash-commands.json`
 until a release ships it; `test/unit/site-slash-commands.test.js` compares
 that list with the latest release in `releases.json`, so the post-release
 changelog refresh is also when a shipped command comes off it.
+
+**Support (`/support`, redesigned November 23, 2026, #1741, spec
+`docs/superpowers/specs/2026-11-23-support-page-redesign-design.md`):** one
+page for all of Blanc, with product tabs for desktop, iPhone & iPad, Blanc Beta
+and Mail. The tabs are radios that switch their panels in CSS with `:has()`
+(`styles/support.css`), so the page works without scripting; where `:has()` is
+missing every panel shows under its name. `scripts/answers.js` (shared with
+`/trust`) adds search across every tab, deep links that open the right tab
+(`/support#iphone-pair`, and the legacy `/faq#…`), `?product=desktop|iphone|beta|mail`
+and an iPhone & iPad preselect for iOS visitors, read from the page itself.
+Which row sits in which tab and group is `src/data/support-products.json`; the
+desktop guides and answers keep their text and ids (`support-questions.json`
+keeps its first 22 answers in order, new `iphone-`/`beta-` answers are
+appended), and Mail's questions come from `src/data/mail-questions.mjs`, which
+`/mail` renders too. Every `<details id>` is a deep link that other pages, the
+site search and `verify-seo.mjs` rely on: never drop or rename one. Every new
+string is in `docs/website-support-redesign-2026-11-23-claims.json`, which
+`test/unit/site-support-page.test.js` checks word for word; the Beta answers
+name no version, say updates are offered, and keep the protected-video and
+Sync caveats. The App Store listing's Support URL and the Windows beta's
+`help_center_url` still open the desktop tab (`?product=iphone` and
+`?product=beta` would open theirs).
+
+**Features (`/features`, November 23, 2026, #1736):** a two-column header ("A
+quiet browser with a lot built in.", a lead, Download and See what's new) over
+the bento, which covers features through public v1.52.0; its sentences are in
+`docs/website-features-bento-claims-v1.52.json`.
 
 **Download page (`/download`, reimagined November 14, 2026):** the owner
 asked for far fewer words. One button for the visitor's system sits under a
