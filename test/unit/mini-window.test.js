@@ -150,3 +150,9 @@ test('preview windows close with the last Windows or Linux window (#1630)', () =
   const drm = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../src/main/drm-support.js'), 'utf8');
   assert.match(drm, /closeLocalFiles\(\) \{\s*closeAllLocalHtmlPreviews\(\);/);
 });
+
+test('a mini window moves every tab but an unused start page (#1734)', () => {
+  assert.deepEqual(mini.miniWindowMoveIds([{ id: 1, blank: true }, { id: 2, blank: false }, { id: 3, blank: false }]), [2, 3]);
+  assert.deepEqual(mini.miniWindowMoveIds([{ id: 1, blank: true }]), []);
+  assert.deepEqual(mini.miniWindowMoveIds([]), []);
+});

@@ -75,6 +75,13 @@ function miniWindowMayExpire(tabs) {
     && !tab.isLoading && !tab.sleeping && !tab.waking && !(tab.popupChildren > 0));
 }
 
+/** Move to Space (#1734): the tabs a mini window takes into a Space, in
+ * order. An unused start page (`blank`) stays behind and closes with the
+ * window; it never blocks the move. */
+function miniWindowMoveIds(entries) {
+  return entries.filter((entry) => !entry.blank).map((entry) => entry.id);
+}
+
 module.exports = {
   MINI_WINDOW_SIZE,
   MINI_WINDOW_MIN_SIZE,
@@ -87,4 +94,5 @@ module.exports = {
   miniWindowBounds,
   ordinaryWindowBounds,
   miniWindowMayExpire,
+  miniWindowMoveIds,
 };
