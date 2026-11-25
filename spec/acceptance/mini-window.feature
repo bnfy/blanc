@@ -39,3 +39,31 @@ Feature: mini windows
     Then the shortcut is either working or reported as unavailable
     When I turn the mini window shortcut off
     Then the mini window shortcut is off
+
+  @F61-6 @F61
+  Scenario: moving a mini window to a Space closes it and shows the Space
+    Given a saved space named "Reading" that is open in no window
+    When I open a mini window
+    And I open a fixture page in the mini window
+    And I choose "Reading" from the mini window's Spaces button
+    Then the mini window has closed
+    And a window shows "Reading" with that fixture page last
+
+  @F61-7 @F61
+  Scenario: a mini window moves to a new Space, unless a page in it can't move
+    When I open a mini window
+    And I open a private tab in the mini window
+    Then the mini window's Spaces button can't be used
+    When I close that private tab and open a fixture page in the mini window
+    And I create the space "Later" from the mini window's Spaces button
+    Then the mini window has closed
+    And a window shows "Later" with that fixture page last
+
+  @F61-8 @F61
+  Scenario: moving a mini window to a Space already on screen brings that window forward
+    Given a saved space named "Reading" shown in another window
+    When I open a mini window
+    And I open a fixture page in the mini window
+    And I choose "Reading" from the mini window's Spaces button
+    Then the mini window has closed
+    And that other window shows "Reading" with that fixture page last, and no new window opened

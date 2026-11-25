@@ -16508,6 +16508,26 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
             };
           })()`);
         },
+        // Move to Space (#1734): the Island's Spaces button in that window's
+        // strip, and a read or click in that window's own overlay.
+        spaces: async (id, { click = false } = {}) => {
+          const runtime = windowRuntimes.all().find((candidate) => String(candidate.id) === String(id));
+          const wc = runtime?.window && !runtime.window.isDestroyed() ? runtime.window.webContents : null;
+          if (!wc) return null;
+          return wc.executeJavaScript(`(() => {
+            const button = document.getElementById('pillMiniSpaces');
+            const visible = !!button && !button.hidden && button.getBoundingClientRect().width > 0;
+            const enabled = visible && !button.disabled;
+            if (${click === true} && enabled) button.click();
+            return { visible, enabled, clicked: ${click === true} && enabled };
+          })()`);
+        },
+        overlay: async (id, script) => {
+          const runtime = windowRuntimes.all().find((candidate) => String(candidate.id) === String(id));
+          const wc = runtime?.overlayView?.webContents;
+          return wc && !wc.isDestroyed() ? wc.executeJavaScript(String(script)) : null;
+        },
+        overlayMode: (id) => windowRuntimes.all().find((candidate) => String(candidate.id) === String(id))?.overlayMode ?? null,
       },
       // The window Blanc last asked to be left out of capture. Electron 44's
       // isContentProtected() keeps reporting true after setContentProtection(false)
