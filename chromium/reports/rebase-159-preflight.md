@@ -151,3 +151,54 @@ BlancLinuxPrototype, BlancLinuxArm64Prototype, BlancLinuxBeta, BlancLinuxArm64Be
 4. A cold build over 1000 actions for each of the six outputs, one at a time.
 
 Not needed: a Windows toolchain repackage (`vs_toolchain.py` is unchanged) and a new Xcode.
+
+## Stage 2: the checkouts moved and the first 159 builds (2026-11-24 to 25)
+
+The owner approved the move in this session on 2026-11-24 ("Yes, move both"). The Mac Studio's
+two nightlies (`me.bnfy.blanc.beta-nightly`, `me.bnfy.blanc.desktop-nightly`) were paused with
+`launchctl bootout` at 19:09 UTC and stay paused until Task 6 passes on the Mac.
+
+- **Mac Studio** (`~/Projects/Blanc/src`): pristine restore, `gclient sync -D --no-history` at
+  `ab2e5d8ad16c` (19:21 UTC; the first attempt stopped because the SSH shell's PATH lacked
+  `/opt/homebrew/bin`, where `git-lfs` lives, and the new `third_party/litert/src` needs it), then
+  `apply.py` (303 files), GN for BlancPrototype and BlancBeta with `args.gn` unchanged. Evidence:
+  `records/move-159/`.
+- **Linux server** (`~/chromium-desktop/src`, under the checkout lock throughout): the same move
+  with the unchanged Windows toolchain package `b4f603a344` (sync 19:22 UTC), `apply.py` (331
+  files), GN for all six outputs with `args.gn` unchanged. Evidence: `~/blanc-evidence/move-159/`.
+- **Build environments**, re-recorded after review: only `clangRevision` and `clangVersion`
+  changed (`llvmorg-24-init-14453-ge063be79-1` → `llvmorg-24-init-17044-gc3223914-1`) on all eight
+  outputs. Xcode 27.2 and the macOS SDK, the Visual Studio package and Windows SDK 10.0.28000.0,
+  and both Linux sysroots are unchanged.
+
+Fixes the builds needed, on this branch:
+
+- `blanc/ui.gni`: 159 moved `//chrome/browser/ui:browser_window_theme_observer` to
+  `//chrome/browser/ui/browser_window_theme_observer` and removed
+  `//chrome/browser/ui:ui_controller_factory` (GN stopped on both).
+- Patches 0085 and 0110: `MdTextButton::SetBgColorOverrideDeprecated(SkColor)` is
+  `SetBgColorOverride(std::optional<ui::ColorVariant>)` in 159. Nothing else failed to compile.
+
+Builds, each through `build.mjs --build --allow-large-build`, one at a time per machine:
+
+| Output | Finished (UTC) | Last run |
+| --- | --- | --- |
+| BlancPrototype (Mac) | 2026-11-24 20:23 | 3,898 steps after the rename fix (the cold part ran 19:24–20:14) |
+| BlancBeta (Mac) | 2026-11-24 21:17 | 57,471 steps, 53 min |
+| BlancWinPrototype | 2026-11-24 20:51 | 3,882 steps after the fix (cold part 19:26–20:42) |
+| BlancWinBeta | 2026-11-24 22:13 | 65,446 steps, 1 h 22 min |
+| BlancLinuxPrototype | 2026-11-24 23:19 | 57,190 steps, 1 h 7 min |
+| BlancLinuxArm64Prototype | 2026-11-25 01:05 | 94,168 steps, 1 h 45 min |
+| BlancLinuxBeta | 2026-11-25 02:16 | 57,246 steps, 1 h 8 min |
+| BlancLinuxArm64Beta | 2026-11-25 03:57 | 94,165 steps, 1 h 41 min |
+
+The Linux beta guard first refused BlancLinuxBeta for two leftovers of the sync outside the
+lane's map: the 158 checkout of `third_party/wayland-protocols/kde` (159 moved that dependency to
+`kde/src`) and `buildtools/reclient_cfgs/reproxy.cfg`, which a sync hook writes and 159's
+`.gitignore` no longer covers. Both were moved into `~/blanc-evidence/move-159/stale/`, not deleted.
+**Open:** every future `gclient sync` writes `reproxy.cfg` again, so the guard
+(`tools/checkout-status.mjs`) will stop Linux beta builds until it is moved aside again or the guard
+learns that file; that is a release-guard change for the owner to decide.
+
+Not done yet: nothing has been run (Task 6), the branch is not merged into `chromium/next`, and
+the nightlies stay paused. The Studio's BlancRelease output was not regenerated or rebuilt.
