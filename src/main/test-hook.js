@@ -877,6 +877,7 @@ function install(refs) {
     reopenClosedInWindow(runtimeId) { return reopenClosedTabInWindow(String(runtimeId)); },
     groupActiveByName(name) { groupTabByName(getActiveTabId(), name); },
     groupTabByName(id, name) { groupTabByName(id, name); },
+    groupTabInWindow(runtimeId, id, name) { return refs.runInWindowRuntime(String(runtimeId), () => groupTabByName(id, name)); },
     renameTab(id, name) { renameTab(id, name); },
     beginRenameTab(id) { beginRenameTab(id); },
     beginRenameDeviceByName(name) {

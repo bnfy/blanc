@@ -5079,6 +5079,7 @@
             {
               "decision": "open-workspace-options-1",
               "newWindow": true,
+              "move": true,
               "color": "open-workspace-options-1",
               "symbol": "open-workspace-options-1",
               "profileId": "open-workspace-options-1"
@@ -5093,6 +5094,7 @@
                 {
                   "decision": "open-workspace-options-1",
                   "newWindow": true,
+                  "move": true,
                   "color": "open-workspace-options-1",
                   "symbol": "open-workspace-options-1",
                   "profileId": "open-workspace-options-1"
@@ -5241,6 +5243,7 @@
             {
               "decision": "open-workspace-options-1",
               "newWindow": true,
+              "move": true,
               "color": "open-workspace-options-1",
               "symbol": "open-workspace-options-1",
               "profileId": "open-workspace-options-1"
@@ -5255,6 +5258,7 @@
                 {
                   "decision": "open-workspace-options-1",
                   "newWindow": true,
+                  "move": true,
                   "color": "open-workspace-options-1",
                   "symbol": "open-workspace-options-1",
                   "profileId": "open-workspace-options-1"

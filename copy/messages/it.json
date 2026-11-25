@@ -9805,6 +9805,10 @@
     "message": "Sposta questa finestra in…",
     "source": "sha256:81fd38d4a6df0d472f68c974fa785f2e1f1259218d0f87bbad426045d124cb81"
   },
+  "ws.error.miniUnmovable": {
+    "message": "Una scheda privata, o una pagina che riproduce audio, usa la fotocamera o il microfono, condivide lo schermo o mostra un pop-up, non può essere spostata in uno Space. Chiudila o interrompila e riprova.",
+    "source": "sha256:34116d951f4c5d043f2da940f438f58a5554eb5fa68f1087d6d5dec23b4acdd9"
+  },
   "mini.openInBlanc.label": {
     "message": "Apri in Blanc: tieni questa minifinestra come una normale finestra di Blanc",
     "source": "sha256:2a3abd0192e7db866dc79f7990b6bcd02f67183db434a555f0385bb96f3d6006"

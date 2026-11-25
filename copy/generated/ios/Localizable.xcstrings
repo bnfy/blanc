@@ -110701,6 +110701,48 @@
         }
       }
     },
+    "ws.error.miniUnmovable": {
+      "comment": "Spaces menu error in a mini window (#1734): a page that can't go to a Space stops the move; nothing moved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A private tab, or a page that's playing sound, using the camera or microphone, sharing the screen or showing a pop-up, can't move to a space. Close or stop it, then try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein privater Tab oder eine Seite, die Ton abspielt, Kamera oder Mikrofon nutzt, den Bildschirm teilt oder ein Pop-up zeigt, kann nicht in einen Space verschoben werden. Schließe oder beende sie und versuche es erneut."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una pestaña privada, o una página que reproduce sonido, usa la cámara o el micrófono, comparte la pantalla o muestra una ventana emergente, no se puede mover a un Space. Ciérrala o detenla e inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un onglet privé, ou une page qui joue du son, utilise la caméra ou le micro, partage l'écran ou affiche une fenêtre pop-up, ne peut pas être déplacé dans un Space. Fermez-le ou arrêtez-le, puis réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una scheda privata, o una pagina che riproduce audio, usa la fotocamera o il microfono, condivide lo schermo o mostra un pop-up, non può essere spostata in uno Space. Chiudila o interrompila e riprova."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uma aba privada, ou uma página que está tocando som, usando a câmera ou o microfone, compartilhando a tela ou mostrando um pop-up, não pode ir para um Space. Feche ou pare essa página e tente de novo."
+          }
+        }
+      }
+    },
     "mini.openInBlanc.label": {
       "comment": "Accessible name of the Island's Open in Blanc button in a mini window.",
       "extractionState": "manual",

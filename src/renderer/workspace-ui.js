@@ -38,6 +38,7 @@
     popup: 'ws.decision.blocked.popup',
   };
   const errors = {
+    unmovable: t('ws.error.miniUnmovable'),
     'duplicate-name': t('ws.error.duplicateName'),
     'invalid-name': t('ws.error.invalidName'),
     'invalid-color': t('ws.error.invalidColor'),
@@ -106,6 +107,7 @@
     // Opened from a mini window (#1734): choosing a Space moves the window's
     // tabs there, so the menu lists only this profile's and edits nothing.
     let moveMode = false;
+    let moveTabCount = 0;
     let updateTimer = null;
     let pendingPatch = null;
     // Live edits write in order; each link resolves true when its write saved.
@@ -339,6 +341,10 @@
             ? t('ws.error.savedNotMoved', { name: data.items.find((item) => item.id === result.workspaceId)?.name ?? '' })
             : errors[result.error] };
           render();
+        } else if (result?.error === 'moved-partly') {
+          // A mini window's move that stopped partway (#1734): the rest stay.
+          state = { kind: 'list', error: t('ws.error.movedPartly', { name: action?.name ?? '', count: result.movedCount ?? 0 }) };
+          if (!opened) open(); else render();
         } else if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
           state = { kind: 'decision', action, result, error: '' }; open();
         } else {
@@ -382,7 +388,7 @@
       const name = state.draft.name.trim().replace(/\s+/g, ' ');
       const identity = { color: state.draft.color, symbol: state.draft.symbol };
       // A mini window's tabs go to the new Space through create-blank (#1734).
-      if (state.start === 'mini') { openAction({ kind: 'create', name, identity }); return; }
+      if (state.start === 'mini') { openAction({ kind: 'create', name, identity }, { move: true }); return; }
       if (['tab', 'tabs', 'link'].includes(state.start)) {
         const isTabs = state.start === 'tabs';
         const isLink = state.start === 'link';
@@ -413,10 +419,12 @@
       const row = el('div', 'workspace-row ws-row'); row.dataset.workspaceId = workspace.id; row.dataset.index = String(index);
       const main = button('', `open:${workspace.id}`, () => {
         if (suppressClick) { suppressClick = false; return; }
-        openAction({ kind: 'open', id: workspace.id, name: workspace.name });
+        openAction({ kind: 'open', id: workspace.id, name: workspace.name }, moveMode ? { move: true } : {});
       }, 'ws-row-main' + (workspace.active ? ' on' : ''));
       main.dataset.current = String(workspace.active);
-      const context = t(workspace.active ? 'ws.row.current' : workspace.openElsewhere ? 'ws.row.showWindow' : workspace.resident ? 'ws.row.retained' : 'ws.row.open');
+      // In move mode every row moves the window's tabs there (#1734).
+      const showsWindow = workspace.openElsewhere && !moveMode;
+      const context = moveMode ? t('mini.moveToSpace.menu') : t(workspace.active ? 'ws.row.current' : workspace.openElsewhere ? 'ws.row.showWindow' : workspace.resident ? 'ws.row.retained' : 'ws.row.open');
       main.title = t('ws.row.title', { name: workspace.name, context, count: workspace.tabCount });
       main.setAttribute('aria-label', main.title);
       if (workspace.active) main.setAttribute('aria-current', 'true');
@@ -424,7 +432,7 @@
       // name keeps the row's width beside the count or Show window.
       let label = dataEl('span', 'ws-row-name', workspace.name);
       if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');const text=el('span','ws-row-text');text.append(label,mark);label=text;}
-      main.append(tile(workspace), label, el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      main.append(tile(workspace), label, el('span', 'ws-row-count', showsWindow ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
       if (moveMode) { row.append(main); return row; }
       main.addEventListener('keydown', (event) => {
         if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
@@ -541,7 +549,7 @@
       const nodes = [];
       if (!errors[data.status]) {
         const add = button(t('ws.new'), 'new', () => moveMode
-          ? beginNew({ start: 'mini', thisProfile: true, tabTitle: t('tabsMenu.header', { count: Math.max(1, data.windowTabCount ?? 0) }) })
+          ? beginNew({ start: 'mini', thisProfile: true, tabTitle: t('tabsMenu.header', { count: moveTabCount }) })
           : beginNew()); add.prepend(glyph('plus')); nodes.push(add);
       }
       if (data.deleted?.length && !moveMode) {
@@ -852,9 +860,12 @@
         else if (kind === 'delete') { open(); removeNow(workspace); }
       },
       toggle() { opened ? close() : open(); },
-      setMoveMode(on) {
+      setMoveMode(on, { tabCount = 0 } = {}) {
+        moveTabCount = tabCount;
         if (moveMode === !!on) return;
         moveMode = !!on;
+        // Open in Blanc while New space… is open: that editor moved tabs.
+        if (!moveMode && state.kind === 'new' && state.start === 'mini' && !state.pending) state = { kind: 'list' };
         if (!state.pending && state.kind === 'list') render();
       },
       switchTo(workspace) { openAction({ kind: 'open', id: workspace.id, name: workspace.name, ...(workspace.profileId ? { profileId: workspace.profileId } : {}) }); },

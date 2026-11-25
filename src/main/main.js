@@ -7368,7 +7368,7 @@ function currentTabsPayload() {
     islandTabIcons,
     islandSize,
     miniWindow: rt().mini === true,
-    miniWindowCanMove: rt().mini === true && !!miniWindowMovableIds(rt()),
+    miniWindowCanMove: rt().mini === true && !!miniWindowMoveCandidates(rt()),
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...captureBroadcastState(serialized),
@@ -12135,7 +12135,7 @@ function registerIpcHandlers() {
     islandTabIcons,
     islandSize,
     miniWindow: rt().mini === true,
-    miniWindowCanMove: rt().mini === true && !!miniWindowMovableIds(rt()),
+    miniWindowCanMove: rt().mini === true && !!miniWindowMoveCandidates(rt()),
     ...verticalTabsMetrics(),
   }));
   chromeHandle('tabs:find', (_e, id, query, options) => {
@@ -12446,7 +12446,8 @@ function registerIpcHandlers() {
   chromeHandle('chrome:workspaces-open', (_e, id, opts) => {
     // A mini window (#1138) holds no Space and reaches no other profile's:
     // choosing one of its profile's Spaces moves its tabs there (#1734).
-    if (rt().mini) return otherProfileTarget(opts) ? { ok: false, error: 'busy' } : { ...moveMiniWindowToSpace(rt(), id, null), ...workspacesProjection() };
+    // Only the menu's move mode asks (`move`); switching by name stays refused.
+    if (rt().mini) return opts?.move !== true || otherProfileTarget(opts) ? { ok: false, error: 'busy' } : { ...moveMiniWindowToSpace(rt(), id, null, { showError: false }), ...workspacesProjection() };
     // Another profile's Space opens in a window of that profile; this window
     // and its tabs are never touched (spec 2026-11-19 D1).
     const otherProfile = otherProfileTarget(opts);
@@ -12468,10 +12469,10 @@ function registerIpcHandlers() {
   chromeHandle('chrome:workspaces-create-blank', (_e, name, opts) => {
     // New Space… from a mini window makes the Space with its tabs (#1734).
     if (rt().mini) {
-      if (otherProfileTarget(opts)) return { ok: false, error: 'busy' };
+      if (opts?.move !== true || otherProfileTarget(opts)) return { ok: false, error: 'busy' };
       return { ...moveMiniWindowToSpace(rt(), null, { name,
         color: typeof opts?.color === 'string' ? opts.color : undefined,
-        symbol: typeof opts?.symbol === 'string' ? opts.symbol : undefined }), ...workspacesProjection() };
+        symbol: typeof opts?.symbol === 'string' ? opts.symbol : undefined }, { showError: false }), ...workspacesProjection() };
     }
     const otherProfile = otherProfileTarget(opts);
     if (otherProfile) {
@@ -14107,16 +14108,23 @@ function keepMiniWindow(runtime = rt()) {
   return true;
 }
 
-/** Move to Space (#1734): the tabs a mini window takes into a Space, or null
- * when it can't move now. An unused start page stays behind; any other page
- * that can't go to a Space (canMoveTabToSpace) stops the whole move. */
-function miniWindowMovableIds(runtime) {
+/** Move to Space (#1734): the tabs a mini window would take into a Space
+ * (all but an unused start page), or null when there is nothing to move.
+ * The Spaces button and File menu offer the move whenever there is. */
+function miniWindowMoveCandidates(runtime) {
   if (!runtime?.mini || runtime.closing || !runtime.window || runtime.window.isDestroyed()) return null;
   const ids = miniWindow.miniWindowMoveIds(runtime.tabOrder.map((id) => {
     const tab = tabs.get(id);
     return { id, blank: !!tab && tab.url === NEW_TAB_URL && !newTabPageUsed(tab) };
   }));
-  return ids.length && ids.every((id) => canMoveTabToSpace(tabs.get(id), runtime, true)) ? ids : null;
+  return ids.length ? ids : null;
+}
+
+/** The candidates, or null unless every one can go to a Space now
+ * (canMoveTabToSpace): one page that can't stops the whole move. */
+function miniWindowMovableIds(runtime) {
+  const ids = miniWindowMoveCandidates(runtime);
+  return ids && ids.every((id) => canMoveTabToSpace(tabs.get(id), runtime, true)) ? ids : null;
 }
 
 /** Move to Space from a mini window (#1734, spec 2026-11-25 D1): every tab
@@ -14124,17 +14132,21 @@ function miniWindowMovableIds(runtime) {
  * Space move, then the mini window closes and the Space comes forward in its
  * profile. A refused or failed move leaves the window as it was and shows
  * why in its Spaces menu; a name the editor refused is shown by the editor. */
-function moveMiniWindowToSpace(runtime, workspaceId, creation = null) {
+function moveMiniWindowToSpace(runtime, workspaceId, creation = null, { showError = true } = {}) {
+  const candidates = miniWindowMoveCandidates(runtime);
   const ids = miniWindowMovableIds(runtime);
   const spaceName = () => creation?.name ?? namedWorkspaces.get(workspaceId)?.name ?? '';
+  // From the Spaces menu (`showError` false) the menu renders the reply
+  // itself; from the File menu the Spaces menu opens to say why.
   const fail = (result) => {
-    withWindowRuntime(runtime, () => showOverlay('spaces', { purpose: { spaceMoveError: {
+    if (showError) withWindowRuntime(runtime, () => showOverlay('spaces', { purpose: { spaceMoveError: {
       name: spaceName(), error: result.error, movedCount: result.movedCount ?? 0,
     } } }));
     return result;
   };
-  if (!ids || (workspaceId && !namedWorkspaces.get(workspaceId))) return fail({ ok: false, error: ids ? 'not-found' : 'busy', movedCount: 0 });
-  const result = withWindowRuntime(runtime, () => moveTabsToSpace(ids, workspaceId, creation));
+  if (!ids) return fail({ ok: false, error: candidates ? 'unmovable' : 'busy', movedCount: 0 });
+  if (workspaceId && !namedWorkspaces.get(workspaceId)) return fail({ ok: false, error: 'not-found', movedCount: 0 });
+  const result = withWindowRuntime(runtime, () => moveTabsToSpace(ids, workspaceId, creation, { keepGroups: true }));
   if (!result.ok) return creation && !result.workspaceId && !result.movedCount ? result : fail(result);
   const spaceId = workspaceId ?? result.workspaceId;
   const { profileId } = runtime;
@@ -14146,7 +14158,7 @@ function moveMiniWindowToSpace(runtime, workspaceId, creation = null) {
 /** File → Move to Space ▸ in a mini window: the profile's Spaces, then New
  * Space…, which opens the Spaces menu's editor in move mode. */
 function miniWindowSpaceMenu(runtime) {
-  const movable = !!miniWindowMovableIds(runtime);
+  const movable = !!miniWindowMoveCandidates(runtime);
   const spaces = spaceMoveTargets(runtime);
   return [
     ...spaces.map((space) => ({ label: space.name, enabled: movable && space.enabled,
@@ -14458,13 +14470,17 @@ function moveTabToSpace(id, workspaceId, creation = null) {
  * With `group` (Move Group to Space ▸, D8) the tabs arrive as that group,
  * with its name and colour, or join the target's group of the same name
  * (two groups never differ only by case); the window's selection is kept. */
-function moveTabsToSpace(ids, workspaceId, creation = null, { group = null } = {}) {
+function moveTabsToSpace(ids, workspaceId, creation = null, { group = null, keepGroups = false } = {}) {
   const source = rt(), members = batchMembers(ids);
   if (!members || !members.every(tab => canMoveTabToSpace(tab, source, true))) return { ok: false, error: 'busy', movedCount: 0 };
   ids = source.tabOrder.filter(id => ids.includes(id));
   const origin = { order: [...source.tabOrder], groups: structuredClone(source.groups), splits: structuredClone(source.splits), active: source.activeTabId,
     fields: new Map(ids.map(id => [id, { groupId: tabs.get(id).groupId, splitId: tabs.get(id).splitId }])) };
   const units = selectionRows(members);
+  // `keepGroups` (a whole mini window moving, #1734): each moved tab keeps
+  // its group, which lands as a fresh group or joins the target's group of
+  // the same name, as Move Group to Space ▸ does for one group.
+  const keptGroups = new Map();
   let workspace = creation ? null : namedWorkspaces.get(workspaceId);
   let target = null, materialized = false, targetFloor = null, sourceFloor = null;
   let movedCount = 0, reconciled = false, landing = null;
@@ -14504,6 +14520,22 @@ function moveTabsToSpace(ids, workspaceId, creation = null, { group = null } = {
           next.groupIds = next.groupIds.map((gid, index) => index >= before ? id : gid);
           if (landing.record) next.groups = [...(next.groups ?? []), landing.record];
         }
+        if (keepGroups) {
+          keptGroups.clear();
+          next.groupIds = [...next.groupIds];
+          ids.forEach((id, k) => {
+            const sourceGroup = origin.groups.find((g) => g.id === origin.fields.get(id).groupId);
+            if (!sourceGroup) return;
+            if (!keptGroups.has(sourceGroup.id)) {
+              const same = target.groups.find((g) => sameGroupName(g.name, sourceGroup.name));
+              const landed = same?.id ?? crypto.randomUUID();
+              const record = same ? null : { ...groupRecord(sourceGroup), id: landed };
+              keptGroups.set(sourceGroup.id, { id: landed, record });
+              if (record) next.groups = [...(next.groups ?? []), record];
+            }
+            next.groupIds[before + k] = keptGroups.get(sourceGroup.id).id;
+          });
+        }
         const captured = captureSplits(origin.splits, ids);
         if (captured.splits.length) {
           next.splits = [...(next.splits ?? []), ...captured.splits];
@@ -14529,6 +14561,11 @@ function moveTabsToSpace(ids, workspaceId, creation = null, { group = null } = {
             if (landing) {
               tabs.get(id).groupId = landing.id;
               if (!target.groups.some(g => g.id === landing.id)) target.groups.push({ ...landing.record });
+            }
+            const kept = keptGroups.get(origin.fields.get(id).groupId);
+            if (kept) {
+              tabs.get(id).groupId = kept.id;
+              if (kept.record && !target.groups.some(g => g.id === kept.id)) target.groups.push({ ...kept.record });
             }
             if (takeSpaceMoveFault('transfer-pane')) throw new Error('injected: incomplete split transfer');
           }
@@ -15176,7 +15213,7 @@ function windowRuntimeSnapshots() {
     closedEntryCount: (runtime.closedEntries ?? []).length,
     tabs: runtime.tabOrder.map((id) => {
       const tab = tabs.get(id);
-      return tab ? { id, url: tab.url, private: !!tab.private } : null;
+      return tab ? { id, url: tab.url, private: !!tab.private, groupId: tab.groupId ?? null } : null;
     }).filter(Boolean),
     groups: runtime.groups.map(({ id, name, collapsed, color }) => ({ id, name, collapsed, color: color ?? null })),
     attached: !!runtime.window && !runtime.window.isDestroyed(),

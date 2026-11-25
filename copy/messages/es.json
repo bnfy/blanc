@@ -9805,6 +9805,10 @@
     "message": "Mover esta ventana a…",
     "source": "sha256:81fd38d4a6df0d472f68c974fa785f2e1f1259218d0f87bbad426045d124cb81"
   },
+  "ws.error.miniUnmovable": {
+    "message": "Una pestaña privada, o una página que reproduce sonido, usa la cámara o el micrófono, comparte la pantalla o muestra una ventana emergente, no se puede mover a un Space. Ciérrala o detenla e inténtalo de nuevo.",
+    "source": "sha256:34116d951f4c5d043f2da940f438f58a5554eb5fa68f1087d6d5dec23b4acdd9"
+  },
   "mini.openInBlanc.label": {
     "message": "Abrir en Blanc: conservar esta miniventana como una ventana normal de Blanc",
     "source": "sha256:2a3abd0192e7db866dc79f7990b6bcd02f67183db434a555f0385bb96f3d6006"

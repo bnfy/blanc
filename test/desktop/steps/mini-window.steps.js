@@ -127,22 +127,23 @@ When('I open a private tab in the mini window', async function () {
   assert.ok(this.miniPrivateId);
 });
 
-Then("the mini window's Spaces button can't be used", async function () {
-  const button = await waitForValue(() => this.call('miniWindowSpaces', this.miniWindowId),
-    (value) => value?.visible === true && value.enabled === false, 'the Spaces button disabled');
-  assert.equal(button.enabled, false);
-  // Main refuses too, whatever the button shows: nothing moves, the window stays.
-  const result = await this.call('miniWindowOverlay', this.miniWindowId,
-    `window.browserAPI.openWorkspace(${JSON.stringify(this.savedSpaceId ?? 'none')}, {})`);
-  assert.equal(result?.ok, false);
+Then("the mini window's Spaces menu says a page can't move, and nothing moved", async function () {
+  const error = await waitForValue(() => this.call('miniWindowOverlay', this.miniWindowId,
+    "document.querySelector('#workspaceSwitcher .ws-error')?.textContent ?? ''"), (text) => /can't move to a space/.test(text), 'the reason');
+  assert.match(error, /private tab/);
   const runtime = (await this.call('windowRuntimes')).find((candidate) => candidate.id === this.miniWindowId);
-  assert.equal(runtime?.attached, true);
+  assert.equal(runtime?.attached, true, 'the mini window stays');
+  assert.ok(runtime.tabs.some((tab) => tab.id === this.miniPageId), 'its page stays');
+  const urls = await this.call('workspaceAction', 'saved-urls', this.savedSpaceId);
+  assert.ok(!urls.includes(this.miniPageUrl), 'nothing reached Reading');
+  // Switching by name is still refused in a mini window: only the menu moves.
+  const refused = await this.call('miniWindowOverlay', this.miniWindowId, `window.browserAPI.openWorkspace(${JSON.stringify(this.savedSpaceId)}, {})`);
+  assert.equal(refused?.ok, false);
 });
 
-When('I close that private tab and open a fixture page in the mini window', async function () {
+When('I close that private tab in the mini window', async function () {
   assert.equal(await this.call('closeTabInWindow', this.miniWindowId, this.miniPrivateId), true);
-  this.miniPageUrl = this.fixtureUrl('mini-window-link');
-  this.miniPageId = await this.call('openTabInWindow', this.miniWindowId, this.miniPageUrl);
+  await this.call('miniWindowOverlay', this.miniWindowId, "document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))");
 });
 
 When("I choose {string} from the mini window's Spaces button", async function (name) {
@@ -207,4 +208,19 @@ Then('that other window shows {string} with that fixture page last, and no new w
   assert.equal(shown.workspaceId, list.items.find((w) => w.name === name)?.id);
   const attached = (await this.call('windowRuntimes')).filter((runtime) => runtime.attached && !runtime.resident);
   assert.equal(attached.length, before - 1, 'only the mini window went away');
+});
+
+When('I put that page in a group named {string} in the mini window', async function (name) {
+  await this.call('groupTabInWindow', this.miniWindowId, this.miniPageId, name);
+  const runtime = (await this.call('windowRuntimes')).find((candidate) => candidate.id === this.miniWindowId);
+  assert.ok(runtime.groups.some((group) => group.name === name), JSON.stringify(runtime.groups));
+});
+
+Then('that page is still in a group named {string} there', async function (name) {
+  const all = await this.call('windowRuntimes');
+  const shown = all.find((runtime) => runtime.attached && !runtime.resident && runtime.tabs.some((tab) => tab.id === this.miniPageId));
+  assert.ok(shown, 'the moved page is in a window');
+  const group = shown.groups.find((candidate) => candidate.name === name);
+  assert.ok(group, `a group named ${name}: ${JSON.stringify(shown.groups)}`);
+  assert.equal(shown.tabs.find((tab) => tab.id === this.miniPageId).groupId, group.id);
 });

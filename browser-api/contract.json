@@ -91,6 +91,11 @@
           "doc": "Open in a new window instead of this one.",
           "optional": true
         },
+        "move": {
+          "type": "boolean",
+          "doc": "From a mini window's Spaces menu (#1734): move the window's tabs into the Space and close it. Without it a mini window refuses.",
+          "optional": true
+        },
         "color": {
           "type": "string",
           "optional": true

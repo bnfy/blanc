@@ -268,6 +268,7 @@ Options for opening or creating a workspace; creation also takes a colour and sy
 | --- | --- | --- |
 | `decision?` | `string` | The token from an unsaved-scratch result, confirming "discard and switch". |
 | `newWindow?` | `boolean` | Open in a new window instead of this one. |
+| `move?` | `boolean` | From a mini window's Spaces menu (#1734): move the window's tabs into the Space and close it. Without it a mini window refuses. |
 | `color?` | `string` |  |
 | `symbol?` | `string` |  |
 | `profileId?` | `string` | Another local profile whose Space this is (spec 2026-11-19-spaces-across-profiles): opens or creates it in a window of that profile. Omitted, or this window’s own profile, keeps today’s path. |

@@ -58,6 +58,8 @@ export interface OpenWorkspaceOptions {
   decision?: string;
   /** Open in a new window instead of this one. */
   newWindow?: boolean;
+  /** From a mini window's Spaces menu (#1734): move the window's tabs into the Space and close it. Without it a mini window refuses. */
+  move?: boolean;
   color?: string;
   symbol?: string;
   /** Another local profile whose Space this is (spec 2026-11-19-spaces-across-profiles): opens or creates it in a window of that profile. Omitted, or this window’s own profile, keeps today’s path. */

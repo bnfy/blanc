@@ -9805,6 +9805,10 @@
     "message": "Mover esta janela para…",
     "source": "sha256:81fd38d4a6df0d472f68c974fa785f2e1f1259218d0f87bbad426045d124cb81"
   },
+  "ws.error.miniUnmovable": {
+    "message": "Uma aba privada, ou uma página que está tocando som, usando a câmera ou o microfone, compartilhando a tela ou mostrando um pop-up, não pode ir para um Space. Feche ou pare essa página e tente de novo.",
+    "source": "sha256:34116d951f4c5d043f2da940f438f58a5554eb5fa68f1087d6d5dec23b4acdd9"
+  },
   "mini.openInBlanc.label": {
     "message": "Abrir no Blanc: manter esta minijanela como uma janela comum do Blanc",
     "source": "sha256:2a3abd0192e7db866dc79f7990b6bcd02f67183db434a555f0385bb96f3d6006"

@@ -40,7 +40,39 @@ test('move mode rows neither reorder nor edit; a click moves there', async () =>
   main.emit('pointerdown', { pointerId: 1, clientY: 10 });
   assert.ok(!h.calls.some(([kind]) => kind === 'move'), 'no reorder');
   main.click(); await settle();
+  assert.deepEqual(calls, [['a', { move: true }]], 'only a move-mode row asks main to move');
+});
+
+test('switching by name (Quick Switcher, /space) never asks to move, even in move mode', async () => {
+  const calls = [];
+  const h = harness({ openWorkspace: async (...args) => { calls.push(args); return { ok: false, error: 'busy' }; } }, payload);
+  h.ui.setMoveMode(true);
+  h.ui.switchTo(ITEMS[0]); await settle();
   assert.deepEqual(calls, [['a', {}]]);
+});
+
+test('move-mode rows say they move, never Show window', () => {
+  const h = harness({}, { ...payload, items: [{ ...ITEMS[0], openElsewhere: true }] }); h.ui.setMoveMode(true); h.ui.open();
+  const main = rows(h)[0].children[0];
+  assert.equal(main.title, 'Reading · Move to Space · 3 tabs');
+  assert.equal(main.children[2].textContent, '3');
+});
+
+test('a refused move shows its reason; a partial one says how many moved', async () => {
+  let reply = { ok: false, error: 'unmovable' };
+  const h = harness({ openWorkspace: async () => reply }, payload); h.ui.setMoveMode(true); h.ui.open();
+  rows(h)[0].children[0].click(); await settle();
+  assert.match(h.text(), /can't move to a space/);
+  reply = { ok: false, error: 'moved-partly', movedCount: 2 };
+  rows(h)[0].children[0].click(); await settle();
+  assert.match(h.text(), /Moved 2 tabs to Reading/);
+});
+
+test('New space… counts the tabs that move, and leaving move mode drops its editor', () => {
+  const h = harness({}, payload); h.ui.setMoveMode(true, { tabCount: 1 }); h.ui.open(); h.byKey('new').click();
+  assert.match(h.text(), /1 tab\b/);
+  h.ui.setMoveMode(false);
+  assert.equal(h.ui.state.kind, 'list');
 });
 
 test('New space… in move mode makes the Space with the window\'s tabs, never save-as', async () => {
@@ -55,7 +87,7 @@ test('New space… in move mode makes the Space with the window\'s tabs, never s
   assert.match(h.text(), /With these tabs/);
   typeName(h, 'Trip'); h.doc.getElementById('workspaceEditor').emit('submit'); await settle();
   assert.equal(calls.length, 1);
-  assert.deepEqual([calls[0][0], calls[0][1], calls[0][2].profileId], ['blank', 'Trip', undefined]);
+  assert.deepEqual([calls[0][0], calls[0][1], calls[0][2].profileId, calls[0][2].move], ['blank', 'Trip', undefined, true]);
 });
 
 test('turning move mode off brings the ordinary menu back', () => {
@@ -66,6 +98,9 @@ test('turning move mode off brings the ordinary menu back', () => {
 
 test('the overlay turns move mode on in a mini window and opens New space… from the File menu', () => {
   const overlay = fs.readFileSync(path.join(__dirname, '../../src/renderer/overlay.js'), 'utf8');
-  assert.equal(overlay.match(/workspaceUI\.setMoveMode\(payload\.miniWindow === true\);/g)?.length, 2);
+  assert.equal(overlay.match(/workspaceUI\.setMoveMode\(payload\.miniWindow === true, \{ tabCount: movingTabCount\(payload\) \}\);/g)?.length, 2);
+  assert.match(overlay, /const spaceResults = state\.miniWindow !== true;/, 'no Space results in a mini window');
+  assert.match(overlay, /for \(const w of spaceResults \? wsWorkspaces : \[\]\)/);
+  assert.match(overlay, /for \(const profile of spaceResults \? wsOtherProfiles : \[\]\)/);
   assert.match(overlay, /purpose\?\.miniNewSpace\) \{[\s\S]*?workspaceUI\.begin\('new', null, \{ start: 'mini', thisProfile: true,/);
 });

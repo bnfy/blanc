@@ -9805,6 +9805,10 @@
     "message": "Dieses Fenster verschieben nach …",
     "source": "sha256:81fd38d4a6df0d472f68c974fa785f2e1f1259218d0f87bbad426045d124cb81"
   },
+  "ws.error.miniUnmovable": {
+    "message": "Ein privater Tab oder eine Seite, die Ton abspielt, Kamera oder Mikrofon nutzt, den Bildschirm teilt oder ein Pop-up zeigt, kann nicht in einen Space verschoben werden. Schließe oder beende sie und versuche es erneut.",
+    "source": "sha256:34116d951f4c5d043f2da940f438f58a5554eb5fa68f1087d6d5dec23b4acdd9"
+  },
   "mini.openInBlanc.label": {
     "message": "In Blanc öffnen – dieses Mini-Fenster als normales Blanc-Fenster behalten",
     "source": "sha256:2a3abd0192e7db866dc79f7990b6bcd02f67183db434a555f0385bb96f3d6006"

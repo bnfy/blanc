@@ -45,16 +45,21 @@ Feature: mini windows
     Given a saved space named "Reading" that is open in no window
     When I open a mini window
     And I open a fixture page in the mini window
+    And I put that page in a group named "Research" in the mini window
     And I choose "Reading" from the mini window's Spaces button
     Then the mini window has closed
     And a window shows "Reading" with that fixture page last
+    And that page is still in a group named "Research" there
 
   @F61-7 @F61
   Scenario: a mini window moves to a new Space, unless a page in it can't move
+    Given a saved space named "Reading" that is open in no window
     When I open a mini window
+    And I open a fixture page in the mini window
     And I open a private tab in the mini window
-    Then the mini window's Spaces button can't be used
-    When I close that private tab and open a fixture page in the mini window
+    And I choose "Reading" from the mini window's Spaces button
+    Then the mini window's Spaces menu says a page can't move, and nothing moved
+    When I close that private tab in the mini window
     And I create the space "Later" from the mini window's Spaces button
     Then the mini window has closed
     And a window shows "Later" with that fixture page last

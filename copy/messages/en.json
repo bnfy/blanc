@@ -10102,6 +10102,10 @@
     "message": "Move this window to…",
     "note": "Heading of the Spaces menu opened from a mini window (#1734): choosing a Space moves the window's tabs there and closes the window."
   },
+  "ws.error.miniUnmovable": {
+    "message": "A private tab, or a page that's playing sound, using the camera or microphone, sharing the screen or showing a pop-up, can't move to a space. Close or stop it, then try again.",
+    "note": "Spaces menu error in a mini window (#1734): a page that can't go to a Space stops the move; nothing moved."
+  },
   "mini.openInBlanc.label": {
     "message": "Open in Blanc — keep this mini window as an ordinary Blanc window",
     "note": "Accessible name of the Island's Open in Blanc button in a mini window."

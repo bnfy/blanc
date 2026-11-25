@@ -9805,6 +9805,10 @@
     "message": "Déplacer cette fenêtre vers…",
     "source": "sha256:81fd38d4a6df0d472f68c974fa785f2e1f1259218d0f87bbad426045d124cb81"
   },
+  "ws.error.miniUnmovable": {
+    "message": "Un onglet privé, ou une page qui joue du son, utilise la caméra ou le micro, partage l'écran ou affiche une fenêtre pop-up, ne peut pas être déplacé dans un Space. Fermez-le ou arrêtez-le, puis réessayez.",
+    "source": "sha256:34116d951f4c5d043f2da940f438f58a5554eb5fa68f1087d6d5dec23b4acdd9"
+  },
   "mini.openInBlanc.label": {
     "message": "Ouvrir dans Blanc : garder cette mini-fenêtre comme une fenêtre Blanc ordinaire",
     "source": "sha256:2a3abd0192e7db866dc79f7990b6bcd02f67183db434a555f0385bb96f3d6006"
