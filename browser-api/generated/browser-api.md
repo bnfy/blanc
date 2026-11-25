@@ -268,6 +268,7 @@ Options for opening or creating a workspace; creation also takes a colour and sy
 | --- | --- | --- |
 | `decision?` | `string` | The token from an unsaved-scratch result, confirming "discard and switch". |
 | `newWindow?` | `boolean` | Open in a new window instead of this one. |
+| `move?` | `boolean` | From a mini window's Spaces menu (#1734): move the window's tabs into the Space and close it. Without it a mini window refuses. |
 | `color?` | `string` |  |
 | `symbol?` | `string` |  |
 | `profileId?` | `string` | Another local profile whose Space this is (spec 2026-11-19-spaces-across-profiles): opens or creates it in a window of that profile. Omitted, or this window’s own profile, keeps today’s path. |
@@ -572,6 +573,7 @@ Result of getAllTabs, built by the tabs:get-all handler in main.js.
 | `verticalTabsTextSize` | `string` |  |
 | `islandTabIcons` | `boolean` | Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). |
 | `miniWindow` | `boolean` | This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. |
+| `miniWindowCanMove` | `boolean` | A mini window whose tabs can move to a Space now (#1734): something besides an unused start page, and every page movable. |
 | `islandSize` | `string` | The resting Island's size: default, large or extra-large (device-local setting, #1292). |
 | `verticalTabsWidth` | `number` |  |
 | `verticalTabsPreferredWidth` | `number` |  |
@@ -598,6 +600,7 @@ The tabs:updated broadcast, built by currentTabsPayload() in main.js.
 | `verticalTabsTextSize` | `string` |  |
 | `islandTabIcons` | `boolean` | Draw each direct tab on the Island as its site icon instead of a dot (device-local setting). |
 | `miniWindow` | `boolean` | This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. |
+| `miniWindowCanMove` | `boolean` | A mini window whose tabs can move to a Space now (#1734): something besides an unused start page, and every page movable. |
 | `islandSize` | `string` | The resting Island's size: default, large or extra-large (device-local setting, #1292). |
 | `adblockEnabled` | `boolean` |  |
 | `shieldPopover` | `ShieldPopover \| null` |  |

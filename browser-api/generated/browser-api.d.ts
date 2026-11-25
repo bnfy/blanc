@@ -58,6 +58,8 @@ export interface OpenWorkspaceOptions {
   decision?: string;
   /** Open in a new window instead of this one. */
   newWindow?: boolean;
+  /** From a mini window's Spaces menu (#1734): move the window's tabs into the Space and close it. Without it a mini window refuses. */
+  move?: boolean;
   color?: string;
   symbol?: string;
   /** Another local profile whose Space this is (spec 2026-11-19-spaces-across-profiles): opens or creates it in a window of that profile. Omitted, or this window’s own profile, keeps today’s path. */
@@ -320,6 +322,8 @@ export interface TabsSnapshot {
   islandTabIcons: boolean;
   /** This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. */
   miniWindow: boolean;
+  /** A mini window whose tabs can move to a Space now (#1734): something besides an unused start page, and every page movable. */
+  miniWindowCanMove: boolean;
   /** The resting Island's size: default, large or extra-large (device-local setting, #1292). */
   islandSize: string;
   verticalTabsWidth: number;
@@ -348,6 +352,8 @@ export interface TabsUpdatedPayload {
   islandTabIcons: boolean;
   /** This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. */
   miniWindow: boolean;
+  /** A mini window whose tabs can move to a Space now (#1734): something besides an unused start page, and every page movable. */
+  miniWindowCanMove: boolean;
   /** The resting Island's size: default, large or extra-large (device-local setting, #1292). */
   islandSize: string;
   adblockEnabled: boolean;

@@ -2787,6 +2787,11 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="menu_new_mini_window">Nouvelle mini-fenêtre</string>
     <string name="mini_open_in_blanc">Ouvrir dans Blanc</string>
     <string name="mini_open_in_blanc_title">Garder cette mini-fenêtre comme une fenêtre Blanc ordinaire</string>
+    <string name="mini_move_to_space_label">Déplacer dans le Space : déplacer les onglets de cette mini-fenêtre dans un Space</string>
+    <string name="mini_move_to_space_title">Déplacer les onglets de cette mini-fenêtre dans un Space</string>
+    <string name="mini_move_to_space_menu">Déplacer dans le Space</string>
+    <string name="ws_move_mode_header">Déplacer cette fenêtre vers…</string>
+    <string name="ws_error_mini_unmovable">Un onglet privé, ou une page qui joue du son, utilise la caméra ou le micro, partage l\'écran ou affiche une fenêtre pop-up, ne peut pas être déplacé dans un Space. Fermez-le ou arrêtez-le, puis réessayez.</string>
     <string name="mini_open_in_blanc_label">Ouvrir dans Blanc : garder cette mini-fenêtre comme une fenêtre Blanc ordinaire</string>
     <string name="settings_general_mini_window_label">Raccourci de la mini-fenêtre</string>
     <string name="settings_general_mini_window_hint">Ouvre une petite fenêtre Blanc par-dessus l’app où vous êtes, tant que Blanc est ouvert. Une mini-fenêtre n’est pas enregistrée et se ferme après une heure sans utilisation. Ouvrir dans Blanc la garde.</string>

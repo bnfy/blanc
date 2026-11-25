@@ -3,6 +3,14 @@
 v1.52.0 is the current public release ([notes](v1.52.0.md)). Changes merged
 since then are below as they're recorded.
 
+## Added
+
+- **Move a mini window to a Space.** A Spaces button now sits beside Open in
+  Blanc in a mini window. Pick one of your Spaces, or New space…, and the mini
+  window's tabs move there; the mini window closes and that Space comes
+  forward. If a page can't move (a private tab, or one playing sound or using
+  the camera), nothing moves and Blanc says why (#1734).
+
 ## Fixed
 
 - **Favorites opens with ⌥⌘B on the Mac again.** Since 1.39, ⌥⌘B also
@@ -20,6 +28,11 @@ since then are below as they're recorded.
   with nothing opened (#1630).
 
 ## Still open from 1.52
+
+- **Move a mini window to a Space** (#1734) by hand in a packaged build, with
+  a real mouse: the Island's Spaces button, the move-mode menu, and File →
+  Move to Space ▸. Acceptance covers moving to a saved Space, to one on
+  screen, to a new Space, and the private-tab refusal.
 
 - **Opening local HTML files on Linux** (#1630) by hand from a file manager's
   Open With (GNOME Files and Dolphin) with the AppImage, at launch and while

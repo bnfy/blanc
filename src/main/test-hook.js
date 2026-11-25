@@ -877,6 +877,7 @@ function install(refs) {
     reopenClosedInWindow(runtimeId) { return reopenClosedTabInWindow(String(runtimeId)); },
     groupActiveByName(name) { groupTabByName(getActiveTabId(), name); },
     groupTabByName(id, name) { groupTabByName(id, name); },
+    groupTabInWindow(runtimeId, id, name) { return refs.runInWindowRuntime(String(runtimeId), () => groupTabByName(id, name)); },
     renameTab(id, name) { renameTab(id, name); },
     beginRenameTab(id) { beginRenameTab(id); },
     beginRenameDeviceByName(name) {
@@ -1226,6 +1227,9 @@ function install(refs) {
     expireMiniWindow(id) { return miniWindowTest.expire(id); },
     miniWindowState(id) { return miniWindowTest.state(id); },
     miniWindowChip(id, options) { return miniWindowTest.chip(id, options); },
+    miniWindowSpaces(id, options) { return miniWindowTest.spaces(id, options); },
+    miniWindowOverlay(id, script) { return miniWindowTest.overlay(id, script); },
+    miniWindowOverlayMode(id) { return miniWindowTest.overlayMode(id); },
     setMiniWindowShortcut(id) {
       const saved = settings.setSettings({ miniWindowShortcut: id }).miniWindowShortcut;
       return { saved, status: miniWindowTest.shortcutStatus() };

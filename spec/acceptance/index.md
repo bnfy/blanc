@@ -312,6 +312,9 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F61-3 | A link from another app never opens in a mini window | — | ✅ | ➖ | ➖ |
 | F61-4 | The mini window shortcut is off until chosen | — | ✅ | ➖ | ➖ |
 | F61-5 | Closing a mini window's last tab closes the window | — | ✅ | ➖ | ➖ |
+| F61-6 | Moving a mini window to a Space closes it and shows the Space | — | ✅ | ➖ | ➖ |
+| F61-7 | A mini window moves to a new Space, unless a page in it can't move | — | ✅ | ➖ | ➖ |
+| F61-8 | Moving a mini window to a Space already on screen brings that window forward | — | ✅ | ➖ | ➖ |
 | F63-1 | The Favorites menu shows nested folders as submenus | D40 | ✅ | ⬜ | ⬜ |
 | F63-2 | /save files the page into a nested folder by its name or by a path | D40 | ✅ | ⬜ | ⬜ |
 | F63-3 | Editing a favorite changes its name and address, and its Start Page pin follows | D40 | ✅ | ⬜ | ⬜ |

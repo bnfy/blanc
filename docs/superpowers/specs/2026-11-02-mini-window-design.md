@@ -35,9 +35,12 @@ private tabs, downloads and permission prompts. It has `runtime.mini` set.
   link rules (`isLiveBrowserRuntime`) and tab handoff (`tabHandoffRuntime`)
   always pick an ordinary window. With only a mini window open, the primary
   window reopens for the link.
-- **No Spaces.** A mini window can't save, switch to or create a Space
-  (`'busy'`). The Island's Space mark and the panel's Spaces button are
-  hidden there.
+- **No Spaces of its own.** A mini window can't be saved as, switch to or
+  create a Space for itself (`'busy'`). The Island's Space mark and the
+  panel's Spaces button are hidden there. Since #1734 its Spaces button
+  beside Open in Blanc moves its tabs to a Space and closes it
+  (`docs/superpowers/specs/2026-11-25-mini-window-move-to-space-design.md`,
+  an exception to D2).
 - **Its last tab closes it.** Closing a mini window's last tab (⌘W, the
   Island's close button) closes the window. An ordinary window keeps a fresh
   blank tab instead; a mini window is meant to be put away.
@@ -74,7 +77,8 @@ private tabs, downloads and permission prompts. It has `runtime.mini` set.
 ## Not in PR 1
 
 - Moving a mini window's only tab to a Space (Move to Space ▸ needs another tab
-  left behind today). Open in Blanc, then Move to Space, does it.
+  left behind today). Open in Blanc, then Move to Space, did it; #1734 added a
+  Move to Space for the whole mini window.
 - Keep on top, a remembered size, a custom chord, and a portal-based global
   shortcut for Wayland.
 
