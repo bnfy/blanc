@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
-index d17a251..e2eb6c2 100644
+index f654677..7fc2c30 100644
 --- a/chrome/browser/app_controller_mac.mm
 +++ b/chrome/browser/app_controller_mac.mm
-@@ -1895,6 +1895,13 @@ class AppControllerProfileObserver : public ProfileAttributesStorage::Observer,
+@@ -1897,6 +1897,13 @@ class AppControllerProfileObserver : public ProfileAttributesStorage::Observer,
    if (browser_shutdown::IsTryingToQuit())
      return NO;
  
@@ -17,18 +17,18 @@ index d17a251..e2eb6c2 100644
    // front of any app windows. FocusWindowSet will also unminimize the most
    // recently minimized window if no windows in the set are visible.
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 8cfbb24..f4b454d 100644
+index 7ce1fd1..72e3f15 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -143,6 +143,7 @@
- #include "chrome/browser/ui/ui_controller_factory.h"
+@@ -145,6 +145,7 @@
+ #include "chrome/browser/ui/toolbar/toolbar_pref_names.h"
  #include "chrome/browser/ui/ui_features.h"
  #include "chrome/browser/ui/unload_controller.h"
 +#include "chrome/browser/lifetime/browser_shutdown.h"
  #include "chrome/browser/ui/user_education/browser_user_education_interface.h"
  #include "chrome/browser/ui/view_ids.h"
  #include "chrome/browser/ui/views/accessibility/accessibility_focus_highlight.h"
-@@ -4631,6 +4632,20 @@ views::CloseRequestResult BrowserView::OnWindowCloseRequested() {
+@@ -4694,6 +4695,20 @@ views::CloseRequestResult BrowserView::OnWindowCloseRequested() {
      return views::CloseRequestResult::kCannotClose;
    }
  

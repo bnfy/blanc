@@ -1,6 +1,6 @@
 # Linux browser identity
 
-These names belong to the Chromium desktop lane at 158.0.8127.2. Patch 0113
+These names belong to the Chromium desktop lane (159.0.8154.33 since 2026-11-25; first written at 158.0.8127.2). Patch 0113
 selects the preview identity. The beta values are reserved for L3. Task 4
 will install the launcher, desktop entry and icon and set the package metadata.
 Blanc has never distributed a Linux build, and every L0 run used a throwaway `--user-data-dir`, so there are no existing L0 profiles to migrate.

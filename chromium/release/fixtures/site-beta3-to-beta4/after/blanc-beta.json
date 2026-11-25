@@ -12,5 +12,5 @@
   },
   "feed": "/updates/chromium-beta/arm64.xml",
   "requirement": "Apple Silicon Macs · macOS 13 or later",
-  "chromium": "158.0.8127.37"
+  "chromium": "159.0.8154.33"
 }

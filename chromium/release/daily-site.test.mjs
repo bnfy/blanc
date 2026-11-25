@@ -29,7 +29,7 @@ test('the claims ledger names the release and keeps every page sentence', () => 
   assert.equal(ledger.release, '2.0.0-beta.4');
   assert.equal(ledger.sourceCommit, r.sourceCommit);
   assert.equal(ledger.claims.length, before.claims.length);
-  for (const text of ['Beta 4', '2.0.0-beta.4 · build 4', 'Chromium 158', '158.0.8127.37', 'Apple Silicon Macs · macOS 13 or later', 'Released November 14, 2026'])
+  for (const text of ['Beta 4', '2.0.0-beta.4 · build 4', `Chromium ${r.chromiumVersion.split('.')[0]}`, r.chromiumVersion, 'Apple Silicon Macs · macOS 13 or later', 'Released November 14, 2026'])
     assert.ok(ledger.claims.some(c => c.text === text), text);
   assert.ok(!ledger.claims.some(c => /beta\.3|Beta 3|build 3/.test(c.text)));
   for (const text of Object.values(LIMITATIONS)) assert.match(ledger.claims.find(c => c.text === text).evidence, /standing decision/);

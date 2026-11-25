@@ -301,7 +301,7 @@ Of the 241 files, 234 have pinned pristine inputs and 7 are created by patches.
 
 ### Task 4: Packages from Chromium's installer, pointed at Blanc
 
-Patch 0115 touches 17 upstream files in 43 hunks. The desktop queue through 0115 touches 258 distinct upstream files in 918 hunks.
+Patch 0115 touches 17 upstream files in 44 hunks. The desktop queue through 0115 touches 258 distinct upstream files in 919 hunks. (Measured at the 159.0.8154.33 pin; at 158 the counts were 43 and 918 hunks. The extra hunk removes Chromium 159's new snap package targets, as 0115 already removed Flatpak's.)
 
 **Files:**
 - Create: patch `0115-blanc-linux-installer.patch` touching `chrome/installer/linux/BUILD.gn` (a
