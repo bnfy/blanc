@@ -3936,6 +3936,18 @@ disabled by default in Blanc builds. Seen in the owner's VM with a fresh profile
 whose Local State says .903: the signed .904 showed the toast; with `chrome.dll`
 `213bab3c…` placed over it, no toast in two captures 4 s apart.
 
+**Fifth Windows beta public, the first on Chromium 159 (2026-11-25):** Blanc Beta
+159.0.8154.910, GitHub pre-release `chromium-beta-windows-159.0.8154.910` at
+`afd08df8d` (never latest; v1.52.0 stayed latest), published 22:28 UTC through
+`windows-beta-prep.mjs` and `windows-release.mjs`, all ten stages: night
+`20261125-1417` passed 635 suite cases, with `F41:141` and `glance:538` passing on
+the rerun (suite 45686214807, rerun 45708657162, beta install 45686203201, capture
+45686208579), signing run 45710806198 (owner-approved), owner-signed package
+`6d1cbaa8…`, staging gate 45712323080, Sigstore-signed `SHA256SUMS`, verify-public
+45713571364. Candidate `windows-x64-738046910fd57976`. Its changes: Chromium
+159.0.8154.33 and the Spaces menu keeping its place as it closes (F41-27).
+blanc.day offers 159.0.8154.910.
+
 **Fourth Windows beta public, the first from a nightly (2026-11-23):** Blanc Beta
 158.0.8127.907, GitHub pre-release `chromium-beta-windows-158.0.8127.907` at
 `ed21560a7` (never latest; v1.52.0 stayed latest), published 13:20 UTC through
