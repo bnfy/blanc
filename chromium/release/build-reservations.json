@@ -41,6 +41,14 @@
           "linux"
         ],
         "purpose": "release"
+      },
+      {
+        "build": 910,
+        "sourceCommit": "afd08df8d8cc4566ba384a1b3399154571f6839a",
+        "platforms": [
+          "windows"
+        ],
+        "purpose": "release"
       }
     ]
   }
