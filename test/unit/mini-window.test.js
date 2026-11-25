@@ -173,3 +173,16 @@ test('a mini window moves to a Space of its own profile, then closes (#1734)', (
   assert.equal(main.match(/\n    miniWindowCanMove: rt\(\)\.mini === true && !!miniWindowMovableIds\(rt\(\)\),\n/g)?.length, 2, 'both tab payloads say so');
   assert.match(main, /label: t\('mini\.moveToSpace\.menu'\), submenu: miniWindowSpaceMenu\(runtime\)/);
 });
+
+test('a mini window\'s Island offers Move to Space beside Open in Blanc (#1734)', () => {
+  const renderer = read('src/renderer/renderer.js');
+  assert.match(renderer, /pillMiniSpaces\.hidden = !miniWindow;/);
+  assert.match(renderer, /pillMiniSpaces\.disabled = !state\.miniWindowCanMove;/);
+  assert.match(renderer, /pillMiniSpaces\.addEventListener\('click', \(e\) => \{\s*e\.stopPropagation\(\);[\s\S]*?window\.browserAPI\.openSpacesMenu\(\{ \.\.\.spacesAnchor\(\), closing \}\);/);
+  assert.match(renderer, /const anchor = !pillMiniSpaces\.hidden \? pillMiniSpaces : pillSpace\.hidden \? islandPill : pillSpace;/);
+  assert.match(renderer, /pillMiniSpaces\.setAttribute\('aria-expanded', String\(mode === 'spaces'\)\);/);
+  assert.match(read('src/renderer/index.html'), /<button id="pillMiniSpaces" class="mini-spaces" type="button" aria-haspopup="dialog" aria-expanded="false"[^>]*data-i18n-tooltip="mini\.moveToSpace\.title" data-i18n-aria-label="mini\.moveToSpace\.label" hidden>/);
+  const css = read('src/renderer/styles.css');
+  assert.match(css, /#pillMiniOpen,\n#pillMiniSpaces \{/);
+  assert.match(css, /#pillMiniSpaces:disabled \{[^}]*opacity:[^}]*cursor: default;/);
+});
