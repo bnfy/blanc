@@ -536,7 +536,7 @@
     "blanc/browser/ui/tab_switch_keys_mac.mm": "c224532f46c89fccf72ec66cff101173c97ad6e4ea6e33c7aa0fef1929b6c5ce",
     "blanc/browser/ui/tab_switch_keys_win.cc": "3185995839e71e1fdf4ac4dabb4864ad2ed1f89537faba3d1738767ca858b419",
     "blanc/browser/ui/telemetry.inc": "2009027bfeb5ea3c28966e1353c5cec5c652c474db3937e10522c12a78c5c1c2",
-    "blanc/browser/ui/trust_receipt.inc": "acda9c8d4db332744fe8ee74e63801b78bf3672acddf10389368756dabcc2dab",
+    "blanc/browser/ui/trust_receipt.inc": "4908dadb874ec318f4290080ad15d0ef2c8393904317150800213d489e3488cf",
     "blanc/browser/ui/ui_language.h": "19312e351fd6cee2c7e542d28783034203f271f38a9cc80e0dcfa95b23b1d268",
     "blanc/browser/ui/utility_sheet_ops.inc": "22a6e5299cb1348494f73b249de8a4c034f9b819854a4161dc9b4993116b53e2",
     "blanc/browser/ui/window_buttons_linux.cc": "c8a22fb2c7a076c15dacb6eeb0277d32a9e301694f2088c5c60b08061e8d0ad1",
