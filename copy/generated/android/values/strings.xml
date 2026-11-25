@@ -2704,6 +2704,10 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="menu_new_mini_window">New Mini Window</string>
     <string name="mini_open_in_blanc">Open in Blanc</string>
     <string name="mini_open_in_blanc_title">Keep this mini window as an ordinary Blanc window</string>
+    <string name="mini_move_to_space_label">Move to Space — move this mini window\'s tabs to a Space</string>
+    <string name="mini_move_to_space_title">Move this mini window\'s tabs to a Space</string>
+    <string name="mini_move_to_space_menu">Move to Space</string>
+    <string name="ws_move_mode_header">Move this window to…</string>
     <string name="mini_open_in_blanc_label">Open in Blanc — keep this mini window as an ordinary Blanc window</string>
     <string name="settings_general_mini_window_label">Mini window shortcut</string>
     <string name="settings_general_mini_window_hint">Opens a small Blanc window over the app you\'re in, while Blanc is running. A mini window isn\'t saved, and closes after an hour unused. Open in Blanc keeps it.</string>

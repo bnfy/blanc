@@ -2787,6 +2787,10 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="menu_new_mini_window">Nova minijanela</string>
     <string name="mini_open_in_blanc">Abrir no Blanc</string>
     <string name="mini_open_in_blanc_title">Manter esta minijanela como uma janela comum do Blanc</string>
+    <string name="mini_move_to_space_label">Mover para o Space: mover as abas desta minijanela para um Space</string>
+    <string name="mini_move_to_space_title">Mover as abas desta minijanela para um Space</string>
+    <string name="mini_move_to_space_menu">Mover para o Space</string>
+    <string name="ws_move_mode_header">Mover esta janela para…</string>
     <string name="mini_open_in_blanc_label">Abrir no Blanc: manter esta minijanela como uma janela comum do Blanc</string>
     <string name="settings_general_mini_window_label">Atalho da minijanela</string>
     <string name="settings_general_mini_window_hint">Abre uma pequena janela do Blanc sobre o app em que você está, enquanto o Blanc está aberto. Uma minijanela não é salva e fecha após uma hora sem uso. Abrir no Blanc a mantém.</string>

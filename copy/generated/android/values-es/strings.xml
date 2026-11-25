@@ -2787,6 +2787,10 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="menu_new_mini_window">Nueva miniventana</string>
     <string name="mini_open_in_blanc">Abrir en Blanc</string>
     <string name="mini_open_in_blanc_title">Conservar esta miniventana como una ventana normal de Blanc</string>
+    <string name="mini_move_to_space_label">Mover al Space: mover las pestañas de esta miniventana a un Space</string>
+    <string name="mini_move_to_space_title">Mover las pestañas de esta miniventana a un Space</string>
+    <string name="mini_move_to_space_menu">Mover al Space</string>
+    <string name="ws_move_mode_header">Mover esta ventana a…</string>
     <string name="mini_open_in_blanc_label">Abrir en Blanc: conservar esta miniventana como una ventana normal de Blanc</string>
     <string name="settings_general_mini_window_label">Atajo de la miniventana</string>
     <string name="settings_general_mini_window_hint">Abre una pequeña ventana de Blanc sobre la app en la que estás, mientras Blanc está abierto. Una miniventana no se guarda y se cierra tras una hora sin usarla. Abrir en Blanc la conserva.</string>

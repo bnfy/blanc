@@ -110533,6 +110533,174 @@
         }
       }
     },
+    "mini.moveToSpace.label": {
+      "comment": "Accessible name of the Spaces button beside Open in Blanc on a mini window's Island (#1734): moves every tab of the mini window into a Space, then closes it.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to Space — move this mini window's tabs to a Space"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Space verschieben – die Tabs dieses Mini-Fensters in einen Space verschieben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover al Space: mover las pestañas de esta miniventana a un Space"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplacer dans le Space : déplacer les onglets de cette mini-fenêtre dans un Space"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta nello Space: sposta le schede di questa minifinestra in uno Space"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover para o Space: mover as abas desta minijanela para um Space"
+          }
+        }
+      }
+    },
+    "mini.moveToSpace.title": {
+      "comment": "Tooltip of the Spaces button beside Open in Blanc on a mini window's Island (#1734).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move this mini window's tabs to a Space"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Tabs dieses Mini-Fensters in einen Space verschieben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover las pestañas de esta miniventana a un Space"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplacer les onglets de cette mini-fenêtre dans un Space"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta le schede di questa minifinestra in uno Space"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover as abas desta minijanela para um Space"
+          }
+        }
+      }
+    },
+    "mini.moveToSpace.menu": {
+      "comment": "File menu submenu in a mini window (#1734): lists the profile's Spaces and New space…; choosing one moves the mini window's tabs there.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to Space"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Space verschieben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover al Space"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplacer dans le Space"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta nello Space"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover para o Space"
+          }
+        }
+      }
+    },
+    "ws.moveMode.header": {
+      "comment": "Heading of the Spaces menu opened from a mini window (#1734): choosing a Space moves the window's tabs there and closes the window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move this window to…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Fenster verschieben nach …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover esta ventana a…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déplacer cette fenêtre vers…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sposta questa finestra in…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mover esta janela para…"
+          }
+        }
+      }
+    },
     "mini.openInBlanc.label": {
       "comment": "Accessible name of the Island's Open in Blanc button in a mini window.",
       "extractionState": "manual",

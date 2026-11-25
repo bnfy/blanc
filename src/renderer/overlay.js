@@ -3050,6 +3050,10 @@
         // From Move Group to Space ▸ the editor names the group (user data).
         workspaceUI.begin('new', null, { start: 'tabs', tabId: purpose.newSpaceTabIds,
           tabTitle: typeof purpose.newSpaceGroupName === 'string' ? purpose.newSpaceGroupName : blancI18n.t('tabsMenu.header', { count: purpose.newSpaceTabIds.length }) });
+      } else if (purpose?.miniNewSpace) {
+        // File → Move to Space ▸ → New space… in a mini window (#1734).
+        workspaceUI.begin('new', null, { start: 'mini', thisProfile: true,
+          tabTitle: blancI18n.t('tabsMenu.header', { count: (state.tabs ?? []).filter((tab) => tab.url !== 'blanc://newtab/').length }) });
       } else if (purpose?.newSpaceTabId != null) {
         const tab = state.tabs.find((item) => item.id === purpose.newSpaceTabId);
         workspaceUI.begin('new', null, { start: 'tab', tabId: purpose.newSpaceTabId, tabTitle: tab?.customTitle || tab?.title || tab?.url || '' });
@@ -4051,6 +4055,8 @@
     applyIslandSize(payload.islandSize);
     // Mini Window (#1138): no Spaces button in a mini window (CSS).
     document.documentElement.toggleAttribute('data-mini-window', payload.miniWindow === true);
+    // Move to Space (#1734): from a mini window the Spaces menu moves its tabs.
+    workspaceUI.setMoveMode(payload.miniWindow === true);
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
     if (JSON.stringify(payload.selectedTabIds ?? []) !== JSON.stringify(state.selectedTabIds ?? [])) {
       const count = payload.selectedTabIds?.length ?? 0;
@@ -4114,6 +4120,8 @@
     state = payload;
     applyIslandSize(payload.islandSize);
     document.documentElement.toggleAttribute('data-mini-window', payload.miniWindow === true);
+    // Move to Space (#1734): from a mini window the Spaces menu moves its tabs.
+    workspaceUI.setMoveMode(payload.miniWindow === true);
     if (mode === 'glance') renderGlancePicker();
   });
 

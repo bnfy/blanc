@@ -103,6 +103,9 @@
     let invoker = trigger;
     let drag = null;
     let suppressClick = false;
+    // Opened from a mini window (#1734): choosing a Space moves the window's
+    // tabs there, so the menu lists only this profile's and edits nothing.
+    let moveMode = false;
     let updateTimer = null;
     let pendingPatch = null;
     // Live edits write in order; each link resolves true when its write saved.
@@ -218,7 +221,7 @@
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link'].includes(start), thisProfile, tabId, tabTitle, original, error: '', touched: false, picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link', 'mini'].includes(start), thisProfile, tabId, tabTitle, original, error: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
@@ -378,6 +381,8 @@
       if (problem) { state.error = errors[problem]; renderEditorError(); popup.querySelector('#workspaceName')?.focus(); return; }
       const name = state.draft.name.trim().replace(/\s+/g, ' ');
       const identity = { color: state.draft.color, symbol: state.draft.symbol };
+      // A mini window's tabs go to the new Space through create-blank (#1734).
+      if (state.start === 'mini') { openAction({ kind: 'create', name, identity }); return; }
       if (['tab', 'tabs', 'link'].includes(state.start)) {
         const isTabs = state.start === 'tabs';
         const isLink = state.start === 'link';
@@ -420,6 +425,7 @@
       let label = dataEl('span', 'ws-row-name', workspace.name);
       if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');const text=el('span','ws-row-text');text.append(label,mark);label=text;}
       main.append(tile(workspace), label, el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      if (moveMode) { row.append(main); return row; }
       main.addEventListener('keydown', (event) => {
         if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
         event.preventDefault(); event.stopPropagation();
@@ -503,9 +509,11 @@
       if(data.sharedSync){nodes.push(el('p','ws-sync-status',t('sharedSpaces.count',data.sharedSync)));if(data.sharedSync.busy)nodes.push(el('p','ws-sync-status',t('sharedSpaces.busy')));else if(data.sharedSync.slowed)nodes.push(el('p','ws-sync-status',t('sharedSpaces.slowed')));}
       if(data.recoveryNotice){nodes.push(el('p','ws-sync-status',t('sharedSpaces.recoveryNote')));nodes.push(button(t('sharedSpaces.cancel'),'dismiss-recovery',()=>run(()=>api.updateWorkspace('',{ackRecovery:true}),()=>{})));}
       // Other profiles with something to show: Spaces, or a file that can't be read.
-      const others = (data.otherProfiles ?? []).filter((profile) => profile.items?.length || UNREADABLE.includes(profile.status));
+      // Tabs can't change profile, so moving lists only this profile's Spaces.
+      const others = moveMode ? [] : (data.otherProfiles ?? []).filter((profile) => profile.items?.length || UNREADABLE.includes(profile.status));
       // Headings only when two groups show; one profile looks exactly as before.
       const heading = (name) => nodes.push(dataEl('p', 'ws-profile-heading', name));
+      if (moveMode) nodes.push(el('p', 'ws-profile-heading', t('ws.moveMode.header')));
       if (others.length) heading(data.profileName ?? '');
       if (!data.items.length) nodes.push(el('p', 'ws-empty', t('ws.list.emptyHint')));
       data.items.forEach((workspace, index) => nodes.push(spaceRow(workspace, index)));
@@ -521,7 +529,7 @@
         nodes.push(row);
       }
       // F45: anyone starting from nothing can bring Spaces over from Arc.
-      if (!data.items.length && !others.length) {
+      if (!data.items.length && !others.length && !moveMode) {
         const arc = button(t('ws.list.importArc'), 'import-arc', () => { close({ force: true }); api.openPage('tab-import'); });
         arc.prepend(glyph('import')); nodes.push(arc);
       }
@@ -532,9 +540,11 @@
     function renderCommands() {
       const nodes = [];
       if (!errors[data.status]) {
-        const add = button(t('ws.new'), 'new', () => beginNew()); add.prepend(glyph('plus')); nodes.push(add);
+        const add = button(t('ws.new'), 'new', () => moveMode
+          ? beginNew({ start: 'mini', thisProfile: true, tabTitle: t('tabsMenu.header', { count: Math.max(1, data.windowTabCount ?? 0) }) })
+          : beginNew()); add.prepend(glyph('plus')); nodes.push(add);
       }
-      if (data.deleted?.length) {
+      if (data.deleted?.length && !moveMode) {
         const recent = button(t('ws.list.recentlyDeleted', { count: data.deleted.length }), 'recently-deleted', () => { state = { kind: 'recovery' }; render(); }, 'ws-cmd quiet');
         recent.prepend(glyph('recover')); nodes.push(recent);
       }
@@ -619,8 +629,8 @@
       }
       form.append(head, ident, status, colorLabel, swatches, pickerSlot, symbolLabel, symbols);
 
-      if (isNew && ['tab', 'tabs', 'link'].includes(state.start)) {
-        form.append(el('p', 'ws-label', t(state.start === 'link' ? 'ws.new.withLink' : state.start === 'tabs' ? 'ws.new.withTabs' : 'ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
+      if (isNew && ['tab', 'tabs', 'link', 'mini'].includes(state.start)) {
+        form.append(el('p', 'ws-label', t(state.start === 'link' ? 'ws.new.withLink' : ['tabs', 'mini'].includes(state.start) ? 'ws.new.withTabs' : 'ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
       }
       if (isNew && !state.fixedStart) {
         const seg = el('div', 'ws-segmented'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', t('ws.editor.startWith'));
@@ -842,6 +852,11 @@
         else if (kind === 'delete') { open(); removeNow(workspace); }
       },
       toggle() { opened ? close() : open(); },
+      setMoveMode(on) {
+        if (moveMode === !!on) return;
+        moveMode = !!on;
+        if (!state.pending && state.kind === 'list') render();
+      },
       switchTo(workspace) { openAction({ kind: 'open', id: workspace.id, name: workspace.name, ...(workspace.profileId ? { profileId: workspace.profileId } : {}) }); },
       command(name) { const existing = data.items.find((w) => w.name.toLowerCase() === name.toLowerCase()); if (existing) this.switchTo(existing); else beginNew({ name, thisProfile: true }); },
       get opened() { return opened; }, get editing() { return state.kind !== 'list'; },
