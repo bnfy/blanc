@@ -175,6 +175,7 @@
   const pillPrivateChip = document.getElementById('pillPrivateChip');
   const pillSourceChip = document.getElementById('pillSourceChip');
   const pillMiniOpen = document.getElementById('pillMiniOpen');
+  const pillMiniSpaces = document.getElementById('pillMiniSpaces');
   const windowControls = document.getElementById('windowControls');
   const mainMenuButton = document.getElementById('mainMenuButton');
   const glanceCard = document.getElementById('glanceCard');
@@ -1130,7 +1131,7 @@
   // covers neither. With the mark hidden (it is
   // never shown on the Island) the menu lines up with the Island instead.
   function spacesAnchor() {
-    const anchor = pillSpace.hidden ? islandPill : pillSpace;
+    const anchor = !pillMiniSpaces.hidden ? pillMiniSpaces : pillSpace.hidden ? islandPill : pillSpace;
     const bottom = Math.max(stageRect(anchor).bottom, stageRect(islandPill).bottom);
     return { left: stageRect(anchor).left, bottom };
   }
@@ -1226,6 +1227,8 @@
     const miniWindow = state.miniWindow === true;
     document.documentElement.toggleAttribute('data-mini-window', miniWindow);
     pillMiniOpen.hidden = !miniWindow;
+    pillMiniSpaces.hidden = !miniWindow;
+    pillMiniSpaces.disabled = !state.miniWindowCanMove;
     requestAnimationFrame(() => reportIslandRect());
     // Split View headers follow their pages (title, Back, loading).
     // The rail is a presentation of this same trusted payload, not another
@@ -1343,6 +1346,16 @@
   pillMiniOpen.addEventListener('click', (e) => {
     e.stopPropagation();
     window.browserAPI.keepMiniWindow();
+  });
+  // Move to Space (#1734): the Spaces menu, in its move mode. A press while
+  // the menu is open closes it, as the Space mark's does.
+  let miniSpacesPressedWhileOpen = false;
+  pillMiniSpaces.addEventListener('pointerdown', () => { miniSpacesPressedWhileOpen = pillMiniSpaces.getAttribute('aria-expanded') === 'true'; });
+  pillMiniSpaces.addEventListener('mousedown', (e) => e.preventDefault());
+  pillMiniSpaces.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const closing = miniSpacesPressedWhileOpen; miniSpacesPressedWhileOpen = false;
+    window.browserAPI.openSpacesMenu({ ...spacesAnchor(), closing });
   });
 
   for (const chip of [pillPrivateChip, pillSourceChip]) {
@@ -1718,6 +1731,7 @@
     islandPill.classList.toggle('shield-open', shieldOpen && !nativePopup);
     pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
     pillSpace.setAttribute('aria-expanded', String(mode === 'spaces'));
+    pillMiniSpaces.setAttribute('aria-expanded', String(mode === 'spaces'));
     islandPill.classList.toggle('spaces-open', mode === 'spaces');
     pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
     pillCapture.setAttribute('aria-expanded', String(mode === 'capture'));

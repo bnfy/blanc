@@ -41,6 +41,7 @@ struct TabMoveTarget {
 struct OpenWorkspaceOptions {
   string? decision;
   bool? new_window;
+  bool? move;
   string? color;
   string? symbol;
   string? profile_id;
@@ -249,6 +250,7 @@ struct TabsSnapshot {
   string vertical_tabs_text_size;
   bool island_tab_icons;
   bool mini_window;
+  bool mini_window_can_move;
   string island_size;
   double vertical_tabs_width;
   double vertical_tabs_preferred_width;
@@ -271,6 +273,7 @@ struct TabsUpdatedPayload {
   string vertical_tabs_text_size;
   bool island_tab_icons;
   bool mini_window;
+  bool mini_window_can_move;
   string island_size;
   bool adblock_enabled;
   ShieldPopover? shield_popover;

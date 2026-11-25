@@ -150,3 +150,42 @@ test('preview windows close with the last Windows or Linux window (#1630)', () =
   const drm = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../src/main/drm-support.js'), 'utf8');
   assert.match(drm, /closeLocalFiles\(\) \{\s*closeAllLocalHtmlPreviews\(\);/);
 });
+
+test('a mini window moves every tab but an unused start page (#1734)', () => {
+  assert.deepEqual(mini.miniWindowMoveIds([{ id: 1, blank: true }, { id: 2, blank: false }, { id: 3, blank: false }]), [2, 3]);
+  assert.deepEqual(mini.miniWindowMoveIds([{ id: 1, blank: true }]), []);
+  assert.deepEqual(mini.miniWindowMoveIds([]), []);
+});
+
+test('a mini window moves to a Space of its own profile, then closes (#1734)', () => {
+  const main = read('src/main/main.js');
+  const candidates = main.match(/function miniWindowMoveCandidates\(runtime\) \{[\s\S]*?\n\}/)[0];
+  assert.match(candidates, /miniWindow\.miniWindowMoveIds\(/);
+  assert.match(candidates, /tab\.url === NEW_TAB_URL && !newTabPageUsed\(tab\)/);
+  assert.match(main, /function miniWindowMoveCandidates\(runtime\) \{/);
+  const move = main.match(/function moveMiniWindowToSpace\(runtime, workspaceId, creation = null, \{ showError = true \} = \{\}\) \{[\s\S]*?\n\}/)[0];
+  assert.match(move, /const candidates = miniWindowMoveCandidates\(runtime\);/);
+  assert.match(move, /const ids = candidates\?\.every\(\(id\) => canMoveTabToSpace\(tabs\.get\(id\), runtime, true\)\) \? candidates : null;/);
+  assert.match(move, /error: candidates \? 'unmovable' : 'busy'/);
+  assert.match(move, /if \(showError\) withWindowRuntime\(runtime, \(\) => showOverlay\('spaces'/);
+  assert.match(move, /withWindowRuntime\(runtime, \(\) => moveTabsToSpace\(ids, workspaceId, creation, \{ keepGroups: true \}\)\)/);
+  assert.match(move, /runtime\.window\.close\(\);\s*openSpaceInProfile\(\{ profileId, spaceId \}\);/);
+  assert.match(move, /showOverlay\('spaces', \{ purpose: \{ spaceMoveError:/);
+  assert.match(main, /if \(rt\(\)\.mini\) return opts\?\.move !== true \|\| otherProfileTarget\(opts\) \? \{ ok: false, error: 'busy' \} : \{ \.\.\.moveMiniWindowToSpace\(rt\(\), id, null, \{ showError: false \}\), \.\.\.workspacesProjection\(\) \};/);
+  assert.match(main, /if \(rt\(\)\.mini\) \{\s*if \(opts\?\.move !== true \|\| otherProfileTarget\(opts\)\) return \{ ok: false, error: 'busy' \};\s*return \{ \.\.\.moveMiniWindowToSpace\(rt\(\), null, \{ name,/);
+  assert.equal(main.match(/\n    miniWindowCanMove: !!miniWindowMoveCandidates\(rt\(\)\),\n/g)?.length, 2, 'both tab payloads say so');
+  assert.match(main, /label: t\('mini\.moveToSpace\.menu'\), submenu: miniWindowSpaceMenu\(runtime\)/);
+});
+
+test('a mini window\'s Island offers Move to Space beside Open in Blanc (#1734)', () => {
+  const renderer = read('src/renderer/renderer.js');
+  assert.match(renderer, /pillMiniSpaces\.hidden = !miniWindow;/);
+  assert.match(renderer, /pillMiniSpaces\.disabled = !state\.miniWindowCanMove;/);
+  assert.match(renderer, /pillMiniSpaces\.addEventListener\('click', \(e\) => \{\s*e\.stopPropagation\(\);[\s\S]*?window\.browserAPI\.openSpacesMenu\(\{ \.\.\.spacesAnchor\(\), closing \}\);/);
+  assert.match(renderer, /const anchor = !pillMiniSpaces\.hidden \? pillMiniSpaces : pillSpace\.hidden \? islandPill : pillSpace;/);
+  assert.match(renderer, /pillMiniSpaces\.setAttribute\('aria-expanded', String\(mode === 'spaces'\)\);/);
+  assert.match(read('src/renderer/index.html'), /<button id="pillMiniSpaces" class="mini-spaces" type="button" aria-haspopup="dialog" aria-expanded="false"[^>]*data-i18n-tooltip="mini\.moveToSpace\.title" data-i18n-aria-label="mini\.moveToSpace\.label" hidden>/);
+  const css = read('src/renderer/styles.css');
+  assert.match(css, /#pillMiniOpen,\n#pillMiniSpaces \{/);
+  assert.match(css, /#pillMiniSpaces:disabled \{[^}]*opacity:[^}]*cursor: default;/);
+});

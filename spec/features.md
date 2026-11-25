@@ -2011,7 +2011,15 @@ candidate branch (PR 1); not in a public release.
   rather than leaving a blank tab.
 - **Open in Blanc.** The Island's leading button (and a File menu item) keeps
   it as an ordinary window: a new window's size, saved from then on.
+- **Move to Space** (#1734, `docs/superpowers/specs/2026-11-25-mini-window-move-to-space-design.md`).
+  A Spaces button beside Open in Blanc (and File → Move to Space ▸) lists the
+  profile's Spaces and New space…. Choosing one moves every tab into that
+  Space, closes the mini window, and brings the Space's window forward or
+  opens it. An unused start page stays behind. If any page can't go to a
+  Space (a private tab, sound, camera or microphone, screen sharing, a pop-up),
+  nothing moves and the menu says why.
 - **Mobile.** Not applicable.
+- **Acceptance:** `spec/acceptance/mini-window.feature`.
 
 ## F62 — Default page zoom (desktop)
 

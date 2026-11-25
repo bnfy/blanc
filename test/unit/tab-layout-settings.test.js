@@ -321,7 +321,7 @@ test('the rail\'s first row holds the Space mark and its footer starts a new gro
   assert.doesNotMatch(styles, /has-space/);
   // The Spaces menu hangs below both the mark and the Island, never over it;
   // with the mark hidden it lines up with the Island.
-  assert.match(renderer, /const anchor = pillSpace\.hidden \? islandPill : pillSpace;\s*const bottom = Math\.max\(stageRect\(anchor\)\.bottom, stageRect\(islandPill\)\.bottom\);/);
+  assert.match(renderer, /const anchor = !pillMiniSpaces\.hidden \? pillMiniSpaces : pillSpace\.hidden \? islandPill : pillSpace;\s*const bottom = Math\.max\(stageRect\(anchor\)\.bottom, stageRect\(islandPill\)\.bottom\);/);
   // With no Spaces yet the rail shows the Spaces glyph, like the neutral mark,
   // and a right-click on the rail's mark opens its menu.
   assert.match(styles, /\.space-mark:is\(\[data-state="neutral"\], \.vertical-tabs-toolbar \[data-state="none"\]\) \{/);
