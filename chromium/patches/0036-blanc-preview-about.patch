@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
-index e68514f..7b39757 100644
+index 669957b..133fbd9 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.html.ts
 +++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
-@@ -99,6 +99,10 @@ export function getHtml(this: SettingsAboutPageElement) {
+@@ -94,6 +94,10 @@ export function getHtml(this: SettingsAboutPageElement) {
    <cr-link-row class="hr" id="blancWelcomeTour" @click="${this.onBlancWelcomeTourClick_}"
        label="$i18n{blancWelcomeTour}" sub-label="$i18n{blancWelcomeTourHint}">
    </cr-link-row>
@@ -11,13 +11,13 @@ index e68514f..7b39757 100644
 +      label="Version &amp; security" sub-label="Preview build details, status and how to report a problem">
 +  </cr-link-row>
    <cr-link-row class="hr" id="help" @click="${this.onHelpClick_}"
-       label="$i18n{aboutGetHelpUsingChrome}" external></cr-link-row>
- <if expr="_google_chrome">
+       label="$i18n{aboutGetHelpUsingChrome}" external>
+   </cr-link-row>
 diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
-index 6ef56ee..ad9f4ba 100644
+index 10c5d67..61a75bd 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.ts
 +++ b/chrome/browser/resources/settings/about_page/about_page.ts
-@@ -237,6 +237,10 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
+@@ -241,6 +241,10 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
      blancSettings.openWelcomeTour();
    }
  

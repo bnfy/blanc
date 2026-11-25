@@ -1,4 +1,5 @@
 diff --git a/chrome/app/resources/manpage.1.in b/chrome/app/resources/manpage.1.in
+index 25d3a92..3d4b3d0 100644
 --- a/chrome/app/resources/manpage.1.in
 +++ b/chrome/app/resources/manpage.1.in
 @@ -3,16 +3,16 @@
@@ -21,7 +22,7 @@ diff --git a/chrome/app/resources/manpage.1.in b/chrome/app/resources/manpage.1.
  .PP
  This manpage only describes invocation, environment, and arguments.
  
-@@ -156,10 +156,7 @@
+@@ -156,10 +156,7 @@ Default directory for cache data.  (Why?  See
  .SH BUGS
  Bug tracker:
  .IP
@@ -35,15 +36,20 @@ diff --git a/chrome/app/resources/manpage.1.in b/chrome/app/resources/manpage.1.
 -The Chromium team \- <http://www.chromium.org>
 +@@DEVELOPER_NAME and The Chromium Authors \- <@@PRODUCTURL>
 diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
+index 71b0e79..b60c3b3 100644
 --- a/chrome/installer/linux/BUILD.gn
 +++ b/chrome/installer/linux/BUILD.gn
-@@ -28,44 +28,39 @@
+@@ -28,47 +28,42 @@ declare_args() {
    # distributions.
    enable_distro_version_check = true
  
 -  # Enables building Flatpak package bundles (.flatpak).
 +  # Retain the upstream GN argument for existing outputs. Blanc builds DEB and RPM.
    enable_flatpak = false
+ 
+-  # Enable building snap packages
++  # Retain the upstream GN argument for existing outputs. Blanc builds DEB and RPM.
+   enable_snap_package = false
  }
  
  assert(is_linux)
@@ -86,7 +92,7 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
  } else {
    assert(false, "Linux installer not configured for this architecture.")
  }
-@@ -111,6 +106,8 @@
+@@ -114,6 +109,8 @@ packaging_files_binaries = packaging_files_executables + packaging_files_shlibs
  # (e.g. all locales, resources, etc.)
  packaging_files = packaging_files_binaries + [
                      "common/installer.py",
@@ -95,7 +101,7 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
                      "$root_out_dir/locales/en-US.pak",
                      "$root_out_dir/MEIPreload/manifest.json",
                      "$root_out_dir/MEIPreload/preloaded_data.pb",
-@@ -291,67 +288,17 @@
+@@ -294,67 +291,17 @@ if (use_qt6) {
  # This target builds all "normal" Linux installers.  You must set
  # is_component_build=false before building this target.
  group("linux") {
@@ -131,7 +137,9 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
 -    package = "google-chrome-repo"
 -  } else {
 -    package = "chromium-browser-repo"
--  }
++  if (_blanc_packages) {
++    deps = [ ":$blanc_linux_channel" ]
+   }
 -
 -  outputs = [ "$root_out_dir/${package}_${deb_arch}.deb" ]
 -
@@ -151,16 +159,12 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
 -    "-t",
 -    target_os,
 -  ]
--}
--
+ }
+ 
 -branding_dir = "//chrome/app/theme/$branding_path_component"
 -branding_dir_100 =
 -    "//chrome/app/theme/default_100_percent/$branding_path_component"
-+  if (_blanc_packages) {
-+    deps = [ ":$blanc_linux_channel" ]
-+  }
-+}
- 
+-
  copy("common_packaging_files") {
    visibility = [ ":*" ]
    sources = [
@@ -170,7 +174,7 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
      "//chrome/app/resources/manpage.1.in",
      "common/apparmor.template",
      "common/appdata.xml.template",
-@@ -359,7 +306,6 @@
+@@ -362,7 +309,6 @@ copy("common_packaging_files") {
      "common/default-app-block.template",
      "common/default-app.template",
      "common/desktop.template",
@@ -178,7 +182,7 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
      "common/postinst.include",
      "common/prerm.include",
      "common/repo.cron",
-@@ -397,40 +343,13 @@
+@@ -400,40 +346,13 @@ copy("deb_packaging_files") {
  
  copy("theme_files") {
    visibility = [ ":*" ]
@@ -226,11 +230,10 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
    }
    outputs = [ "$root_out_dir/installer/theme/{{source_file_part}}" ]
  }
-@@ -440,18 +359,6 @@
-     visibility = [ ":*" ]
+@@ -444,18 +363,6 @@ if (!is_chromeos) {
      sources = [ "rpm/chrome.spec.template" ]
      outputs = [ "$root_out_dir/installer/rpm/{{source_file_part}}" ]
--  }
+   }
 -
 -  if (enable_flatpak) {
 -    copy("flatpak_packaging_files") {
@@ -242,10 +245,11 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
 -      ]
 -      outputs = [ "$root_out_dir/installer/flatpak/{{source_file_part}}" ]
 -    }
-   }
+-  }
  }
  
-@@ -484,6 +391,12 @@
+ process_version("save_build_info") {
+@@ -487,6 +394,12 @@ group("installer_deps") {
      ":theme_files",
      "//chrome",
    ]
@@ -258,7 +262,7 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
    public_deps += [
      "//chrome:packed_resources",
      "//chrome/browser/enterprise/connectors/device_trust/key_management/installer/management_service:chrome_management_service",
-@@ -524,9 +437,6 @@
+@@ -527,9 +440,6 @@ group("installer_deps") {
    }
    if (!is_chromeos) {
      public_deps += [ ":rpm_packaging_files" ]
@@ -268,7 +272,7 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
    }
    if (build_with_internal_optimization_guide) {
      public_deps += [
-@@ -554,19 +464,23 @@
+@@ -557,19 +467,23 @@ group("installer_deps") {
    }
  }
  
@@ -284,13 +288,12 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
  template("linux_package") {
    assert(defined(invoker.channel))
 -  channel = invoker.channel
--
+ 
 -  if (is_chrome_branded) {
 -    package = "google-chrome"
 -  } else {
 -    package = "chromium-browser"
 -  }
-+
 +  assert(defined(blanc_linux_package),
 +         "Linux packages require the browser identity from patch 0113.")
 +  assert(blanc_linux_package == "blanc-$blanc_linux_channel",
@@ -299,7 +302,7 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
  
    deb_target_name = "${target_name}_deb"
  
-@@ -574,8 +488,8 @@
+@@ -577,8 +491,8 @@ template("linux_package") {
      visibility = [ ":*" ]
      script = "debian/build.py"
  
@@ -310,7 +313,7 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
  
      args = [
        "-a",
-@@ -584,6 +498,8 @@
+@@ -587,6 +501,8 @@ template("linux_package") {
        build_timestamp,
        "-c",
        invoker.channel,
@@ -319,7 +322,7 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
        "-d",
        branding_path_component,
        "-o",
-@@ -612,8 +528,8 @@
+@@ -615,8 +531,8 @@ template("linux_package") {
        visibility = [ ":*" ]
        script = "rpm/build.py"
  
@@ -330,7 +333,7 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
  
        args = [
          "-a",
-@@ -622,6 +538,8 @@
+@@ -625,6 +541,8 @@ template("linux_package") {
          build_timestamp,
          "-c",
          invoker.channel,
@@ -339,10 +342,11 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
          "-d",
          branding_path_component,
          "-o",
-@@ -639,82 +557,18 @@
+@@ -641,141 +559,18 @@ template("linux_package") {
+         ":merge_rpm_dependencies",
        ]
      }
- 
+-
 -    if (enable_flatpak) {
 -      flatpak_target_name = "${target_name}_flatpak"
 -
@@ -374,6 +378,56 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
 -        deps = [ ":installer_deps" ]
 -      }
 -    }
+-
+-    if (enable_snap_package) {
+-      snap_target_name = "${target_name}_snap"
+-
+-      action(snap_target_name) {
+-        visibility = [ ":*" ]
+-        script = "snap/build.py"
+-
+-        if (!is_chrome_branded) {
+-          package = "chromium"
+-        }
+-        if (current_cpu == "x64") {
+-          snap_arch = "amd64"
+-        } else if (current_cpu == "arm") {
+-          snap_arch = "armhf"
+-        } else if (current_cpu == "arm64") {
+-          snap_arch = "arm64"
+-        } else if (current_cpu == "riscv64") {
+-          snap_arch = "riscv64"
+-        } else {
+-          assert(false, "Snap package not configured for this architecture.")
+-        }
+-
+-        inputs = packaging_files + [
+-                   "snap/chrome.launcher.in",
+-                   "snap/snapcraft.yaml.in",
+-                 ]
+-        outputs = [ "$root_out_dir/${package}-${channel}_${chrome_version_full}_${snap_arch}.snap" ]
+-
+-        args = [
+-          "-a",
+-          snap_arch,
+-          "-b",
+-          build_timestamp,
+-          "-c",
+-          invoker.channel,
+-          "-d",
+-          branding_path_component,
+-          "-o",
+-          rebase_path(root_out_dir, root_build_dir),
+-          "-t",
+-          target_os,
+-          "--use-static-angle=$use_static_angle",
+-        ]
+-        if (is_official_build) {
+-          args += [ "-f" ]
+-        }
+-        deps = [ ":installer_deps" ]
+-      }
+-    }
    }
  
    group(target_name) {
@@ -382,6 +436,9 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
        deps += [ ":$rpm_target_name" ]
 -      if (enable_flatpak) {
 -        deps += [ ":$flatpak_target_name" ]
+-      }
+-      if (enable_snap_package) {
+-        deps += [ ":$snap_target_name" ]
 -      }
      }
    }
@@ -421,13 +478,17 @@ diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
 -      deps = [ ":unstable_flatpak" ]
 -    }
 -  }
--}
+-  if (enable_snap_package) {
+-    group("dev_snap") {
+-      deps = [ ":unstable_snap" ]
+-    }
 +if (_blanc_packages) {
 +  linux_package(blanc_linux_channel) {
 +    channel = blanc_linux_channel
-+  }
-+}
+   }
+ }
 diff --git a/chrome/installer/linux/common/appdata.xml.template b/chrome/installer/linux/common/appdata.xml.template
+index ce6e867..94a2b8c 100644
 --- a/chrome/installer/linux/common/appdata.xml.template
 +++ b/chrome/installer/linux/common/appdata.xml.template
 @@ -13,12 +13,6 @@
@@ -444,6 +505,7 @@ diff --git a/chrome/installer/linux/common/appdata.xml.template b/chrome/install
    <developer_name>@@DEVELOPER_NAME</developer_name>
    <url type="bugtracker">@@BUGTRACKERURL</url>
 diff --git a/chrome/installer/linux/common/apt.include b/chrome/installer/linux/common/apt.include
+index b3368c1..cc83465 100644
 --- a/chrome/installer/linux/common/apt.include
 +++ b/chrome/installer/linux/common/apt.include
 @@ -1,143 +1,37 @@
@@ -457,70 +519,52 @@ diff --git a/chrome/installer/linux/common/apt.include b/chrome/installer/linux/
 -# Set variables for the locations of the apt trusted keyrings.
 -find_apt_trusted() {
 -  eval $("$APT_CONFIG" shell APT_TRUSTEDDIR 'Dir::Etc::trustedparts/d')
-+find_apt_sources() {
-+  eval "$(apt-config shell APT_SOURCESDIR 'Dir::Etc::sourceparts/d')"
-+  SOURCES_FILE="${APT_SOURCESDIR:?}/@@PACKAGE.list"
- }
- 
+-}
+-
 -# Set variables for the locations of the apt sources lists.
--find_apt_sources() {
+ find_apt_sources() {
 -  eval $("$APT_CONFIG" shell APT_SOURCESDIR 'Dir::Etc::sourceparts/d')
 -  SOURCES_FILE="$APT_SOURCESDIR/@@PACKAGE.sources"
-+gen_sources_content() {
-+  echo "deb [arch=@@architecture signed-by=$GPG_FILE] @@repository/deb stable main"
- }
- 
+-}
+-
 -# Install the repository/package signing keys. The key cannot be part of the
 -# package since it's still needed if the package is removed but not purged.
 -install_key() {
 -  if [ ! -e /usr/share/keyrings ]; then
 -    mkdir -p /usr/share/keyrings
 -    chmod 755 /usr/share/keyrings
-+configure_apt_repo() {
-+  load_repo_defaults
-+  [ "${repo_add_once:-false}" = true ] || [ "${repo_managed:-false}" = true ] || return 0
-+  find_apt_sources
-+  if [ "${repo_add_once:-false}" != true ] && [ ! -f "$SOURCES_FILE" ]; then
-+    return 0
-   fi
+-  fi
 -
 -  # Use a temporary file to ensure atomic updates
 -  echo "$PGP_KEY_DATA" | base64 -d >"$GPG_FILE.$$.tmp"
 -  chmod 644 "$GPG_FILE.$$.tmp"
 -  mv "$GPG_FILE.$$.tmp" "$GPG_FILE"
-+  install -d -m 755 /usr/share/keyrings
-+  if ! cmp -s "@@INSTALLDIR/blanc-repository.gpg" "$GPG_FILE"; then
-+    install -m 644 "@@INSTALLDIR/blanc-repository.gpg" "$GPG_FILE.$$.tmp"
-+    mv -f "$GPG_FILE.$$.tmp" "$GPG_FILE"
-+  fi
-+  [ "${repo_add_once:-false}" = true ] || return 0
-+  gen_sources_content > "$SOURCES_FILE.$$.tmp"
-+  chmod 644 "$SOURCES_FILE.$$.tmp"
-+  mv -f "$SOURCES_FILE.$$.tmp" "$SOURCES_FILE"
-+  mark_repo_managed
++  eval "$(apt-config shell APT_SOURCESDIR 'Dir::Etc::sourceparts/d')"
++  SOURCES_FILE="${APT_SOURCESDIR:?}/@@PACKAGE.list"
  }
  
 -uninstall_key() {
 -  rm -f "$GPG_FILE"
-+clean_sources_lists() {
-+  [ -f "$DEFAULTS_FILE" ] || return 0
-+  . "$DEFAULTS_FILE"
-+  [ "${repo_managed:-false}" = true ] || return 0
-+  find_apt_sources
-+  rm -f "$SOURCES_FILE" "$GPG_FILE" "$DEFAULTS_FILE"
- }
+-}
 -
 -remove_legacy_key() {
 -  find_apt_trusted
 -  rm -f "$APT_TRUSTEDDIR/@@PACKAGE.gpg"
--}
--
++gen_sources_content() {
++  echo "deb [arch=@@architecture signed-by=$GPG_FILE] @@repository/deb stable main"
+ }
+ 
 -remove_legacy_list() {
--  find_apt_sources
++configure_apt_repo() {
++  load_repo_defaults
++  [ "${repo_add_once:-false}" = true ] || [ "${repo_managed:-false}" = true ] || return 0
+   find_apt_sources
 -  LEGACY_LIST="$APT_SOURCESDIR/@@PACKAGE.list"
 -  if [ ! -f "$LEGACY_LIST" ]; then
 -    return
--  fi
++  if [ "${repo_add_once:-false}" != true ] && [ ! -f "$SOURCES_FILE" ]; then
++    return 0
+   fi
 -
 -  # Check for other sources (strict check for 'ours')
 -  # If there are any lines starting with 'deb' (commented or not) that do NOT
@@ -534,7 +578,11 @@ diff --git a/chrome/installer/linux/common/apt.include b/chrome/installer/linux/
 -  else
 -    # No other sources, safe to remove
 -    rm -f "$LEGACY_LIST"
--  fi
++  install -d -m 755 /usr/share/keyrings
++  if ! cmp -s "@@INSTALLDIR/blanc-repository.gpg" "$GPG_FILE"; then
++    install -m 644 "@@INSTALLDIR/blanc-repository.gpg" "$GPG_FILE.$$.tmp"
++    mv -f "$GPG_FILE.$$.tmp" "$GPG_FILE"
+   fi
 -}
 -
 -# Generate the content of the .sources file
@@ -559,7 +607,9 @@ diff --git a/chrome/installer/linux/common/apt.include b/chrome/installer/linux/
 -  find_apt_sources
 -
 -  gen_sources_content >"$SOURCES_FILE.$$.tmp"
--  chmod 644 "$SOURCES_FILE.$$.tmp"
++  [ "${repo_add_once:-false}" = true ] || return 0
++  gen_sources_content > "$SOURCES_FILE.$$.tmp"
+   chmod 644 "$SOURCES_FILE.$$.tmp"
 -  mv "$SOURCES_FILE.$$.tmp" "$SOURCES_FILE"
 -
 -  if [ -r "$DEFAULTS_FILE" ]; then
@@ -571,11 +621,16 @@ diff --git a/chrome/installer/linux/common/apt.include b/chrome/installer/linux/
 -      echo 'repo_add_once="false"' >>"$DEFAULTS_FILE"
 -    fi
 -  fi
--}
--
++  mv -f "$SOURCES_FILE.$$.tmp" "$SOURCES_FILE"
++  mark_repo_managed
+ }
+ 
 -# Remove our custom sources file.
--clean_sources_lists() {
--  find_apt_sources
+ clean_sources_lists() {
++  [ -f "$DEFAULTS_FILE" ] || return 0
++  . "$DEFAULTS_FILE"
++  [ "${repo_managed:-false}" = true ] || return 0
+   find_apt_sources
 -  rm -f "$SOURCES_FILE"
 -}
 -
@@ -616,18 +671,22 @@ diff --git a/chrome/installer/linux/common/apt.include b/chrome/installer/linux/
 -  if [ "$SHOULD_INSTALL_SOURCES" -eq 1 ]; then
 -    create_sources_lists
 -  fi
--}
++  rm -f "$SOURCES_FILE" "$GPG_FILE" "$DEFAULTS_FILE"
+ }
 diff --git a/chrome/installer/linux/common/chromium-browser.info b/chrome/installer/linux/common/chromium-browser.info
+index 694581f..7f5b0e1 100644
 --- a/chrome/installer/linux/common/chromium-browser.info
 +++ b/chrome/installer/linux/common/chromium-browser.info
-@@ -6,37 +6,37 @@
+@@ -6,7 +6,7 @@
  # chromium-browser packages for various platforms.
  
  # Base name of the package.
 -PACKAGE="chromium-browser"
 +PACKAGE="blanc"
  
- # Filename of the main executable (for generating launcher scripts, etc.)
+ # Base name of the snap package
+ SNAPNAME="chromium"
+@@ -15,31 +15,31 @@ SNAPNAME="chromium"
  PROGNAME=chrome
  
  # Base directory for package installation.
@@ -672,9 +731,10 @@ diff --git a/chrome/installer/linux/common/chromium-browser.info b/chrome/instal
 -RDN="org.chromium.Chromium"
 +RDN="me.bnfy.Blanc"
 diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux/common/installer.py
+index 24e379a..a7823fa 100644
 --- a/chrome/installer/linux/common/installer.py
 +++ b/chrome/installer/linux/common/installer.py
-@@ -87,6 +87,7 @@
+@@ -88,6 +88,7 @@ def parse_common_args(
      parser.add_argument(
          "-c", "--channel", required=True, help="package channel"
      )
@@ -682,7 +742,7 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
      parser.add_argument("-d", "--branding", required=True, help="branding")
      parser.add_argument(
          "-f", "--official", action="store_true", help="official build"
-@@ -157,28 +158,9 @@
+@@ -158,28 +159,9 @@ def verify_package_deps(
  
  
  def normalize_channel(channel: str) -> tuple[str, str]:
@@ -714,7 +774,7 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
  
  
  def gen_changelog(
-@@ -336,7 +318,7 @@
+@@ -337,7 +319,7 @@ class InstallerConfig:
      common_deps: str = ""
      common_predeps: str = ""
      repoconfig: str = ""
@@ -723,7 +783,7 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
  
      # Package Format
      package_format: PackageFormat = PackageFormat.DEB
-@@ -408,18 +390,21 @@
+@@ -409,18 +391,21 @@ class InstallerConfig:
              }
          )
  
@@ -756,7 +816,7 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
  
          config = cls(**data)
          config.rpm_package_filename = f"{config.package_orig}-{config.channel}"
-@@ -526,7 +511,7 @@
+@@ -527,7 +512,7 @@ class InstallerConfig:
          if channel != "stable":
              data["info_vars"]["INSTALLDIR"] += f"-{channel}"
              data["info_vars"]["PACKAGE"] += f"-{channel}"
@@ -765,11 +825,10 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
              data["rdn_desktop"] = f"{data['info_vars']['RDN']}.{channel}"
          else:
              data["rdn_desktop"] = data["info_vars"]["RDN"]
-@@ -534,29 +519,11 @@
-         data["startup_wm_class"] = data["info_vars"]["PACKAGE"] or ""
+@@ -536,28 +521,10 @@ class InstallerConfig:
  
          return data
--
+ 
 -    @staticmethod
 -    def _compute_deb_repoconfig(arch: str, package: str) -> tuple[str, str]:
 -        base_repo_config = "dl.google.com/linux/chrome/deb/ stable main"
@@ -789,7 +848,7 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
 -            repo_package = package
 -        repoconfig = f"https://dl.google.com/linux/{repo_package}/rpm/stable"
 -        return repoconfig, ""
- 
+-
      def get_template_context(self) -> dict[str, str]:
          ctx = self.info_vars | self.version_vars | self.branding_vars
 +        ctx["rpm_repo_source"] = (f"mirrorlist={self.repoconfig}/mirrorlist" if self.channel == "beta"
@@ -797,7 +856,7 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
          for field in dataclasses.fields(self):
              val = getattr(self, field.name)
              if isinstance(val, enum.Enum):
-@@ -757,6 +724,23 @@
+@@ -758,6 +725,23 @@ class InstallerConfig:
                  )
              )
  
@@ -821,8 +880,8 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
          # Default apps (Recursive)
          artifacts.append(
              Artifact(
-@@ -859,23 +843,6 @@
-         if self.package_format == PackageFormat.FLATPAK:
+@@ -861,23 +845,6 @@ class InstallerConfig:
+         if self.package_format in (PackageFormat.FLATPAK, PackageFormat.SNAP):
              return artifacts
  
 -        # symlink for PACKAGE_ORIG
@@ -845,28 +904,28 @@ diff --git a/chrome/installer/linux/common/installer.py b/chrome/installer/linux
          # /usr/bin symlink
          if self.usr_bin_symlink_name:
              link_target = os.path.join(
-@@ -891,13 +858,6 @@
-                     symlink_target=link_target,
+@@ -894,13 +861,6 @@ class InstallerConfig:
                  )
              )
--
+ 
 -        # URI_SCHEME logic
 -        if self.branding == "google_chrome":
 -            if self.channel not in ["beta", "unstable", "canary"]:
 -                self.uri_scheme = "x-scheme-handler/google-chrome;"
 -        else:
 -            self.uri_scheme = "x-scheme-handler/chromium;"
- 
+-
          # apparmor profile
          artifacts.append(
+             Artifact(
 diff --git a/chrome/installer/linux/common/postinst.include b/chrome/installer/linux/common/postinst.include
+index d237a1a..4b1aae3 100644
 --- a/chrome/installer/linux/common/postinst.include
 +++ b/chrome/installer/linux/common/postinst.include
-@@ -12,66 +12,6 @@
- 
+@@ -13,66 +13,6 @@ done
  # Update cache of .desktop file MIME types. Non-fatal since it's just a cache.
  update-desktop-database > /dev/null 2>&1 || true
--
+ 
 -# Updates defaults.list file if present.
 -update_defaults_list() {
 -  # $1: name of the .desktop file
@@ -926,10 +985,12 @@ diff --git a/chrome/installer/linux/common/postinst.include b/chrome/installer/l
 -    "^[ 	]*<web-browsers>[ 	]*$" \
 -    "@@INSTALLDIR/default-app-block"
 -fi
- 
+-
  # This function performs the setup for the chrome management service process.
  # It creates a new chromemgmt group, creates the signing key file, and updates
+ # permissions for both the signing key file and the binary.
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
+index 571fb83..dacfb00 100644
 --- a/chrome/installer/linux/common/repo.cron
 +++ b/chrome/installer/linux/common/repo.cron
 @@ -6,32 +6,9 @@
@@ -969,13 +1030,13 @@ diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/co
 -fi
 +configure_apt_repo
 diff --git a/chrome/installer/linux/common/rpm.include b/chrome/installer/linux/common/rpm.include
+index 9b87ef5..d1127bb 100644
 --- a/chrome/installer/linux/common/rpm.include
 +++ b/chrome/installer/linux/common/rpm.include
 @@ -1,263 +1,21 @@
 -@@include@@repo_variables.include
 -@@include@@key.include
-+YUM_REPO_FILE="/etc/yum.repos.d/@@PACKAGE.repo"
- 
+-
 -# Install the repository signing key (see also:
 -# https://www.google.com/linuxrepositories/)
 -install_rpm_key() {
@@ -1040,18 +1101,8 @@ diff --git a/chrome/installer/linux/common/rpm.include b/chrome/installer/linux/
 -    fi
 -  fi
 -  return 1
-+gen_repo_content() {
-+  cat <<'REPOCONTENT'
-+[@@PACKAGE]
-+name=@@MENUNAME
-+@@rpm_repo_source
-+enabled=1
-+gpgcheck=1
-+repo_gpgcheck=1
-+gpgkey=file://@@INSTALLDIR/blanc-repository.asc
-+REPOCONTENT
- }
- 
+-}
+-
 -determine_rpm_package_manager() {
 -  local RELEASE
 -
@@ -1098,16 +1149,10 @@ diff --git a/chrome/installer/linux/common/rpm.include b/chrome/installer/linux/
 -  elif [ -f "/etc/SuSE-release" ]; then
 -    PACKAGEMANAGERS=(zypp)
 -  fi
-+configure_rpm_repo() {
-+  load_repo_defaults
-+  [ "${repo_add_once:-false}" = true ] || return 0
-+  gen_repo_content > "$YUM_REPO_FILE.$$.tmp" || return 1
-+  chmod 644 "$YUM_REPO_FILE.$$.tmp" && mv -f "$YUM_REPO_FILE.$$.tmp" "$YUM_REPO_FILE" || return 1
-+  mark_repo_managed
- }
+-}
 -
 -DEFAULT_ARCH="@@architecture"
--YUM_REPO_FILE="/etc/yum.repos.d/@@PACKAGE.repo"
+ YUM_REPO_FILE="/etc/yum.repos.d/@@PACKAGE.repo"
 -ZYPPER_REPO_FILE="/etc/zypp/repos.d/@@PACKAGE.repo"
 -
 -install_yum() {
@@ -1116,19 +1161,25 @@ diff --git a/chrome/installer/linux/common/rpm.include b/chrome/installer/linux/
 -  if [ ! "$REPOCONFIG" ]; then
 -    return 0
 -  fi
--
+ 
 -  if [ -d "/etc/yum.repos.d" ]; then
 -cat > "$YUM_REPO_FILE" << REPOCONTENT
--[@@PACKAGE]
++gen_repo_content() {
++  cat <<'REPOCONTENT'
+ [@@PACKAGE]
 -name=@@PACKAGE
 -baseurl=$REPOCONFIG/$DEFAULT_ARCH
--enabled=1
--gpgcheck=1
++name=@@MENUNAME
++@@rpm_repo_source
+ enabled=1
+ gpgcheck=1
 -gpgkey=https://dl.google.com/linux/linux_signing_key.pub
--REPOCONTENT
++repo_gpgcheck=1
++gpgkey=file://@@INSTALLDIR/blanc-repository.asc
+ REPOCONTENT
 -  fi
--}
--
+ }
+ 
 -install_zypp() {
 -  if [ ! "$REPOCONFIG" ]; then
 -    return 0
@@ -1251,8 +1302,15 @@ diff --git a/chrome/installer/linux/common/rpm.include b/chrome/installer/linux/
 -    echo Unknown CPU Architecture: "$DEFAULT_ARCH"
 -    exit 1
 -  fi
--}
++configure_rpm_repo() {
++  load_repo_defaults
++  [ "${repo_add_once:-false}" = true ] || return 0
++  gen_repo_content > "$YUM_REPO_FILE.$$.tmp" || return 1
++  chmod 644 "$YUM_REPO_FILE.$$.tmp" && mv -f "$YUM_REPO_FILE.$$.tmp" "$YUM_REPO_FILE" || return 1
++  mark_repo_managed
+ }
 diff --git a/chrome/installer/linux/common/rpmrepo.cron b/chrome/installer/linux/common/rpmrepo.cron
+index 90ff896..c5f2938 100644
 --- a/chrome/installer/linux/common/rpmrepo.cron
 +++ b/chrome/installer/linux/common/rpmrepo.cron
 @@ -6,54 +6,89 @@
@@ -1276,8 +1334,10 @@ diff --git a/chrome/installer/linux/common/rpmrepo.cron b/chrome/installer/linux
 -## MAIN ##
 -if [ -r "$DEFAULTS_FILE" ]; then
 -  . "$DEFAULTS_FILE"
+-fi
 +configure_rpm_repo
-+
+ 
+-install_rpm_key
 +# RPM's database is locked during %post. Refresh imported certificates here,
 +# after enrollment, independently of the one-time repository file write.
 +. "$DEFAULTS_FILE"
@@ -1286,7 +1346,9 @@ diff --git a/chrome/installer/linux/common/rpmrepo.cron b/chrome/installer/linux
 +work=$(mktemp -d)
 +trap 'rm -rf "$work"' EXIT
 +export GNUPGHOME="$work"
-+
+ 
+-if [ "$repo_add_once" = "true" ]; then
+-  determine_rpm_package_manager
 +# The owner extends the expiry of the same primary signing key. Limit any
 +# replacement to that full fingerprint and never shorten its lifetime.
 +key_info() {
@@ -1307,7 +1369,16 @@ diff --git a/chrome/installer/linux/common/rpmrepo.cron b/chrome/installer/linux
 +  [ "$current_fpr" = "$fingerprint" ] && [ "$current_expiry" -ne 0 ] &&
 +    { [ "$expiry" -eq 0 ] || [ "$current_expiry" -lt "$expiry" ]; }
 +}
-+
+ 
+-  # Let's run through this for each supported package manager as detected...
+-  for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-  do
+-    # The initial install happens in the post-install scripts, but there have been
+-    # reports of configuration problems, so just verify that everything looks
+-    # good, and if not, try to install again.
+-    verify_install $PACKAGEMANAGER
+-    if [ $? -ne 0 ]; then
+-      install_${PACKAGEMANAGER}
 +if rpmkeys --help | grep -q -- '--export'; then
 +  # New RPM merges the certificate on import.
 +  rpmkeys --import "$key"
@@ -1324,25 +1395,27 @@ diff --git a/chrome/installer/linux/common/rpmrepo.cron b/chrome/installer/linux
 +    if ! rpmkeys --import "$key"; then
 +      rpmkeys --import "$work/old.asc"
 +      exit 1
-+    fi
-+  fi
+     fi
+-  done
+-
+-  if [ $? -eq 0 ]; then
+-    # Do this for each supported package manager...
+-    for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-    do
+-      # Before we quit auto-configuration, check that everything looks sane, since
+-      # part of this happened during package install and we don't have the return
+-      # value of that process.
+-      verify_install $PACKAGEMANAGER
+-      if [ $? -eq 0 ]; then
+-        sed -i -e 's/[[:space:]]*repo_add_once=.*/repo_add_once="false"/' \
+-          "$DEFAULTS_FILE"
+-      fi
+-    done
+   fi
+-else
+-  update_bad_repo
  fi
- 
--install_rpm_key
--
--if [ "$repo_add_once" = "true" ]; then
--  determine_rpm_package_manager
--
--  # Let's run through this for each supported package manager as detected...
--  for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
--  do
--    # The initial install happens in the post-install scripts, but there have been
--    # reports of configuration problems, so just verify that everything looks
--    # good, and if not, try to install again.
--    verify_install $PACKAGEMANAGER
--    if [ $? -ne 0 ]; then
--      install_${PACKAGEMANAGER}
--    fi
++
 +# DNF 4 and 5 keep metadata trust separate from RPM. Only visit this
 +# channel's cache IDs (<repoid>-<16 hex digits>), never another repo's keys.
 +dnf4_cache=/var/cache/dnf
@@ -1370,27 +1443,10 @@ diff --git a/chrome/installer/linux/common/rpmrepo.cron b/chrome/installer/linux
 +    gpg --batch --yes --dearmor --output "$cert.tmp" "$key"
 +    chmod --reference="$cert" "$cert.tmp"
 +    mv -f "$cert.tmp" "$cert"
-   done
--
--  if [ $? -eq 0 ]; then
--    # Do this for each supported package manager...
--    for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
--    do
--      # Before we quit auto-configuration, check that everything looks sane, since
--      # part of this happened during package install and we don't have the return
--      # value of that process.
--      verify_install $PACKAGEMANAGER
--      if [ $? -eq 0 ]; then
--        sed -i -e 's/[[:space:]]*repo_add_once=.*/repo_add_once="false"/' \
--          "$DEFAULTS_FILE"
--      fi
--    done
--  fi
--else
--  update_bad_repo
--fi
++  done
 +done
 diff --git a/chrome/installer/linux/common/variables.include b/chrome/installer/linux/common/variables.include
+index 2722dc0..4c048dd 100644
 --- a/chrome/installer/linux/common/variables.include
 +++ b/chrome/installer/linux/common/variables.include
 @@ -1,2 +1,19 @@
@@ -1414,9 +1470,10 @@ diff --git a/chrome/installer/linux/common/variables.include b/chrome/installer/
 +    mv -f "$config" "$DEFAULTS_FILE"
 +}
 diff --git a/chrome/installer/linux/debian/control.template b/chrome/installer/linux/debian/control.template
+index 1d7dff3..5f843f9 100644
 --- a/chrome/installer/linux/debian/control.template
 +++ b/chrome/installer/linux/debian/control.template
-@@ -2,6 +2,7 @@
+@@ -2,6 +2,7 @@ Source: @@PACKAGE-@@channel
  Section: web
  Priority: optional
  Maintainer: @@MAINTNAME <@@MAINTMAIL>
@@ -1425,9 +1482,10 @@ diff --git a/chrome/installer/linux/debian/control.template b/chrome/installer/l
  Standards-Version: 3.8.0
  
 diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
+index 43f2b11..b8e385d 100644
 --- a/chrome/installer/linux/debian/postinst
 +++ b/chrome/installer/linux/debian/postinst
-@@ -10,58 +10,6 @@
+@@ -10,58 +10,6 @@ set -e
  
  @@include@@../common/postinst.include
  
@@ -1488,9 +1546,10 @@ diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/deb
 -remove_legacy_key
 +configure_apt_repo
 diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
+index 3e1cadc..08530a5 100644
 --- a/chrome/installer/linux/debian/postrm
 +++ b/chrome/installer/linux/debian/postrm
-@@ -17,20 +17,4 @@
+@@ -17,20 +17,4 @@ fi
  
  @@include@@../common/apt.include
  
@@ -1512,9 +1571,10 @@ diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debia
  clean_sources_lists
 -uninstall_key
 diff --git a/chrome/installer/linux/debian/prerm b/chrome/installer/linux/debian/prerm
+index 5a0ccc5..071c5b1 100644
 --- a/chrome/installer/linux/debian/prerm
 +++ b/chrome/installer/linux/debian/prerm
-@@ -17,9 +17,3 @@
+@@ -17,9 +17,3 @@ if [ "$action" = "upgrade" ] ; then
  fi
  
  @@include@@../common/prerm.include
@@ -1525,17 +1585,18 @@ diff --git a/chrome/installer/linux/debian/prerm b/chrome/installer/linux/debian
 -
 -update-alternatives --remove @@package_orig /usr/bin/@@usr_bin_symlink_name
 diff --git a/chrome/installer/linux/rpm/build.py b/chrome/installer/linux/rpm/build.py
+index 874f0cc..0146739 100644
 --- a/chrome/installer/linux/rpm/build.py
 +++ b/chrome/installer/linux/rpm/build.py
-@@ -46,7 +46,6 @@
-     version_match = re.match(r'.*version ([.\d]*)', str(version_output))
-     additional_deps = [
-         "/bin/sh",
+@@ -64,7 +64,6 @@ def verify_package(
+         "rpmlib(CompressedFileNames) <= 3.0.4-1",
+         "rpmlib(FileDigests) <= 4.6.0-1",
+         "rpmlib(PayloadFilesHavePrefix) <= 4.0-1",
 -        "/usr/sbin/update-alternatives",
      ]
-     if version_match and version_match[1] >= '6.0':
-         additional_deps += ['rpmlib(LargeFiles) <= 4.12.0-1']
-@@ -117,12 +116,12 @@
+     if config.is_official_build:
+         additional_deps.append("rpmlib(PayloadIsXz) <= 5.2-1")
+@@ -127,12 +126,12 @@ def main() -> None:
          # do_package logic
          logging.info(f"Packaging {args.arch}...")
  
@@ -1552,9 +1613,10 @@ diff --git a/chrome/installer/linux/rpm/build.py b/chrome/installer/linux/rpm/bu
          if config.info_vars["PACKAGE"] != config.usr_bin_symlink_name:
              symlink = config.usr_bin_symlink_name
 diff --git a/chrome/installer/linux/rpm/chrome.spec.template b/chrome/installer/linux/rpm/chrome.spec.template
+index abba75c..4add0d9 100644
 --- a/chrome/installer/linux/rpm/chrome.spec.template
 +++ b/chrome/installer/linux/rpm/chrome.spec.template
-@@ -17,8 +17,6 @@
+@@ -17,8 +17,6 @@ Packager        : @@MAINTNAME <@@MAINTMAIL>
  
  Provides        : @@rpm_provides = %{version}
  Requires        : @@rpm_depends
@@ -1563,7 +1625,7 @@ diff --git a/chrome/installer/linux/rpm/chrome.spec.template b/chrome/installer/
  Autoreqprov     : No
  
  BuildRoot       : %{_tmppath}/%{name}-%{version}-root
-@@ -86,7 +84,6 @@
+@@ -88,7 +86,6 @@ rm -rf "$RPM_BUILD_ROOT"
  # Be explicit about the files we scatter throughout the system we don't
  # accidentally "own" stuff that's not ours (crbug.com/40194046).
  /etc/cron.daily/@@PACKAGE
@@ -1571,7 +1633,7 @@ diff --git a/chrome/installer/linux/rpm/chrome.spec.template b/chrome/installer/
  /usr/bin/@@usr_bin_symlink_name
  /usr/share/appdata/@@PACKAGE.appdata.xml
  /usr/share/applications/@@PACKAGE.desktop
-@@ -118,56 +115,7 @@
+@@ -120,56 +117,7 @@ exit 0
  
  @@include@@../common/rpm.include
  
@@ -1629,7 +1691,7 @@ diff --git a/chrome/installer/linux/rpm/chrome.spec.template b/chrome/installer/
  
  #------------------------------------------------------------------------------
  #   Pre uninstallation script
-@@ -180,37 +128,18 @@
+@@ -182,38 +130,19 @@ elif [ "$1" -eq "1" ]; then
    mode="upgrade"
  fi
  
@@ -1654,7 +1716,7 @@ diff --git a/chrome/installer/linux/rpm/chrome.spec.template b/chrome/installer/
 +    fi
 +  fi
  fi
--
+ 
 -# On Debian we only remove when we purge. However, RPM has no equivalent to
 -# dpkg --purge, so this is all disabled.
 -#
@@ -1671,6 +1733,7 @@ diff --git a/chrome/installer/linux/rpm/chrome.spec.template b/chrome/installer/
 -#    ;;
 -#  esac
 -#done
- 
+-
  exit 0
  
+ #------------------------------------------------------------------------------

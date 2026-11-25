@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/extensions/api/settings_private/prefs_util.cc b/chrome/browser/extensions/api/settings_private/prefs_util.cc
-index 98d7b6d..396a370 100644
+index 17655be..c056c2d 100644
 --- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
 +++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
 @@ -223,6 +223,15 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
@@ -19,10 +19,10 @@ index 98d7b6d..396a370 100644
    (*s_allowlist)[::embedder_support::kAlternateErrorPagesEnabled] =
        settings_api::PrefType::kBoolean;
 diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
-index b2aaf8d..13a4478 100644
+index 8755288..666515f 100644
 --- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
 +++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
-@@ -79,6 +79,30 @@ export function getHtml(this: SettingsAppearancePageElement) {
+@@ -78,6 +78,30 @@ export function getHtml(this: SettingsAppearancePageElement) {
          `)}
        </select>
      </div>
@@ -54,7 +54,7 @@ index b2aaf8d..13a4478 100644
          ?hidden="${!this.showHr_(
              this.pageVisibility_.setTheme, this.pageVisibility_.homeButton)}">
 diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
-index c8a9629..1e916a8 100644
+index 775ff04..f47f248 100644
 --- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
 +++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
 @@ -147,6 +147,8 @@ export class SettingsAppearancePageElement extends
@@ -66,7 +66,7 @@ index c8a9629..1e916a8 100644
        sidePanelAlignmentOverridesPref_: {type: Object},
        sidePanelIsRightAlignedPref_: {type: Object},
        themeIdPref_: {type: Object},
-@@ -210,6 +212,16 @@ export class SettingsAppearancePageElement extends
+@@ -211,6 +213,16 @@ export class SettingsAppearancePageElement extends
        undefined;
    protected accessor showHomeButtonPref_: PrefObject<boolean>|undefined =
        undefined;
@@ -80,10 +80,10 @@ index c8a9629..1e916a8 100644
 +        {value: 'push',
 +         name: loadTimeData.getString('blancIslandAutoHideStylePush')},
 +      ];
-   protected accessor sidePanelAlignmentOverridesPref_:
+   private accessor sidePanelAlignmentOverridesPref_:
        PrefObject<Record<string, boolean>>|undefined = undefined;
-   protected accessor sidePanelIsRightAlignedPref_: PrefObject<boolean>|
-@@ -337,6 +349,7 @@ export class SettingsAppearancePageElement extends
+   private accessor sidePanelIsRightAlignedPref_: PrefObject<boolean>|undefined =
+@@ -345,6 +357,7 @@ export class SettingsAppearancePageElement extends
        'browser.pin_split_tab_button': 'pinSplitTabButtonPref_',
        'browser.show_forward_button': 'showForwardButtonPref_',
        'browser.show_home_button': 'showHomeButtonPref_',
@@ -91,27 +91,27 @@ index c8a9629..1e916a8 100644
        'extensions.theme.id': 'themeIdPref_',
        // <if expr="is_linux">
        'extensions.theme.system_theme': 'themeSystemThemePref_',
-diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.html b/chrome/browser/resources/settings/privacy_page/privacy_page.html
-index 71101c5..507dfb1 100644
---- a/chrome/browser/resources/settings/privacy_page/privacy_page.html
-+++ b/chrome/browser/resources/settings/privacy_page/privacy_page.html
-@@ -10,7 +10,13 @@
-           @close="${this.onPrivacyGuideDialogClose_}">
-       </settings-privacy-guide-dialog>
-     ` : ''}
--    <cr-link-row id="clearBrowsingData"
-+    <!-- Blanc's Blocking (S1.7). -->
-+    <settings-toggle-button id="blancBlocking" class="first"
-+        pref-key="blanc.blocking.enabled"
-+        label="$i18n{blancBlocking}"
-+        sub-label="$i18n{blancBlockingHint}">
-+    </settings-toggle-button>
-+    <cr-link-row id="clearBrowsingData" class="hr"
-         start-icon="cr:delete"
-         label="$i18n{clearBrowsingData}"
-         sub-label="$i18n{clearBrowsingDataDescription}"
+diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.html.ts b/chrome/browser/resources/settings/privacy_page/privacy_page.html.ts
+index 6ab1a26..1b9def7 100644
+--- a/chrome/browser/resources/settings/privacy_page/privacy_page.html.ts
++++ b/chrome/browser/resources/settings/privacy_page/privacy_page.html.ts
+@@ -19,7 +19,13 @@ export function getHtml(this: SettingsPrivacyPageElement) {
+         @close="${this.onPrivacyGuideDialogClose_}">
+     </settings-privacy-guide-dialog>
+   ` : ''}
+-  <cr-link-row id="clearBrowsingData" start-icon="cr:delete"
++  <!-- Blanc's Blocking (S1.7). -->
++  <settings-toggle-button id="blancBlocking" class="first"
++      pref-key="blanc.blocking.enabled"
++      label="$i18n{blancBlocking}"
++      sub-label="$i18n{blancBlockingHint}">
++  </settings-toggle-button>
++  <cr-link-row id="clearBrowsingData" class="hr" start-icon="cr:delete"
+       label="$i18n{clearBrowsingData}"
+       sub-label="$i18n{clearBrowsingDataDescription}"
+       @click="${this.onClearBrowsingDataClick_}">
 diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.ts b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
-index b3ecabf..7801ee3 100644
+index 3d6dba8..9eb201d 100644
 --- a/chrome/browser/resources/settings/privacy_page/privacy_page.ts
 +++ b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
 @@ -13,6 +13,7 @@ import 'chrome://resources/cr_elements/cr_toast/cr_toast.js';
@@ -123,10 +123,10 @@ index b3ecabf..7801ee3 100644
  
  import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
 diff --git a/chrome/browser/resources/settings/search_page/search_page.html.ts b/chrome/browser/resources/settings/search_page/search_page.html.ts
-index 5eadb05..2810a33 100644
+index d7502ff..1f26073 100644
 --- a/chrome/browser/resources/settings/search_page/search_page.html.ts
 +++ b/chrome/browser/resources/settings/search_page/search_page.html.ts
-@@ -61,6 +61,18 @@ export function getHtml(this: SettingsSearchPageElement) {
+@@ -64,6 +64,18 @@ export function getHtml(this: SettingsSearchPageElement) {
          <div>${this.confirmationToastLabel_}</div>
        </cr-toast>
      </div>
@@ -146,7 +146,7 @@ index 5eadb05..2810a33 100644
        ${this.searchSettingsUpdateEnabled_ ? html`
          <div class="cr-row">
 diff --git a/chrome/browser/resources/settings/search_page/search_page.ts b/chrome/browser/resources/settings/search_page/search_page.ts
-index 4ff134a..72435f9 100644
+index 128349b..47e2f47 100644
 --- a/chrome/browser/resources/settings/search_page/search_page.ts
 +++ b/chrome/browser/resources/settings/search_page/search_page.ts
 @@ -16,6 +16,7 @@ import './search_engine_icon.js';
@@ -158,7 +158,7 @@ index 4ff134a..72435f9 100644
  import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
  import type {CrToastElement} from 'chrome://resources/cr_elements/cr_toast/cr_toast.js';
 diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
-index 1437a64..d02cd2b 100644
+index 8b71e2d..135be42 100644
 --- a/chrome/browser/ui/webui/settings/settings_ui.cc
 +++ b/chrome/browser/ui/webui/settings/settings_ui.cc
 @@ -4,6 +4,8 @@
@@ -170,7 +170,7 @@ index 1437a64..d02cd2b 100644
  #include <stddef.h>
  
  #include <memory>
-@@ -269,6 +271,11 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+@@ -265,6 +267,11 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
    html_source->OverrideContentSecurityPolicy(
        network::mojom::CSPDirectiveName::WorkerSrc,
        "worker-src blob: chrome://resources 'self';");

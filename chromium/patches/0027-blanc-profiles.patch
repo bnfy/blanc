@@ -11,10 +11,10 @@ index eedec79..6954ce4 100644
    listen: (callback: (state: BlancSettingsState) => void): WebUiListener =>
        addWebUiListener('blanc-settings-changed', callback),
 diff --git a/chrome/browser/resources/settings/page_visibility.ts b/chrome/browser/resources/settings/page_visibility.ts
-index 1b2ecab..b093560 100644
+index eecc140..1b4be22 100644
 --- a/chrome/browser/resources/settings/page_visibility.ts
 +++ b/chrome/browser/resources/settings/page_visibility.ts
-@@ -45,12 +45,12 @@ export interface PrivacyPageVisibility {
+@@ -47,12 +47,12 @@ export interface PrivacyPageVisibility {
  function createPageVisibility(): PageVisibility|undefined {
    if (!loadTimeData.getBoolean('isGuest')) {
      // Blanc (S1.7, owner): no Google account, Sync, AI or Safety Check
@@ -30,41 +30,39 @@ index 1b2ecab..b093560 100644
        appearance: {
          bookmarksBar: false,
 diff --git a/chrome/browser/resources/settings/people_page/people_page.html.ts b/chrome/browser/resources/settings/people_page/people_page.html.ts
-index b330308..969c0b4 100644
+index 62ecdd2..015725a 100644
 --- a/chrome/browser/resources/settings/people_page/people_page.html.ts
 +++ b/chrome/browser/resources/settings/people_page/people_page.html.ts
-@@ -90,19 +90,27 @@ export function getHtml(this: SettingsPeoplePageElement) {
-           </div>
-         </cr-link-row>
+@@ -83,17 +83,25 @@ export function getHtml(this: SettingsPeoplePageElement) {
+       </div>
+     </cr-link-row>
  
-+        <!-- Blanc (S2, V18): no Sync or Google services rows. -->
-         <cr-link-row id="sync-setup"
-             label="$i18n{syncAndNonPersonalizedServices}"
-             .subLabel="${this.getSyncAndNonPersonalizedServicesSubtext_()}"
-             @click="${this.onSyncClick_}"
-             role-description="$i18n{subpageArrowRoleDescription}"
--            ?hidden="${this.shouldHideSyncSetupLinkRow_()}">
-+            hidden>
-         </cr-link-row>
++    <!-- Blanc (S2, V18): no Sync or Google services rows. -->
+     <cr-link-row id="sync-setup" label="$i18n{syncAndNonPersonalizedServices}"
+         .subLabel="${this.getSyncAndNonPersonalizedServicesSubtext_()}"
+         @click="${this.onSyncClick_}"
+         role-description="$i18n{subpageArrowRoleDescription}"
+-        ?hidden="${this.shouldHideSyncSetupLinkRow_()}">
++        hidden>
+     </cr-link-row>
  
-         <cr-link-row id="google-services"
-             label="$i18n{googleServicesPageTitle}"
-             @click="${this.onGoogleServicesClick_}"
-             role-description="$i18n{subpageArrowRoleDescription}"
--            ?hidden="${!this.shouldHideSyncSetupLinkRow_()}">
-+            hidden>
-+        </cr-link-row>
+     <cr-link-row id="google-services" label="$i18n{googleServicesPageTitle}"
+         @click="${this.onGoogleServicesClick_}"
+         role-description="$i18n{subpageArrowRoleDescription}"
+-        ?hidden="${!this.shouldHideSyncSetupLinkRow_()}">
++        hidden>
++    </cr-link-row>
 +
-+        <!-- Blanc (S2, V18): Chromium's profile picker, where profiles are
-+             added, opened and deleted; the Island has no avatar button. -->
-+        <cr-link-row id="blancProfiles"
-+            label="$i18n{blancProfiles}"
-+            @click="${this.onBlancProfilesClick_}" external>
-         </cr-link-row>
++    <!-- Blanc (S2, V18): Chromium's profile picker, where profiles are
++         added, opened and deleted; the Island has no avatar button. -->
++    <cr-link-row id="blancProfiles"
++        label="$i18n{blancProfiles}"
++        @click="${this.onBlancProfilesClick_}" external>
+     </cr-link-row>
  
  <if expr="not is_chromeos">
 diff --git a/chrome/browser/resources/settings/people_page/people_page.ts b/chrome/browser/resources/settings/people_page/people_page.ts
-index 0dcc177..91c850f 100644
+index 9abc9f9..f77ddc3 100644
 --- a/chrome/browser/resources/settings/people_page/people_page.ts
 +++ b/chrome/browser/resources/settings/people_page/people_page.ts
 @@ -37,6 +37,7 @@ import {isChromeOS} from 'chrome://resources/js/platform.js';
@@ -75,7 +73,7 @@ index 0dcc177..91c850f 100644
  import {loadTimeData} from '../i18n_setup.js';
  import {routes} from '../route.js';
  import type {Route} from '../router.js';
-@@ -341,6 +342,10 @@ export class SettingsPeoplePageElement extends SettingsPeoplePageElementBase {
+@@ -343,6 +344,10 @@ export class SettingsPeoplePageElement extends SettingsPeoplePageElementBase {
    }
  
    // <if expr="not is_chromeos">
@@ -110,7 +108,7 @@ index 469c1bb..ac678cf 100644
  
  IdentityManagerFactory::IdentityManagerFactory()
 diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
-index ff66857..19c1097 100644
+index 42e6ecf..3839e8d 100644
 --- a/chrome/browser/ui/webui/settings/settings_ui.cc
 +++ b/chrome/browser/ui/webui/settings/settings_ui.cc
 @@ -519,6 +519,11 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)

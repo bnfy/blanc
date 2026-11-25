@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
-index ba4a9d6..efc9d57 100644
+index f413764..25f901d 100644
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
-@@ -1727,6 +1727,8 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
+@@ -1793,6 +1793,8 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
    // shipping's are. The preview channel never sends.
    registry->RegisterDoublePref("blanc.first_run.completed_at", 0);
    registry->RegisterBooleanPref("blanc.telemetry.usage_ping", true);
@@ -11,7 +11,7 @@ index ba4a9d6..efc9d57 100644
    // The moving-in checklist (N11), device-wide as in shipping.
    registry->RegisterBooleanPref("blanc.checklist.dismissed", false);
    registry->RegisterBooleanPref("blanc.checklist.default_done", false);
-@@ -2094,6 +2096,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
+@@ -2156,6 +2158,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
    registry->RegisterStringPref("blanc.island.size", "default");
    // Tab Archive's first-run offer (F52 spec D5); F52 itself is S3.
    registry->RegisterStringPref("blanc.tabs.archive", "off");
@@ -20,10 +20,10 @@ index ba4a9d6..efc9d57 100644
    registry->RegisterDictionaryPref("blanc.blocking.week_stats");
    registry->RegisterBooleanPref("blanc.island.hover_open", false);
 diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
-index 487e5c5..e68514f 100644
+index 7ffa021..669957b 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.html.ts
 +++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
-@@ -95,6 +95,10 @@ export function getHtml(this: SettingsAboutPageElement) {
+@@ -90,6 +90,10 @@ export function getHtml(this: SettingsAboutPageElement) {
        label="$i18n{blancPatron}" .subLabel="${this.blancPatronCheckout_()}"
        external>
    </cr-link-row>
@@ -32,10 +32,10 @@ index 487e5c5..e68514f 100644
 +      label="$i18n{blancWelcomeTour}" sub-label="$i18n{blancWelcomeTourHint}">
 +  </cr-link-row>
    <cr-link-row class="hr" id="help" @click="${this.onHelpClick_}"
-       label="$i18n{aboutGetHelpUsingChrome}" external></cr-link-row>
- <if expr="_google_chrome">
+       label="$i18n{aboutGetHelpUsingChrome}" external>
+   </cr-link-row>
 diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
-index 4dfde0a..6ef56ee 100644
+index b8ca506..10c5d67 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.ts
 +++ b/chrome/browser/resources/settings/about_page/about_page.ts
 @@ -25,6 +25,7 @@ import {assert} from 'chrome://resources/js/assert.js';
@@ -46,7 +46,7 @@ index 4dfde0a..6ef56ee 100644
  import {sanitizeInnerHtml} from 'chrome://resources/js/parse_html_subset.js';
  import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
  import type {PropertyValues} from 'chrome://resources/lit/v3_0/lit.rollup.js';
-@@ -232,6 +233,10 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
+@@ -236,6 +237,10 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
          'https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf');
    }
  
@@ -80,36 +80,36 @@ index 6954ce4..2d5e010 100644
    font: () => sendWithPromise<string|null>('blancSettingsFont'),
    listen: (callback: (state: BlancSettingsState) => void): WebUiListener =>
        addWebUiListener('blanc-settings-changed', callback),
-diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.html b/chrome/browser/resources/settings/privacy_page/privacy_page.html
-index f6b08ef..d28ad65 100644
---- a/chrome/browser/resources/settings/privacy_page/privacy_page.html
-+++ b/chrome/browser/resources/settings/privacy_page/privacy_page.html
-@@ -60,6 +60,23 @@
-         </cr-button>
-       </div>
+diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.html.ts b/chrome/browser/resources/settings/privacy_page/privacy_page.html.ts
+index 20e5456..02ed245 100644
+--- a/chrome/browser/resources/settings/privacy_page/privacy_page.html.ts
++++ b/chrome/browser/resources/settings/privacy_page/privacy_page.html.ts
+@@ -69,6 +69,23 @@ export function getHtml(this: SettingsPrivacyPageElement) {
+       </cr-button>
      </div>
-+    <!-- Blanc's usage measurement (F21); device-wide, so not a profile pref. -->
-+    <div id="blancUsagePingRow" class="cr-row">
-+      <div class="flex cr-padded-text" aria-hidden="true">
-+        <div>$i18n{blancUsagePing}</div>
-+        <div class="secondary">$i18n{blancUsagePingHint}</div>
-+      </div>
-+      <cr-toggle id="blancUsagePing" ?checked="${this.blancUsagePing_}"
-+          aria-label="$i18n{blancUsagePing}"
-+          @change="${this.onBlancUsagePingChange_}"></cr-toggle>
+   </div>
++  <!-- Blanc's usage measurement (F21); device-wide, so not a profile pref. -->
++  <div id="blancUsagePingRow" class="cr-row">
++    <div class="flex cr-padded-text" aria-hidden="true">
++      <div>$i18n{blancUsagePing}</div>
++      <div class="secondary">$i18n{blancUsagePingHint}</div>
 +    </div>
-+    <div id="blancResetInstallIdRow" class="cr-row continuation">
-+      <div class="flex cr-padded-text secondary" role="status"
-+          id="blancResetInstallIdStatus">${this.blancResetStatus_}</div>
-+      <cr-button id="blancResetInstallId" @click="${this.onBlancResetInstallIdClick_}">
-+        $i18n{blancResetInstallId}
-+      </cr-button>
-+    </div>
-     <cr-link-row id="clearBrowsingData" class="hr"
-         start-icon="cr:delete"
-         label="$i18n{clearBrowsingData}"
++    <cr-toggle id="blancUsagePing" ?checked="${this.blancUsagePing_}"
++        aria-label="$i18n{blancUsagePing}"
++        @change="${this.onBlancUsagePingChange_}"></cr-toggle>
++  </div>
++  <div id="blancResetInstallIdRow" class="cr-row continuation">
++    <div class="flex cr-padded-text secondary" role="status"
++        id="blancResetInstallIdStatus">${this.blancResetStatus_}</div>
++    <cr-button id="blancResetInstallId" @click="${this.onBlancResetInstallIdClick_}">
++      $i18n{blancResetInstallId}
++    </cr-button>
++  </div>
+   <cr-link-row id="clearBrowsingData" class="hr" start-icon="cr:delete"
+       label="$i18n{clearBrowsingData}"
+       sub-label="$i18n{clearBrowsingDataDescription}"
 diff --git a/chrome/browser/resources/settings/privacy_page/privacy_page.ts b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
-index d38c339..7ff12cd 100644
+index fa9ac60..d9e4dad 100644
 --- a/chrome/browser/resources/settings/privacy_page/privacy_page.ts
 +++ b/chrome/browser/resources/settings/privacy_page/privacy_page.ts
 @@ -18,6 +18,7 @@ import '../controls/settings_dropdown_menu.js';
@@ -120,7 +120,7 @@ index d38c339..7ff12cd 100644
  import './privacy_guide/privacy_guide_dialog.js';
  
  import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
-@@ -86,6 +87,8 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+@@ -84,6 +85,8 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
      return {
        blancExceptions_: {type: Array},
        blancBlockingStatus_: {type: String},
@@ -129,7 +129,7 @@ index d38c339..7ff12cd 100644
        blancCallAudioOptions_: {type: Array},
        showClearBrowsingDataDialog_: {type: Boolean},
        showPrivacyGuideDialog_: {type: Boolean},
-@@ -104,6 +107,8 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+@@ -102,6 +105,8 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
    // Blanc's sites that load without blocking (S1.7).
    protected accessor blancExceptions_: string[] = [];
    protected accessor blancBlockingStatus_: string = '';
@@ -138,7 +138,7 @@ index d38c339..7ff12cd 100644
    // Blanc's Call audio (S1.7): shipping's three choices.
    protected accessor blancCallAudioOptions_: DropdownMenuOptionList = [
      {value: 'automatic',
-@@ -147,6 +152,7 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+@@ -145,6 +150,7 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
    // Shipping's Blocking status line (blocking-settings.js).
    private blancShow_(state: BlancSettingsState) {
      this.blancExceptions_ = state.exceptions;
@@ -146,7 +146,7 @@ index d38c339..7ff12cd 100644
      const provider = 'Blanc Blocker';
      this.blancBlockingStatus_ = !state.blockingEnabled ?
          blancString('blancBlockingStatusDisabled', {provider}) :
-@@ -184,6 +190,15 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
+@@ -182,6 +188,15 @@ export class SettingsPrivacyPageElement extends SettingsPrivacyPageElementBase {
  
    // Blanc's sites that load without blocking (S1.7): a host or an address,
    // normalized natively as shipping's settings do.

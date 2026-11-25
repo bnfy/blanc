@@ -1,22 +1,22 @@
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java b/chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java
-index 89348f2..83ff39d 100644
+index de075fe..0c740d1 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java
-@@ -24,6 +24,7 @@ import java.lang.annotation.RetentionPolicy;
-     ChromeIsolatedWorldIds.ISOLATED_WORLD_ID_INDIGO,
-     ChromeIsolatedWorldIds.ISOLATED_WORLD_ID_CHROME_INTERNAL,
+@@ -26,6 +26,7 @@ import java.lang.annotation.RetentionPolicy;
+     ChromeIsolatedWorldIds.ISOLATED_WORLD_ID_AUTOFILL_CUSTOM_FORM_CONTROLS,
+     ChromeIsolatedWorldIds.ISOLATED_WORLD_ID_ACTOR,
      ChromeIsolatedWorldIds.ISOLATED_WORLD_UNUSED_MAC,
 +    ChromeIsolatedWorldIds.ISOLATED_WORLD_ID_BLANC_COSMETICS,
      ChromeIsolatedWorldIds.ISOLATED_WORLD_ID_UNUSED_EXTENSIONS
  })
  @Retention(RetentionPolicy.SOURCE)
-@@ -33,6 +34,7 @@ public @interface ChromeIsolatedWorldIds {
-     int ISOLATED_WORLD_ID_INDIGO = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 2;
-     int ISOLATED_WORLD_ID_CHROME_INTERNAL = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 3;
-     int ISOLATED_WORLD_UNUSED_MAC = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 4;
--    int ISOLATED_WORLD_ID_UNUSED_EXTENSIONS = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 5;
-+    int ISOLATED_WORLD_ID_BLANC_COSMETICS = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 5;
-+    int ISOLATED_WORLD_ID_UNUSED_EXTENSIONS = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 6;
+@@ -38,6 +39,7 @@ public @interface ChromeIsolatedWorldIds {
+             IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 4;
+     int ISOLATED_WORLD_ID_ACTOR = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 5;
+     int ISOLATED_WORLD_UNUSED_MAC = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 6;
+-    int ISOLATED_WORLD_ID_UNUSED_EXTENSIONS = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 7;
++    int ISOLATED_WORLD_ID_BLANC_COSMETICS = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 7;
++    int ISOLATED_WORLD_ID_UNUSED_EXTENSIONS = IsolatedWorldIds.ISOLATED_WORLD_ID_CONTENT_END + 8;
  }
  // LINT.ThenChange(//chrome/common/chrome_isolated_world_ids.h)
 diff --git a/chrome/app/app-Info.plist b/chrome/app/app-Info.plist
@@ -51670,10 +51670,10 @@ zqMP_>gG=zmm`6O-86P>EXY5K_ck2>Zm%zFN)+MkmfprP2OJH3B>k?R(z`6w1C9p1m
 cODTc>57e-BV7}QS^#A|>07*qoM6N<$g4N9%TL1t6
 
 diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
-index f0f5299..d7092a1 100644
+index 668ab11..b22ab18 100644
 --- a/chrome/browser/BUILD.gn
 +++ b/chrome/browser/BUILD.gn
-@@ -1089,6 +1089,7 @@ source_set("core") {
+@@ -1084,6 +1084,7 @@ source_set("core") {
      ":startup_data",
      ":unexpire_flags",
      ":universal_web_contents_observers",
@@ -51682,10 +51682,10 @@ index f0f5299..d7092a1 100644
      "//build/config/linux/dbus:buildflags",
      "//chrome/browser/accessibility",
 diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
-index f251259..ff885e2 100644
+index 0513dec..2982812 100644
 --- a/chrome/browser/app_controller_mac.mm
 +++ b/chrome/browser/app_controller_mac.mm
-@@ -1301,6 +1301,12 @@ - (void)applicationDidFinishLaunching:(NSNotification*)notify {
+@@ -1303,6 +1303,12 @@ class AppControllerProfileObserver : public ProfileAttributesStorage::Observer,
  
    [self setUpdateCheckInterval];
  
@@ -51699,7 +51699,7 @@ index f251259..ff885e2 100644
    // apps.
    _quitWithAppsController = new QuitWithAppsController();
 diff --git a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
-index 03111c8..65bd0f3 100644
+index 66fc912..83d5c6b 100644
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
 @@ -3,6 +3,10 @@
@@ -51713,7 +51713,7 @@ index 03111c8..65bd0f3 100644
  
  #include <algorithm>
  #include <iterator>
-@@ -1577,6 +1581,8 @@ ChromeContentBrowserClient::GetPopupNavigationDelegateFactoryForTesting() {
+@@ -1565,6 +1569,8 @@ ChromeContentBrowserClient::GetPopupNavigationDelegateFactoryForTesting() {
  }
  
  ChromeContentBrowserClient::ChromeContentBrowserClient() {
@@ -51722,7 +51722,7 @@ index 03111c8..65bd0f3 100644
  #if BUILDFLAG(ENABLE_PLUGINS)
    extra_parts_.push_back(
        std::make_unique<ChromeContentBrowserClientPluginsPart>());
-@@ -3233,6 +3239,9 @@ void ChromeContentBrowserClient::AppendExtraCommandLineSwitches(
+@@ -3228,6 +3234,9 @@ void ChromeContentBrowserClient::AppendExtraCommandLineSwitches(
  
      // Please keep this in alphabetical order.
      static const char* const kSwitchNames[] = {
@@ -51732,7 +51732,7 @@ index 03111c8..65bd0f3 100644
          autofill::switches::kIgnoreAutocompleteOffForAutofill,
          autofill::switches::kShowAutofillSignatures,
  #if BUILDFLAG(IS_CHROMEOS)
-@@ -5716,6 +5725,7 @@ void ChromeContentBrowserClient::
+@@ -5724,6 +5733,7 @@ void ChromeContentBrowserClient::
    // RegisterChromeMojoBinderPoliciesForSameOriginPrerendering() which requires
    // security review.
    RegisterChromeMojoBinderPoliciesForSameOriginPrerendering(policy_map);
@@ -51740,7 +51740,7 @@ index 03111c8..65bd0f3 100644
  }
  
  void ChromeContentBrowserClient::OpenURL(
-@@ -5785,6 +5795,7 @@ void ChromeContentBrowserClient::RemovePresentationObserver(
+@@ -5794,6 +5804,7 @@ void ChromeContentBrowserClient::RemovePresentationObserver(
  
  void ChromeContentBrowserClient::CreateThrottlesForNavigation(
      content::NavigationThrottleRegistry& registry) {
@@ -51748,26 +51748,26 @@ index 03111c8..65bd0f3 100644
    CreateAndAddChromeThrottlesForNavigation(registry);
  }
  
-@@ -5798,6 +5809,8 @@ ChromeContentBrowserClient::CreateCommitDeferringConditionsForNavigation(
+@@ -5807,6 +5818,8 @@ ChromeContentBrowserClient::CreateCommitDeferringConditionsForNavigation(
      content::NavigationHandle* navigation_handle,
      content::CommitDeferringCondition::NavigationType navigation_type) {
    std::vector<std::unique_ptr<content::CommitDeferringCondition>> conditions;
 +  MaybeAddCondition(blanc::MaybeCreateActivationGate(*navigation_handle, navigation_type),
 +                    &conditions);
  
- #if BUILDFLAG(SAFE_BROWSING_AVAILABLE)
-   MaybeAddCondition(
-@@ -7171,6 +7184,8 @@ void ChromeContentBrowserClient::WillCreateWebTransport(
+   // TopChromeWebUIProfile only hosts Top Chrome WebUIs, and does not have the
+   // keyed services and prefs that the conditions below depend on.
+@@ -7208,6 +7221,8 @@ void ChromeContentBrowserClient::WillCreateWebTransport(
      mojo::PendingRemote<network::mojom::WebTransportHandshakeClient>
          handshake_client,
      WillCreateWebTransportCallback callback) {
 +  callback = blanc::WrapWebTransportCallback(process_id, frame_routing_id, url,
 +                                            initiator_origin, std::move(callback));
  #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
-   DCHECK_CURRENTLY_ON(BrowserThread::UI);
+   CHECK_CURRENTLY_ON(BrowserThread::UI, base::NotFatalUntil::M163);
    // TODO(crbug.com/40195467): Add a unit test which calls
 diff --git a/chrome/browser/chrome_content_browser_client_receiver_bindings.cc b/chrome/browser/chrome_content_browser_client_receiver_bindings.cc
-index aa6ff52..16d998b 100644
+index 98945fa..b65b3d1 100644
 --- a/chrome/browser/chrome_content_browser_client_receiver_bindings.cc
 +++ b/chrome/browser/chrome_content_browser_client_receiver_bindings.cc
 @@ -5,6 +5,7 @@
@@ -51786,7 +51786,7 @@ index aa6ff52..16d998b 100644
  #include "chrome/browser/chrome_content_browser_client_parts.h"
  #include "chrome/browser/content_settings/content_settings_manager_delegate.h"
  #include "chrome/browser/facilitated_payments/facilitated_payments_driver_binder.h"
-@@ -349,6 +351,10 @@ void ChromeContentBrowserClient::BindMediaServiceReceiver(
+@@ -300,6 +302,10 @@ void ChromeContentBrowserClient::BindMediaServiceReceiver(
  void ChromeContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
      content::RenderFrameHost* render_frame_host,
      mojo::BinderMapWithContext<content::RenderFrameHost*>* map) {
@@ -51829,7 +51829,7 @@ index 7206712..1bbd59e 100644
        extension_misc::kAimEligibilityExtensionId,
        extension_misc::kContextualTasksExtensionId,
 diff --git a/chrome/browser/extensions/component_loader.cc b/chrome/browser/extensions/component_loader.cc
-index e6feac0..edc8673 100644
+index e88059b..50e33f2 100644
 --- a/chrome/browser/extensions/component_loader.cc
 +++ b/chrome/browser/extensions/component_loader.cc
 @@ -3,6 +3,7 @@
@@ -51840,7 +51840,7 @@ index e6feac0..edc8673 100644
  
  #include <optional>
  #include <string>
-@@ -755,6 +756,22 @@ void ComponentLoader::AddDefaultComponentExtensionsForKioskMode(
+@@ -757,6 +758,22 @@ void ComponentLoader::AddDefaultComponentExtensionsForKioskMode(
  
  void ComponentLoader::AddDefaultComponentExtensionsWithBackgroundPages(
      bool skip_session_components) {
@@ -51881,10 +51881,10 @@ index ab27162..37e123b 100644
        on_close_aborted.Run(profile_path);
      }
 diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
-index fdd05fa..2896076 100644
+index 4d70dcc..cdd047c 100644
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
-@@ -1715,6 +1715,9 @@ std::string GetCountry() {
+@@ -1781,6 +1781,9 @@ std::string GetCountry() {
  }
  
  void RegisterLocalState(PrefRegistrySimple* registry) {
@@ -51894,7 +51894,7 @@ index fdd05fa..2896076 100644
    // Call outs to individual subsystems that register Local State (browser-wide)
    // prefs en masse. See RegisterProfilePrefs for per-profile prefs. Please
    // keep this list alphabetized.
-@@ -2049,6 +2052,22 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
+@@ -2111,6 +2114,22 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
  void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
                            const std::string& locale) {
    TRACE_EVENT0("browser", "chrome::RegisterProfilePrefs");
@@ -51918,7 +51918,7 @@ index fdd05fa..2896076 100644
    AccessibilityLabelsService::RegisterProfilePrefs(registry);
    registry->RegisterBooleanPref(prefs::kRendererAccessibilityEnabled, true);
 diff --git a/chrome/browser/prefs/session_startup_pref.cc b/chrome/browser/prefs/session_startup_pref.cc
-index 72fc94f..9843100 100644
+index ebf99a6..4e8e285 100644
 --- a/chrome/browser/prefs/session_startup_pref.cc
 +++ b/chrome/browser/prefs/session_startup_pref.cc
 @@ -8,6 +8,7 @@
@@ -51953,7 +51953,7 @@ index b5ef0a7..cf8b40a 100644
  
  node("generate_enum_conversions") {
 diff --git a/chrome/browser/search/search.cc b/chrome/browser/search/search.cc
-index 58d75e0..d7efaab 100644
+index 92f67ab..118b8e4 100644
 --- a/chrome/browser/search/search.cc
 +++ b/chrome/browser/search/search.cc
 @@ -10,6 +10,7 @@
@@ -51964,7 +51964,7 @@ index 58d75e0..d7efaab 100644
  #include "base/feature_list.h"
  #include "base/metrics/histogram_macros.h"
  #include "build/build_config.h"
-@@ -167,6 +168,13 @@ struct NewTabURLDetails {
+@@ -166,6 +167,13 @@ struct NewTabURLDetails {
        : url(url), state(state) {}
  
    static NewTabURLDetails ForProfile(Profile* profile) {
@@ -51978,7 +51978,7 @@ index 58d75e0..d7efaab 100644
      // Incognito and Guest profiles have their own New Tab.
      // This function may also be called by other off-the-record profiles that
      // can exceptionally open a browser window.
-@@ -175,6 +183,10 @@ struct NewTabURLDetails {
+@@ -174,6 +182,10 @@ struct NewTabURLDetails {
        return NewTabURLDetails(GURL(), NEW_TAB_URL_INCOGNITO);
      }
  
@@ -51990,7 +51990,7 @@ index 58d75e0..d7efaab 100644
  
  #if BUILDFLAG(IS_ANDROID)
 diff --git a/chrome/browser/sessions/session_restore.cc b/chrome/browser/sessions/session_restore.cc
-index ea1990e..14398b1 100644
+index 88f54cf..0fcb172 100644
 --- a/chrome/browser/sessions/session_restore.cc
 +++ b/chrome/browser/sessions/session_restore.cc
 @@ -2,6 +2,7 @@
@@ -52001,7 +52001,7 @@ index ea1990e..14398b1 100644
  #include "chrome/browser/sessions/session_restore.h"
  
  #include <stddef.h>
-@@ -23,6 +24,8 @@
+@@ -24,6 +25,8 @@
  #include "base/functional/bind.h"
  #include "base/functional/callback.h"
  #include "base/functional/callback_helpers.h"
@@ -52010,7 +52010,7 @@ index ea1990e..14398b1 100644
  #include "base/location.h"
  #include "base/memory/raw_ptr.h"
  #include "base/memory/weak_ptr.h"
-@@ -400,12 +403,48 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
+@@ -406,12 +409,48 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
      }
  
      if (synchronous_) {
@@ -52059,24 +52059,24 @@ index ea1990e..14398b1 100644
        BrowserWindowInterface* browser =
            ProcessSessionWindowsAndNotify(&windows_, active_window_id_);
        delete this;
-@@ -1197,6 +1236,7 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
+@@ -1203,6 +1242,7 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
          session_storage_namespace.get(), tab.user_agent_override,
          tab.extra_data, true /* from_session_restore */, is_active_browser);
-     DCHECK(web_contents);
+     CHECK(web_contents, base::NotFatalUntil::M163);
 +    blanc_prototype::RestoreTabIdentity(web_contents, tab.extra_data);
  
-     RestoredTab restored_tab(web_contents, is_selected_tab,
-                              tab.extension_app_id.empty(), tab.pinned,
-@@ -1399,6 +1439,7 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
-     base::TimeTicks now = base::TimeTicks::Now();
+     // `AddRestoredTab()` assigns a fresh `SessionID` to `web_contents`, so
+     // re-key any cached page content from the pre-restore `tab.tab_id` on
+@@ -1425,6 +1465,7 @@ class SessionRestoreImpl : public BrowserCollectionObserver {
      BrowserWindowInterface* browser_window =
-         CreateBrowserWindow(std::move(params));
+         waap::CreateBrowserWindowAndRecordCreationSource(
+             std::move(params), waap::NewWindowCreationSource::kSessionRestore);
 +    blanc_prototype::RestoreWindowIdentity(browser_window, extra_data);
-     if (auto* manager =
-             InitialWebUIWindowMetricsManager::From(browser_window)) {
-       manager->SetWindowCreationInfo(
+     g_is_any_session_restored = true;
+     return browser_window;
+   }
 diff --git a/chrome/browser/sessions/session_service.cc b/chrome/browser/sessions/session_service.cc
-index 415c0e3..07c48d9 100644
+index 7948634..2f28dde 100644
 --- a/chrome/browser/sessions/session_service.cc
 +++ b/chrome/browser/sessions/session_service.cc
 @@ -443,6 +443,10 @@ void SessionService::WindowClosing(SessionID window_id) {
@@ -52102,7 +52102,7 @@ index 415c0e3..07c48d9 100644
    }
  }
 diff --git a/chrome/browser/sessions/session_service_base.cc b/chrome/browser/sessions/session_service_base.cc
-index ee887ad..a20252b 100644
+index 59f610a..7a539fa 100644
 --- a/chrome/browser/sessions/session_service_base.cc
 +++ b/chrome/browser/sessions/session_service_base.cc
 @@ -2,6 +2,7 @@
@@ -52114,7 +52114,7 @@ index ee887ad..a20252b 100644
  
  #include <stddef.h>
 @@ -192,6 +193,11 @@ SessionServiceBase::~SessionServiceBase() {
-   DCHECK(command_storage_manager_ == nullptr);
+   CHECK(command_storage_manager_ == nullptr, base::NotFatalUntil::M163);
  }
  
 +void SessionServiceBase::SaveAndFlushSession(
@@ -52125,7 +52125,7 @@ index ee887ad..a20252b 100644
  void SessionServiceBase::AddObserver(SessionServiceBaseObserver* observer) {
    session_service_base_observers_.AddObserver(observer);
  }
-@@ -616,15 +622,38 @@ void SessionServiceBase::BuildCommandsForTab(
+@@ -617,15 +623,38 @@ void SessionServiceBase::BuildCommandsForTab(
    sessions::SessionTabHelper* session_tab_helper =
        sessions::SessionTabHelper::FromWebContents(tab);
    const SessionID session_id(session_tab_helper->session_id());
@@ -52166,7 +52166,7 @@ index ee887ad..a20252b 100644
    const int pending_index = tab->GetController().GetPendingEntryIndex();
    if (tab_to_available_range) {
      (*tab_to_available_range)[session_id] =
-@@ -645,7 +674,7 @@ void SessionServiceBase::BuildCommandsForTab(
+@@ -646,7 +675,7 @@ void SessionServiceBase::BuildCommandsForTab(
    }
  
    for (int i = min_index; i < max_index; ++i) {
@@ -52174,8 +52174,8 @@ index ee887ad..a20252b 100644
 +    NavigationEntry* entry = pending_initial ? pending : (i == pending_index)
                                   ? tab->GetController().GetPendingEntry()
                                   : tab->GetController().GetEntryAtIndex(i);
-     DCHECK(entry);
-@@ -655,7 +684,10 @@ void SessionServiceBase::BuildCommandsForTab(
+     CHECK(entry, base::NotFatalUntil::M163);
+@@ -656,7 +685,10 @@ void SessionServiceBase::BuildCommandsForTab(
        // associated with any navigation and will just result in about:blank on
        // session restore.
        const SerializedNavigationEntry navigation =
@@ -52187,10 +52187,10 @@ index ee887ad..a20252b 100644
        command_storage_manager()->AppendRebuildCommand(
            CreateUpdateTabNavigationCommand(session_id, navigation));
      }
-@@ -689,6 +721,12 @@ void SessionServiceBase::BuildCommandsForBrowser(
-   DCHECK(is_saving_enabled_);
-   DCHECK(browser);
-   DCHECK(browser->GetSessionID().is_valid());
+@@ -690,6 +722,12 @@ void SessionServiceBase::BuildCommandsForBrowser(
+   CHECK(is_saving_enabled_, base::NotFatalUntil::M163);
+   CHECK(browser, base::NotFatalUntil::M163);
+   CHECK(browser->GetSessionID().is_valid(), base::NotFatalUntil::M163);
 +  const auto identity = blanc_prototype::WindowIdentity(browser);
 +  if (!identity.empty()) {
 +    command_storage_manager()->AppendRebuildCommand(
@@ -52214,10 +52214,10 @@ index f13a8a5..0558bd9 100644
    void RemoveObserver(SessionServiceBaseObserver* observer);
  
 diff --git a/chrome/browser/ui/BUILD.gn b/chrome/browser/ui/BUILD.gn
-index 0772e0c..cb534c7 100644
+index 9469400..4b4f563 100644
 --- a/chrome/browser/ui/BUILD.gn
 +++ b/chrome/browser/ui/BUILD.gn
-@@ -977,6 +977,7 @@ if (!is_android) {
+@@ -970,6 +970,7 @@ if (!is_android) {
        "//extensions/buildflags",
        "//pdf:features",
        "//printing/buildflags",
@@ -52226,7 +52226,7 @@ index 0772e0c..cb534c7 100644
        "//ui/base",
        "//ui/base:types",
 diff --git a/chrome/browser/ui/browser_command_controller.cc b/chrome/browser/ui/browser_command_controller.cc
-index afc3f64..b834d54 100644
+index 9c46985..4fbeb1c 100644
 --- a/chrome/browser/ui/browser_command_controller.cc
 +++ b/chrome/browser/ui/browser_command_controller.cc
 @@ -3,6 +3,7 @@
@@ -52245,7 +52245,7 @@ index afc3f64..b834d54 100644
    return WindowFeatureController::From(browser_)->SupportsWindowFeature(
        WindowFeatureController::WindowFeature::kFeatureLocationBar);
  }
-@@ -2350,10 +2352,14 @@ void BrowserCommandController::UpdateCommandsForZoomState() {
+@@ -2392,10 +2394,14 @@ void BrowserCommandController::UpdateCommandsForZoomState() {
    if (!contents) {
      return;
    }
@@ -52261,10 +52261,10 @@ index afc3f64..b834d54 100644
 +  command_updater_->UpdateCommandEnabled(IDC_ZOOM_MINUS,
 +                                         blanc_zoom || CanZoomOut(contents));
  
-   if (const auto* zoom_controller =
-           zoom::ZoomController::FromWebContents(contents)) {
+   if (zoom_controller) {
+     if (auto* const zoom_action = FindAction(kActionZoomNormal, browser_)) {
 diff --git a/chrome/browser/ui/browser_commands.cc b/chrome/browser/ui/browser_commands.cc
-index 224dc66..90e1027 100644
+index 99a8ccd..917eac7 100644
 --- a/chrome/browser/ui/browser_commands.cc
 +++ b/chrome/browser/ui/browser_commands.cc
 @@ -3,8 +3,10 @@
@@ -52278,7 +52278,7 @@ index 224dc66..90e1027 100644
  #include <memory>
  #include <numeric>
  #include <optional>
-@@ -200,6 +202,7 @@
+@@ -202,6 +204,7 @@
  #include "content/public/browser/navigation_controller.h"
  #include "content/public/browser/navigation_entry.h"
  #include "content/public/browser/page_navigator.h"
@@ -52286,15 +52286,15 @@ index 224dc66..90e1027 100644
  #include "content/public/browser/render_view_host.h"
  #include "content/public/browser/render_widget_host_view.h"
  #include "content/public/browser/web_contents.h"
-@@ -210,6 +213,7 @@
+@@ -212,6 +215,7 @@
  #include "pdf/buildflags.h"
  #include "printing/buildflags/buildflags.h"
  #include "rlz/buildflags/buildflags.h"
 +#include "third_party/blink/public/common/page/page_zoom.h"
+ #include "third_party/metrics_proto/omnibox_event.pb.h"
  #include "third_party/omnibox_proto/chrome_aim_entry_point.pb.h"
  #include "ui/base/clipboard/clipboard.h"
- #include "ui/base/clipboard/clipboard_buffer.h"
-@@ -1392,8 +1396,11 @@ content::WebContents& NewTab(BrowserWindowInterface* browser,
+@@ -1389,8 +1393,11 @@ content::WebContents& NewTab(BrowserWindowInterface* browser,
  
    if (WindowFeatureController::From(browser)->SupportsWindowFeature(
            WindowFeatureController::WindowFeature::kFeatureTabStrip)) {
@@ -52308,7 +52308,7 @@ index 224dc66..90e1027 100644
    }
  
    ScopedTabbedBrowserDisplayer displayer(browser->GetProfile());
-@@ -1584,6 +1591,7 @@ void MoveTabPrevious(BrowserWindowInterface* browser) {
+@@ -1587,6 +1594,7 @@ void MoveTabPrevious(BrowserWindowInterface* browser) {
  void SelectNumberedTab(BrowserWindowInterface* browser,
                         int index,
                         TabStripUserGestureDetails gesture_detail) {
@@ -52316,7 +52316,7 @@ index 224dc66..90e1027 100644
    TabStripModel* model = browser->GetTabStripModel();
    std::optional<tab_groups::TabGroupId> focused_group =
        model->GetFocusedGroup();
-@@ -1604,6 +1612,7 @@ void SelectNumberedTab(BrowserWindowInterface* browser,
+@@ -1607,6 +1615,7 @@ void SelectNumberedTab(BrowserWindowInterface* browser,
  
  void SelectLastTab(BrowserWindowInterface* browser,
                     TabStripUserGestureDetails gesture_detail) {
@@ -52324,7 +52324,7 @@ index 224dc66..90e1027 100644
    TabStripModel* model = browser->GetTabStripModel();
    std::optional<tab_groups::TabGroupId> focused_group =
        model->GetFocusedGroup();
-@@ -2059,6 +2068,8 @@ void Exit() {
+@@ -2065,6 +2074,8 @@ void Exit() {
  }
  
  void BookmarkCurrentTab(BrowserWindowInterface* browser) {
@@ -52333,7 +52333,7 @@ index 224dc66..90e1027 100644
    base::RecordAction(base::UserMetricsAction("Star"));
    BookmarkModel* model =
        BookmarkModelFactory::GetForBrowserContext(browser->GetProfile());
-@@ -2512,6 +2523,7 @@ void RouteMediaInvokedFromAppMenu(BrowserWindowInterface* browser) {
+@@ -2518,6 +2529,7 @@ void RouteMediaInvokedFromAppMenu(BrowserWindowInterface* browser) {
  }
  
  void Find(BrowserWindowInterface* browser) {
@@ -52341,7 +52341,7 @@ index 224dc66..90e1027 100644
    base::RecordAction(UserMetricsAction("Find"));
    FindInPage(browser, false, true);
  }
-@@ -2529,6 +2541,7 @@ void FindPrevious(BrowserWindowInterface* browser) {
+@@ -2535,6 +2547,7 @@ void FindPrevious(BrowserWindowInterface* browser) {
  void FindInPage(BrowserWindowInterface* browser,
                  bool find_next,
                  bool forward_direction) {
@@ -52349,7 +52349,7 @@ index 224dc66..90e1027 100644
    FindBarController::From(browser)->Show(find_next, forward_direction);
  }
  
-@@ -2645,8 +2658,36 @@ void CloseFind(BrowserWindowInterface* browser) {
+@@ -2648,8 +2661,36 @@ void CloseFind(BrowserWindowInterface* browser) {
  }
  
  void Zoom(BrowserWindowInterface* browser, content::PageZoom zoom) {
@@ -52388,7 +52388,7 @@ index 224dc66..90e1027 100644
  }
  
  namespace {
-@@ -2697,6 +2738,8 @@ void FocusToolbar(BrowserWindowInterface* browser) {
+@@ -2700,6 +2741,8 @@ void FocusToolbar(BrowserWindowInterface* browser) {
  }
  
  void FocusLocationBar(BrowserWindowInterface* browser) {
@@ -52398,7 +52398,7 @@ index 224dc66..90e1027 100644
    BrowserWindow::FromBrowser(browser)->SetFocusToLocationBar(true);
    ActivateWindowAfterFocusCommand(browser);
 diff --git a/chrome/browser/ui/browser_live_tab_context.cc b/chrome/browser/ui/browser_live_tab_context.cc
-index cc8786f..fc4000e 100644
+index cfca5cf..ef8e5a8 100644
 --- a/chrome/browser/ui/browser_live_tab_context.cc
 +++ b/chrome/browser/ui/browser_live_tab_context.cc
 @@ -2,6 +2,7 @@
@@ -52409,7 +52409,7 @@ index cc8786f..fc4000e 100644
  #include "chrome/browser/ui/browser_live_tab_context.h"
  
  #include <algorithm>
-@@ -200,6 +201,13 @@ std::map<std::string, std::string> BrowserLiveTabContext::GetExtraDataForTab(
+@@ -199,6 +200,13 @@ std::map<std::string, std::string> BrowserLiveTabContext::GetExtraDataForTab(
      int index) const {
    std::map<std::string, std::string> extra_data;
    tabs::TabInterface* const tab = tab_strip_model_->GetTabAtIndex(index);
@@ -52423,7 +52423,7 @@ index cc8786f..fc4000e 100644
  
    glic::PopulateGlicExtraData(tab, &extra_data);
    if (auto* contextual_tasks_controller =
-@@ -214,6 +222,8 @@ std::map<std::string, std::string> BrowserLiveTabContext::GetExtraDataForTab(
+@@ -213,6 +221,8 @@ std::map<std::string, std::string> BrowserLiveTabContext::GetExtraDataForTab(
  std::map<std::string, std::string>
  BrowserLiveTabContext::GetExtraDataForWindow() const {
    std::map<std::string, std::string> data;
@@ -52432,7 +52432,7 @@ index cc8786f..fc4000e 100644
  
    auto* controller =
        tabs::VerticalTabStripStateController::From(&browser_.get());
-@@ -461,6 +471,7 @@ sessions::LiveTab* BrowserLiveTabContext::AddRestoredTab(
+@@ -460,6 +470,7 @@ sessions::LiveTab* BrowserLiveTabContext::AddRestoredTab(
    }
  
    CHECK(web_contents);
@@ -52440,7 +52440,7 @@ index cc8786f..fc4000e 100644
  
    if (performance_manager::policies::CanScheduleLoadForRestoredTabs()) {
      performance_manager::policies::ScheduleLoadForRestoredTabs({web_contents});
-@@ -486,6 +497,7 @@ sessions::LiveTab* BrowserLiveTabContext::ReplaceRestoredTab(
+@@ -485,6 +496,7 @@ sessions::LiveTab* BrowserLiveTabContext::ReplaceRestoredTab(
        &*browser_, tab.navigations, tab.normalized_navigation_index(),
        tab.extension_app_id, storage_namespace, tab.user_agent_override,
        tab.extra_data, false /* from_session_restore */);
@@ -52448,7 +52448,7 @@ index cc8786f..fc4000e 100644
    return sessions::ContentLiveTab::GetOrCreateForWebContents(web_contents);
  }
  
-@@ -581,6 +593,7 @@ sessions::LiveTabContext* BrowserLiveTabContext::Create(
+@@ -580,6 +592,7 @@ sessions::LiveTabContext* BrowserLiveTabContext::Create(
  
    BrowserWindowInterface* browser =
        CreateBrowserWindow(std::move(*create_params));
@@ -52457,7 +52457,7 @@ index cc8786f..fc4000e 100644
    return BrowserLiveTabContext::From(browser);
  }
 diff --git a/chrome/browser/ui/browser_tab_restorer.cc b/chrome/browser/ui/browser_tab_restorer.cc
-index bf45669..36f3027 100644
+index 28f3976..2c54b94 100644
 --- a/chrome/browser/ui/browser_tab_restorer.cc
 +++ b/chrome/browser/ui/browser_tab_restorer.cc
 @@ -2,6 +2,7 @@
@@ -52468,7 +52468,7 @@ index bf45669..36f3027 100644
  #include "base/memory/ptr_util.h"
  #include "base/memory/raw_ptr.h"
  #include "base/metrics/user_metrics.h"
-@@ -100,6 +101,7 @@ void BrowserTabRestorer::OnBrowserRemoved(BrowserWindowInterface* browser) {
+@@ -106,6 +107,7 @@ void BrowserTabRestorer::OnBrowserRemoved(BrowserWindowInterface* browser) {
  }  // namespace
  
  void RestoreTab(BrowserWindowInterface* browser) {
@@ -52477,10 +52477,10 @@ index bf45669..36f3027 100644
  
    sessions::TabRestoreService* service =
 diff --git a/chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.cc b/chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.cc
-index 713a69f..373a5b9 100644
+index 5c65c60..6512e89 100644
 --- a/chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.cc
 +++ b/chrome/browser/ui/omnibox/omnibox_everywhere/omnibox_everywhere_controller.cc
-@@ -278,7 +278,7 @@ void OmniboxEverywhereController::PersistTargetProfilePath(
+@@ -302,7 +302,7 @@ void OmniboxEverywhereController::PersistTargetProfilePath(
  }
  
  bool OmniboxEverywhereController::IsEnabled() const {
@@ -52490,10 +52490,10 @@ index 713a69f..373a5b9 100644
  
  bool OmniboxEverywhereController::IsHotkeyEnabled() const {
 diff --git a/chrome/browser/ui/omnibox/omnibox_next_features.cc b/chrome/browser/ui/omnibox/omnibox_next_features.cc
-index 699c822..1bf51eb 100644
+index 6a59aed..3ceb24f 100644
 --- a/chrome/browser/ui/omnibox/omnibox_next_features.cc
 +++ b/chrome/browser/ui/omnibox/omnibox_next_features.cc
-@@ -415,20 +415,7 @@ bool ShouldCreateAimPopupPresenter(Profile* profile) {
+@@ -429,20 +429,7 @@ bool ShouldCreateAimPopupPresenter(Profile* profile) {
  }
  
  bool IsOmniboxEverywhereEligible(Profile* profile) {
@@ -52516,10 +52516,10 @@ index 699c822..1bf51eb 100644
  
  bool IsOmniboxEverywhereEnabled(Profile* profile) {
 diff --git a/chrome/browser/ui/startup/startup_browser_creator.cc b/chrome/browser/ui/startup/startup_browser_creator.cc
-index 0c7f221..11a4652 100644
+index fa99573..75d2655 100644
 --- a/chrome/browser/ui/startup/startup_browser_creator.cc
 +++ b/chrome/browser/ui/startup/startup_browser_creator.cc
-@@ -976,7 +976,12 @@ SessionStartupPref StartupBrowserCreator::GetSessionStartupPref(
+@@ -975,7 +975,12 @@ SessionStartupPref StartupBrowserCreator::GetSessionStartupPref(
    // behavior (sync promo, welcome page) is consistently invoked.
    // This applies only if the pref is still at its default and has not been
    // set by the user, managed prefs or policy.
@@ -52534,7 +52534,7 @@ index 0c7f221..11a4652 100644
    }
  
 diff --git a/chrome/browser/ui/startup/startup_browser_creator_impl.cc b/chrome/browser/ui/startup/startup_browser_creator_impl.cc
-index 1d9b0f0..9f79288 100644
+index 76fae29..c537ea1 100644
 --- a/chrome/browser/ui/startup/startup_browser_creator_impl.cc
 +++ b/chrome/browser/ui/startup/startup_browser_creator_impl.cc
 @@ -3,6 +3,7 @@
@@ -52543,19 +52543,20 @@ index 1d9b0f0..9f79288 100644
  #include "chrome/browser/ui/startup/startup_browser_creator_impl.h"
 +#include "chrome/browser/lifetime/browser_shutdown.h"
  
- #include <stddef.h>
- 
-@@ -15,6 +16,9 @@
- #include "base/auto_reset.h"
- #include "base/command_line.h"
+ #include <algorithm>
+ #include <memory>
+@@ -18,7 +19,10 @@
+ #include "base/files/file_path.h"
  #include "base/functional/bind.h"
+ #include "base/not_fatal_until.h"
 +#include "base/task/single_thread_task_runner.h"
+ #include "base/time/time.h"
 +#include "components/keep_alive_registry/keep_alive_types.h"
 +#include "components/keep_alive_registry/scoped_keep_alive.h"
- #include "base/supports_user_data.h"
  #include "base/version.h"
  #include "build/build_config.h"
-@@ -590,19 +594,53 @@ void StartupBrowserCreatorImpl::DetermineURLsAndLaunch(
+ #include "chrome/browser/apps/platform_apps/install_chrome_app.h"
+@@ -596,19 +600,53 @@ void StartupBrowserCreatorImpl::DetermineURLsAndLaunch(
          restore_tabbed_browser);
    }
  
@@ -52566,9 +52567,9 @@ index 1d9b0f0..9f79288 100644
 -  tab_groups::MaybeShowSharedTabGroupVersionUpToDateToast(browser);
 -
 -  if (base::FeatureList::IsEnabled(features::kNonMilestoneUpdateToast)) {
--    std::string current_version_string =
+-    std::string_view current_version_string =
 -        current_chrome_version_string_for_testing_.has_value()
--            ? current_chrome_version_string_for_testing_.value()
+-            ? std::string_view(*current_chrome_version_string_for_testing_)
 -            : CHROME_VERSION_STRING;
 -    MaybeShowNonMilestoneUpdateToast(browser, current_version_string);
 +  auto browser_ready = base::BindOnce(
@@ -52621,7 +52622,7 @@ index 1d9b0f0..9f79288 100644
  }
  
  StartupBrowserCreatorImpl::DetermineStartupTabsResult::
-@@ -767,7 +805,7 @@ BrowserWindowInterface* StartupBrowserCreatorImpl::RestoreOrCreateBrowser(
+@@ -773,7 +811,7 @@ BrowserWindowInterface* StartupBrowserCreatorImpl::RestoreOrCreateBrowser(
  
      BrowserWindowInterface* browser_window = SessionRestore::RestoreSession(
          profile_, nullptr, restore_options, tabs);
@@ -52631,7 +52632,7 @@ index 1d9b0f0..9f79288 100644
      }
    } else if (behavior == BrowserOpenBehavior::USE_EXISTING ||
 diff --git a/chrome/browser/ui/views/extensions/extensions_toolbar_button.cc b/chrome/browser/ui/views/extensions/extensions_toolbar_button.cc
-index 9b10cb8..db35f12 100644
+index 8fc2755..c4fed20 100644
 --- a/chrome/browser/ui/views/extensions/extensions_toolbar_button.cc
 +++ b/chrome/browser/ui/views/extensions/extensions_toolbar_button.cc
 @@ -3,6 +3,7 @@
@@ -52701,7 +52702,7 @@ index 9b10cb8..db35f12 100644
    if (extensions_menu_coordinator_ &&
        extensions_menu_coordinator_->IsShowing()) {
      extensions_menu_coordinator_->Hide();
-@@ -182,7 +214,18 @@ bool ExtensionsToolbarButton::GetExtensionsMenuShowing() const {
+@@ -186,7 +218,18 @@ bool ExtensionsToolbarButton::GetExtensionsMenuShowing() const {
    return pressed_lock_.get();
  }
  
@@ -52733,7 +52734,7 @@ index 917c20f..132e784 100644
    // A lock to keep the button pressed when a popup is visible.
    std::unique_ptr<views::MenuButtonController::PressedLock> pressed_lock_;
 diff --git a/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc b/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc
-index dce94a0..bb30916 100644
+index f2cd1d7..0748359 100644
 --- a/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc
 +++ b/chrome/browser/ui/views/extensions/extensions_toolbar_desktop.cc
 @@ -3,6 +3,7 @@
@@ -52744,7 +52745,7 @@ index dce94a0..bb30916 100644
  
  #include <algorithm>
  #include <memory>
-@@ -518,6 +519,11 @@ void ExtensionsToolbarDesktop::UpdateIconVisibility(
+@@ -519,6 +520,11 @@ void ExtensionsToolbarDesktop::UpdateIconVisibility(
      return;
    }
  
@@ -52756,7 +52757,7 @@ index dce94a0..bb30916 100644
    // Popped out action uses a flex rule that causes it to always be visible
    // regardless of space; default for actions is to drop out when there is
    // insufficient space. So if an action is being forced visible, it should have
-@@ -600,7 +606,8 @@ bool ExtensionsToolbarDesktop::IsVisible() const {
+@@ -601,7 +607,8 @@ bool ExtensionsToolbarDesktop::IsVisible() const {
  
  bool ExtensionsToolbarDesktop::IsActionVisibleOnToolbar(
      const std::string& action_id) const {
@@ -52766,7 +52767,7 @@ index dce94a0..bb30916 100644
  }
  
  void ExtensionsToolbarDesktop::UndoPopOut() {
-@@ -679,7 +686,8 @@ void ExtensionsToolbarDesktop::CreateActionViewForId(
+@@ -681,7 +688,8 @@ void ExtensionsToolbarDesktop::CreateActionViewForId(
    CHECK(icon);
  
    // Set visibility before adding to prevent extraneous animation.
@@ -52776,7 +52777,7 @@ index dce94a0..bb30916 100644
                     model_->IsActionPinned(action_id));
    views::FocusRing::Get(icon.get())->SetOutsetFocusRingDisabled(true);
    ObserveButton(icon.get());
-@@ -1222,6 +1230,8 @@ void ExtensionsToolbarDesktop::UpdateControlsVisibility() {
+@@ -1227,6 +1235,8 @@ void ExtensionsToolbarDesktop::UpdateControlsVisibility() {
  
    UpdateExtensionsButton(*web_contents);
    UpdateRequestAccessButton(*web_contents);
@@ -52785,7 +52786,7 @@ index dce94a0..bb30916 100644
  }
  
  void ExtensionsToolbarDesktop::CloseSidePanelButtonPressed() {
-@@ -1259,6 +1269,7 @@ views::FocusManager* ExtensionsToolbarDesktop::GetFocusManagerForAccelerator() {
+@@ -1264,6 +1274,7 @@ views::FocusManager* ExtensionsToolbarDesktop::GetFocusManagerForAccelerator() {
  
  views::BubbleAnchor ExtensionsToolbarDesktop::GetReferenceButtonForPopup(
      const extensions::ExtensionId& action_id) {
@@ -52794,7 +52795,7 @@ index dce94a0..bb30916 100644
    return view ? view->GetReferenceButtonForPopup()
                : GetExtensionsButtonAnchor();
 diff --git a/chrome/browser/ui/views/frame/BUILD.gn b/chrome/browser/ui/views/frame/BUILD.gn
-index 4123175..8a2378b 100644
+index 70eb3d5..005c4d8 100644
 --- a/chrome/browser/ui/views/frame/BUILD.gn
 +++ b/chrome/browser/ui/views/frame/BUILD.gn
 @@ -707,7 +707,7 @@ source_set("windows_icon_painter") {
@@ -52840,7 +52841,7 @@ index 8615eb6..58e13a0 100644
  #include "base/containers/fixed_flat_map.h"
  #include "base/functional/bind.h"
  #include "base/i18n/rtl.h"
-@@ -478,6 +479,12 @@ FullscreenToolbarStyle GetUserPreferredToolbarStyle(bool always_show) {
+@@ -478,6 +479,12 @@ BrowserFrameViewMac::GetCaptionButtonBounds() const {
      return result;
    }
  
@@ -52854,7 +52855,7 @@ index 8615eb6..58e13a0 100644
    // These are empirically determined; feel free to change them if they're
    // not precise.
 diff --git a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
-index fd4cc9a..51d4099 100644
+index 261d990..4ee702e 100644
 --- a/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
 +++ b/chrome/browser/ui/views/frame/browser_native_widget_mac.mm
 @@ -3,6 +3,7 @@
@@ -52865,7 +52866,7 @@ index fd4cc9a..51d4099 100644
  
  #include <array>
  
-@@ -276,6 +277,12 @@ - (NSTouchBar*)makeTouchBar {
+@@ -276,6 +277,12 @@ int32_t BrowserNativeWidgetMac::SheetOffsetY() {
  void BrowserNativeWidgetMac::GetWindowFrameTitlebarHeight(
      bool* override_titlebar_height,
      float* titlebar_height) {
@@ -52879,7 +52880,7 @@ index fd4cc9a..51d4099 100644
        browser_view_->browser_widget()->GetFrameView()) {
      *override_titlebar_height = true;
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index 7b568f6..97e70ef 100644
+index 0dabb77..af9c3e6 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
 @@ -83,6 +83,7 @@
@@ -52890,7 +52891,7 @@ index 7b568f6..97e70ef 100644
  #include "chrome/browser/ui/browser_element_identifiers.h"
  #include "chrome/browser/ui/browser_init_state.h"
  #include "chrome/browser/ui/browser_tabstrip.h"
-@@ -1039,6 +1040,8 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
+@@ -1041,6 +1042,8 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
    find_bar_host_view_ = AddChildView(std::make_unique<View>());
  
    window_scrim_view_ = AddChildView(std::make_unique<ScrimView>());
@@ -52899,7 +52900,7 @@ index 7b568f6..97e70ef 100644
    window_scrim_view_->layer()->SetName("BrowserView:WindowScrimView");
  
    side_panel_content_transition_scrim_view_ =
-@@ -1120,6 +1123,7 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
+@@ -1122,6 +1125,7 @@ BrowserView::BrowserView(BrowserWindowInterface* browser)
  }
  
  BrowserView::~BrowserView() {
@@ -52907,7 +52908,7 @@ index 7b568f6..97e70ef 100644
    // Remove the layout manager to avoid dangling. This needs to be earlier than
    // other cleanups that destroy views referenced in the layout manager.
    SetLayoutManager(nullptr);
-@@ -1437,6 +1441,7 @@ bool BrowserView::ShouldDrawTabStrokes() const {
+@@ -1453,6 +1457,7 @@ bool BrowserView::ShouldDrawTabStrokes() const {
  }
  
  bool BrowserView::ShouldDrawTabStrip() const {
@@ -52915,7 +52916,7 @@ index 7b568f6..97e70ef 100644
    // Return false if this window does not normally display a tabstrip or if the
    // tabstrip is currently hidden, e.g. because we're in fullscreen.
    if (!WindowFeatureController::From(browser_)->SupportsWindowFeature(
-@@ -2337,7 +2342,7 @@ void BrowserView::FullscreenStateChanged() {
+@@ -2392,7 +2397,7 @@ void BrowserView::FullscreenStateChanged() {
  }
  
  ToolbarButtonProvider* BrowserView::toolbar_button_provider() {
@@ -52924,7 +52925,7 @@ index 7b568f6..97e70ef 100644
  }
  
  autofill::AutofillBubbleHandler* BrowserView::GetAutofillBubbleHandler() {
-@@ -3040,6 +3045,7 @@ void BrowserView::MaybeShowReadingListInSidePanelIPH() {
+@@ -3096,6 +3101,7 @@ void BrowserView::MaybeShowReadingListInSidePanelIPH() {
  }
  
  bool BrowserView::IsBookmarkBarVisible() const {
@@ -52932,7 +52933,7 @@ index 7b568f6..97e70ef 100644
    if (!WindowFeatureController::From(browser_)->SupportsWindowFeature(
            WindowFeatureController::WindowFeature::kFeatureBookmarkBar)) {
      return false;
-@@ -3078,6 +3084,7 @@ void BrowserView::DisableTabStripEditingForTesting() {
+@@ -3134,6 +3140,7 @@ void BrowserView::DisableTabStripEditingForTesting() {
  }
  
  bool BrowserView::IsToolbarVisible() const {
@@ -52940,7 +52941,7 @@ index 7b568f6..97e70ef 100644
  #if BUILDFLAG(IS_MAC)
    // Immersive full screen makes it possible to display the toolbar when
    // kShowFullscreenToolbar is not set.
-@@ -3105,6 +3112,7 @@ bool BrowserView::IsToolbarShowing() const {
+@@ -3161,6 +3168,7 @@ bool BrowserView::IsToolbarShowing() const {
  }
  
  bool BrowserView::IsLocationBarVisible() const {
@@ -52948,7 +52949,7 @@ index 7b568f6..97e70ef 100644
    return WindowFeatureController::From(browser_)->SupportsWindowFeature(
               WindowFeatureController::WindowFeature::kFeatureLocationBar) &&
           GetLocationBar()->IsVisible();
-@@ -4632,6 +4640,12 @@ views::CloseRequestResult BrowserView::OnWindowCloseRequested() {
+@@ -4695,6 +4703,12 @@ views::CloseRequestResult BrowserView::OnWindowCloseRequested() {
  }
  
  int BrowserView::NonClientHitTest(const gfx::Point& point) {
@@ -52961,7 +52962,7 @@ index 7b568f6..97e70ef 100644
  #if BUILDFLAG(IS_MAC)
    // The top container while in immersive fullscreen on macOS lives in another
    // Widget (OverlayWidgetMac). This means that BrowserView does not need to
-@@ -4908,6 +4922,8 @@ void BrowserView::Layout(PassKey) {
+@@ -4976,6 +4990,8 @@ void BrowserView::Layout(PassKey) {
    }
  
    LayoutSuperclass<views::View>(this);
@@ -52971,7 +52972,7 @@ index 7b568f6..97e70ef 100644
    // TODO(jamescook): Why was this in the middle of layout code?
    toolbar_->location_bar()->UpdateFocusBehavior(IsToolbarVisible());
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index b1ea4a6..42454a3 100644
+index 87b2cca..31ddc67 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 @@ -3,6 +3,7 @@
@@ -52982,7 +52983,7 @@ index b1ea4a6..42454a3 100644
  
  #include <algorithm>
  #include <memory>
-@@ -320,6 +321,10 @@ BrowserViewTabbedLayoutImpl::CalculateSeparatorInfo() const {
+@@ -324,6 +325,10 @@ BrowserViewTabbedLayoutImpl::CalculateSeparatorInfo() const {
        break;
    }
  
@@ -53053,7 +53054,7 @@ index a756f07..92bfaa3 100644
    for (auto& contents_container_view : contents_container_views_) {
      const bool is_active =
 diff --git a/chrome/browser/ui/webui/chrome_web_ui_configs.cc b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
-index 105d9e9..0e9c05c 100644
+index 4503ab6..307e8b8 100644
 --- a/chrome/browser/ui/webui/chrome_web_ui_configs.cc
 +++ b/chrome/browser/ui/webui/chrome_web_ui_configs.cc
 @@ -4,6 +4,8 @@
@@ -53106,10 +53107,10 @@ index 4380222..79f6246 100644
    const bool is_tabbed_window =
        CanSupportWindowFeature(WindowFeature::kFeatureTabStrip);
 diff --git a/chrome/common/chrome_isolated_world_ids.h b/chrome/common/chrome_isolated_world_ids.h
-index 846e477..7d62cd7 100644
+index a095f3c..e37c141 100644
 --- a/chrome/common/chrome_isolated_world_ids.h
 +++ b/chrome/common/chrome_isolated_world_ids.h
-@@ -27,6 +27,7 @@ enum ChromeIsolatedWorldIDs {
+@@ -33,6 +33,7 @@ enum ChromeIsolatedWorldIDs {
    // Numbers for isolated worlds for extensions are set in
    // extensions/renderer/script_injection.cc, and are are greater than or equal
    // to this number.
@@ -53118,7 +53119,7 @@ index 846e477..7d62cd7 100644
  };
  // LINT.ThenChange(//chrome/android/java/src/org/chromium/chrome/browser/common/ChromeIsolatedWorldIds.java)
 diff --git a/chrome/renderer/BUILD.gn b/chrome/renderer/BUILD.gn
-index dab2e49..e391a04 100644
+index 00fb18e..ae67ab4 100644
 --- a/chrome/renderer/BUILD.gn
 +++ b/chrome/renderer/BUILD.gn
 @@ -128,6 +128,7 @@ static_library("renderer") {
@@ -53130,7 +53131,7 @@ index dab2e49..e391a04 100644
      "//build:chromeos_buildflags",
      "//chrome:resources",
 diff --git a/chrome/renderer/chrome_content_renderer_client.cc b/chrome/renderer/chrome_content_renderer_client.cc
-index 7924129..0d09ecb 100644
+index 52f120d..cb339b9 100644
 --- a/chrome/renderer/chrome_content_renderer_client.cc
 +++ b/chrome/renderer/chrome_content_renderer_client.cc
 @@ -3,6 +3,10 @@
@@ -53144,7 +53145,7 @@ index 7924129..0d09ecb 100644
  
  #include <functional>
  #include <memory>
-@@ -1487,8 +1491,13 @@ ChromeContentRendererClient::CreateSpeechRecognitionClient(
+@@ -1508,8 +1512,13 @@ ChromeContentRendererClient::CreateSpeechRecognitionClient(
  }
  #endif  // BUILDFLAG(ENABLE_SPEECH_SERVICE)
  
@@ -53171,7 +53172,7 @@ index e5b851a..03c2cb3 100644
      "//build:chromeos_buildflags",
      "//chrome:resources",
 diff --git a/chrome/utility/services.cc b/chrome/utility/services.cc
-index 2dfe79c..a0d7159 100644
+index 648d54c..511c980 100644
 --- a/chrome/utility/services.cc
 +++ b/chrome/utility/services.cc
 @@ -3,6 +3,7 @@
@@ -53182,7 +53183,7 @@ index 2dfe79c..a0d7159 100644
  
  #include <memory>
  #include <utility>
-@@ -503,7 +504,12 @@ void RegisterElevatedMainThreadServices(mojo::ServiceFactory& services) {
+@@ -512,7 +513,12 @@ void RegisterElevatedMainThreadServices(mojo::ServiceFactory& services) {
  #endif
  }
  
@@ -53199,7 +53200,7 @@ diff --git a/components/os_crypt/common/keychain_password_mac.mm b/components/os
 index 212b930..e6c0876 100644
 --- a/components/os_crypt/common/keychain_password_mac.mm
 +++ b/components/os_crypt/common/keychain_password_mac.mm
-@@ -35,8 +35,8 @@
+@@ -35,8 +35,8 @@ namespace {
  const char kDefaultServiceName[] = "Chrome Safe Storage";
  const char kDefaultAccountName[] = "Chrome";
  #else
@@ -53222,7 +53223,7 @@ index ae93fe9..a3a54f3 100644
  #include "components/remote_cocoa/app_shim/native_widget_ns_window_bridge.h"
  #include "components/remote_cocoa/common/native_widget_ns_window_host.mojom.h"
  
-@@ -69,6 +70,8 @@ - (CGFloat)_titlebarHeight {
+@@ -69,6 +70,8 @@ WEAK_IMPORT_ATTRIBUTE
  }
  
  - (CGFloat)_minXTitlebarWidgetInset {
@@ -53232,7 +53233,7 @@ index ae93fe9..a3a54f3 100644
      // On macOS 26, position the leading window widget the same distance from
      // the leading edge of the window as it is from the top of the window. That
 diff --git a/components/sessions/content/content_serialized_navigation_builder.cc b/components/sessions/content/content_serialized_navigation_builder.cc
-index d6ec93a..522798e 100644
+index be94ba6..c7a5f4f 100644
 --- a/components/sessions/content/content_serialized_navigation_builder.cc
 +++ b/components/sessions/content/content_serialized_navigation_builder.cc
 @@ -21,6 +21,7 @@
@@ -53386,7 +53387,7 @@ index ef742bc..f15f4e0 100644
    void OnErrorWritingToFile();
  
 diff --git a/components/sessions/core/tab_restore_service.h b/components/sessions/core/tab_restore_service.h
-index 3095da1..16d0a6f 100644
+index 362678e..20cfcb9 100644
 --- a/components/sessions/core/tab_restore_service.h
 +++ b/components/sessions/core/tab_restore_service.h
 @@ -11,7 +11,7 @@
@@ -53398,7 +53399,7 @@ index 3095da1..16d0a6f 100644
  #include "base/time/time.h"
  #include "base/token.h"
  #include "base/uuid.h"
-@@ -165,6 +165,10 @@ class SESSIONS_EXPORT TabRestoreService : public KeyedService {
+@@ -181,6 +181,10 @@ class SESSIONS_EXPORT TabRestoreService : public KeyedService {
    // Deletes the last session.
    virtual void DeleteLastSession() = 0;
  
@@ -53410,7 +53411,7 @@ index 3095da1..16d0a6f 100644
    virtual bool IsRestoring() const = 0;
  };
 diff --git a/components/sessions/core/tab_restore_service_impl.cc b/components/sessions/core/tab_restore_service_impl.cc
-index 3b7a1b2..5fa4784 100644
+index 3c8a77e..a89dd45 100644
 --- a/components/sessions/core/tab_restore_service_impl.cc
 +++ b/components/sessions/core/tab_restore_service_impl.cc
 @@ -514,13 +514,11 @@ std::unique_ptr<sessions::tab_restore::Group> CreateGroupEntryFromCommand(
@@ -53431,7 +53432,7 @@ index 3b7a1b2..5fa4784 100644
    *session_id = SessionID::FromSerializedValue(fields.session_id);
    *num_tabs = fields.num_tabs;
  
-@@ -1156,6 +1154,8 @@ TabRestoreServiceImpl::PersistenceDelegate::CreateGroupCommand(
+@@ -1168,6 +1166,8 @@ TabRestoreServiceImpl::PersistenceDelegate::CreateGroupCommand(
    }
  
    pickle.WriteInt64(timestamp.ToDeltaSinceWindowsEpoch().InMicroseconds());
@@ -53440,7 +53441,7 @@ index 3b7a1b2..5fa4784 100644
  
    std::unique_ptr<SessionCommand> command =
        std::make_unique<SessionCommand>(kCommandCreateGroup, pickle);
-@@ -1927,6 +1927,14 @@ void TabRestoreServiceImpl::DeleteLastSession() {
+@@ -1951,6 +1951,14 @@ void TabRestoreServiceImpl::DeleteLastSession() {
    }
  }
  
@@ -53456,10 +53457,10 @@ index 3b7a1b2..5fa4784 100644
    return helper_.IsRestoring();
  }
 diff --git a/components/sessions/core/tab_restore_service_impl.h b/components/sessions/core/tab_restore_service_impl.h
-index 7ae1056..b1b7618 100644
+index c2238bc..89d38e7 100644
 --- a/components/sessions/core/tab_restore_service_impl.h
 +++ b/components/sessions/core/tab_restore_service_impl.h
-@@ -70,6 +70,7 @@ class SESSIONS_EXPORT TabRestoreServiceImpl : public TabRestoreService {
+@@ -76,6 +76,7 @@ class SESSIONS_EXPORT TabRestoreServiceImpl : public TabRestoreService {
    void LoadTabsFromLastSession() override;
    bool IsLoaded() const override;
    void DeleteLastSession() override;
@@ -53468,10 +53469,10 @@ index 7ae1056..b1b7618 100644
    void Shutdown() override;
  
 diff --git a/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm b/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm
-index a80c755..8c3385d 100644
+index 8108d93..a1bc3e3 100644
 --- a/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm
 +++ b/content/app_shim_remote_cocoa/web_contents_view_cocoa.mm
-@@ -156,6 +156,16 @@ - (instancetype)initWithViewsHostableView:(ui::ViewsHostableView*)v {
+@@ -160,6 +160,16 @@ gfx::PointF GetSanitizedFlippedPoint(NSPoint point, CGFloat height) {
    return self;
  }
  
@@ -53489,7 +53490,7 @@ index a80c755..8c3385d 100644
    // This probably isn't strictly necessary, but can't hurt.
    [self unregisterDraggedTypes];
 diff --git a/content/browser/devtools/devtools_url_loader_interceptor.cc b/content/browser/devtools/devtools_url_loader_interceptor.cc
-index 6bab10c..a96d471 100644
+index baaf473..5d77679 100644
 --- a/content/browser/devtools/devtools_url_loader_interceptor.cc
 +++ b/content/browser/devtools/devtools_url_loader_interceptor.cc
 @@ -35,6 +35,7 @@
@@ -53517,7 +53518,7 @@ index 6bab10c..a96d471 100644
    State state_ = kNotStarted;
    base::TimeTicks start_ticks_;
    base::Time start_time_;
-@@ -1456,6 +1460,7 @@ Response InterceptionJob::InnerContinueRequest(
+@@ -1468,6 +1472,7 @@ Response InterceptionJob::InnerContinueRequest(
      client_->OnReceiveResponse(std::move(response_metadata_->head),
                                 std::move(body_),
                                 std::move(response_metadata_->cached_metadata));
@@ -53525,7 +53526,7 @@ index 6bab10c..a96d471 100644
      response_metadata_.reset();
      client_receiver_.Resume();
      return Response::Success();
-@@ -1528,7 +1533,17 @@ void InterceptionJob::ApplyModificationsToRequest(
+@@ -1540,7 +1545,17 @@ void InterceptionJob::ApplyModificationsToRequest(
        }
        request->site_for_cookies = net::SiteForCookies::FromUrl(new_url);
        if (request->trusted_params) {
@@ -53544,7 +53545,7 @@ index 6bab10c..a96d471 100644
        }
      }
    }
-@@ -1578,6 +1593,7 @@ Response InterceptionJob::ProcessResponseOverride(
+@@ -1590,6 +1605,7 @@ Response InterceptionJob::ProcessResponseOverride(
    CHECK_LE(response_body_offset, body ? body->size() : 0,
             base::NotFatalUntil::M159);
    size_t body_size = body ? body->size() - response_body_offset : 0;
@@ -53552,7 +53553,7 @@ index 6bab10c..a96d471 100644
    response_metadata_ = std::make_unique<ResponseMetadata>();
    network::mojom::URLResponseHeadPtr& head = response_metadata_->head;
  
-@@ -1639,15 +1655,41 @@ Response InterceptionJob::ProcessResponseOverride(
+@@ -1651,15 +1667,41 @@ Response InterceptionJob::ProcessResponseOverride(
      if (redirect_url.is_valid()) {
        continue_after_cookies_set =
            base::BindOnce(&InterceptionJob::ProcessRedirectByClient,
@@ -53597,7 +53598,7 @@ index 6bab10c..a96d471 100644
  
    return Response::Success();
  }
-@@ -2021,6 +2063,7 @@ void InterceptionJob::FollowRedirect(
+@@ -2033,6 +2075,7 @@ void InterceptionJob::FollowRedirect(
    request_cookies_.reset();
  
    request->UpdateOnRedirect(info);
@@ -53605,7 +53606,7 @@ index 6bab10c..a96d471 100644
    response_metadata_.reset();
  
    UpdateCORSFlag();
-@@ -2085,6 +2128,7 @@ void InterceptionJob::OnReceiveResponse(
+@@ -2097,6 +2140,7 @@ void InterceptionJob::OnReceiveResponse(
         download_utils::IsDownload(/*browser_context=*/nullptr, request.url,
                                    head->headers.get(), head->mime_type));
  
@@ -53613,7 +53614,7 @@ index 6bab10c..a96d471 100644
    response_metadata_ = std::make_unique<ResponseMetadata>(std::move(head));
    response_metadata_->cached_metadata = std::move(cached_metadata);
  
-@@ -2096,6 +2140,7 @@ void InterceptionJob::OnReceiveRedirect(
+@@ -2108,6 +2152,7 @@ void InterceptionJob::OnReceiveRedirect(
      network::mojom::URLResponseHeadPtr head) {
    CHECK_EQ(State::kRequestSent, state_, base::NotFatalUntil::M159);
    state_ = State::kRedirectReceived;
@@ -53621,7 +53622,7 @@ index 6bab10c..a96d471 100644
    response_metadata_ = std::make_unique<ResponseMetadata>(head.Clone());
    response_metadata_->redirect_info =
        std::make_unique<net::RedirectInfo>(redirect_info);
-@@ -2170,6 +2215,7 @@ void InterceptionJob::OnComplete(
+@@ -2182,6 +2227,7 @@ void InterceptionJob::OnComplete(
        CompleteRequest(status);
        return;
      }
@@ -53630,10 +53631,10 @@ index 6bab10c..a96d471 100644
      response_metadata_->status = status;
      auto request_info = BuildRequestInfo(nullptr);
 diff --git a/content/browser/loader/navigation_url_loader_impl.cc b/content/browser/loader/navigation_url_loader_impl.cc
-index b6cca80..6985dd3 100644
+index b9cc368..13de27b 100644
 --- a/content/browser/loader/navigation_url_loader_impl.cc
 +++ b/content/browser/loader/navigation_url_loader_impl.cc
-@@ -2333,6 +2333,15 @@ NavigationURLLoaderImpl::CreateNetworkLoaderFactory(
+@@ -2335,6 +2335,15 @@ NavigationURLLoaderImpl::CreateNetworkLoaderFactory(
                        /*is_download=*/false, factory_builder,
                        /*factory_override=*/nullptr, &header_client);
  
@@ -53650,7 +53651,7 @@ index b6cca80..6985dd3 100644
    devtools_instrumentation::ApplyNetworkCookieControlsOverrides(
        devtools_params.agent_host(), devtools_cookie_overrides);
 diff --git a/content/browser/loader/url_loader_factory_utils.cc b/content/browser/loader/url_loader_factory_utils.cc
-index 11d6b84..29ec227 100644
+index c578871..94e7bfa 100644
 --- a/content/browser/loader/url_loader_factory_utils.cc
 +++ b/content/browser/loader/url_loader_factory_utils.cc
 @@ -3,6 +3,8 @@
@@ -53662,7 +53663,7 @@ index 11d6b84..29ec227 100644
  
  #include <variant>
  
-@@ -11,6 +13,10 @@
+@@ -14,6 +16,10 @@
  #include "net/cookies/cookie_setting_override.h"
  
  namespace content {
@@ -53673,7 +53674,7 @@ index 11d6b84..29ec227 100644
  namespace url_loader_factory {
  
  namespace {
-@@ -175,6 +181,31 @@ ContentClientParams& ContentClientParams::operator=(ContentClientParams&&) =
+@@ -182,6 +188,31 @@ ContentClientParams& ContentClientParams::operator=(ContentClientParams&&) =
      default;
  ContentClientParams::~ContentClientParams() = default;
  
@@ -53705,7 +53706,7 @@ index 11d6b84..29ec227 100644
  void ContentClientParams::Run(
      network::URLLoaderFactoryBuilder& factory_builder,
      ContentBrowserClient::URLLoaderFactoryType type,
-@@ -266,6 +297,10 @@ template <typename OutType, typename... FinishArgs>
+@@ -302,6 +333,10 @@ template <typename OutType, typename... FinishArgs>
              : nullptr);
    }
  
@@ -53717,23 +53718,22 @@ index 11d6b84..29ec227 100644
            terminal_params.TakeURLLoaderFactory()) {
      if (GetTestingInterceptor()) {
 diff --git a/content/browser/loader/url_loader_factory_utils.h b/content/browser/loader/url_loader_factory_utils.h
-index 41e0227..f2362b0 100644
+index aff2efb..cdea5b3 100644
 --- a/content/browser/loader/url_loader_factory_utils.h
 +++ b/content/browser/loader/url_loader_factory_utils.h
-@@ -76,6 +76,11 @@ class CONTENT_EXPORT ContentClientParams final {
-            network::mojom::URLLoaderFactoryOverridePtr* factory_override,
-            bool is_for_network_service);
- 
+@@ -79,6 +79,10 @@ class CONTENT_EXPORT ContentClientParams final {
+   RenderFrameHost* frame() const { return frame_; }
+   const url::Origin& request_initiator() const { return *request_initiator_; }
+   const net::IsolationInfo& isolation_info() const { return *isolation_info_; }
 +  // Append the blocker after request-mutating proxies, including overrides.
 +  void FinalizeBlancFactory(network::URLLoaderFactoryBuilder& factory_builder,
 +      network::mojom::URLLoaderFactoryOverridePtr* factory_override,
 +      ContentBrowserClient::URLLoaderFactoryType type);
-+
+ 
   private:
    raw_ptr<BrowserContext> browser_context_;
-   raw_ptr<RenderFrameHost> frame_;
 diff --git a/content/browser/renderer_host/render_frame_host_impl.cc b/content/browser/renderer_host/render_frame_host_impl.cc
-index 13ce537..0e6242a 100644
+index c88b43e..18239aa 100644
 --- a/content/browser/renderer_host/render_frame_host_impl.cc
 +++ b/content/browser/renderer_host/render_frame_host_impl.cc
 @@ -3,6 +3,7 @@
@@ -53744,7 +53744,7 @@ index 13ce537..0e6242a 100644
  
  #include <algorithm>
  #include <cstdint>
-@@ -403,6 +404,11 @@ BASE_FEATURE(kEnforceUserActivationForBeforeUnload,
+@@ -408,6 +409,11 @@ BASE_FEATURE(kEnforceUserActivationForBeforeUnload,
  }  // namespace features
  
  namespace content {
@@ -53796,7 +53796,7 @@ diff --git a/content/browser/web_contents/web_contents_view_mac.mm b/content/bro
 index 09380af..ec7df09 100644
 --- a/content/browser/web_contents/web_contents_view_mac.mm
 +++ b/content/browser/web_contents/web_contents_view_mac.mm
-@@ -774,6 +774,10 @@ void SetReadWritePermissionsForFile(base::File& file) {
+@@ -774,6 +774,10 @@ void WebContentsViewMac::DragPromisedFileTo(
  ////////////////////////////////////////////////////////////////////////////////
  // WebContentsViewMac, ViewsHostableView:
  
@@ -53811,7 +53811,7 @@ diff --git a/content/browser/web_contents/web_contents_view_mac_unittest.mm b/co
 index f5a3746..61a4d95 100644
 --- a/content/browser/web_contents/web_contents_view_mac_unittest.mm
 +++ b/content/browser/web_contents/web_contents_view_mac_unittest.mm
-@@ -266,6 +266,7 @@ void TearDown() override {
+@@ -266,6 +266,7 @@ TEST_F(WebContentsViewMacTest, DragPromisedFileTo_DownloadURL) {
  
  class TestViewsHost : public ui::ViewsHostableView::Host {
   public:
@@ -53857,10 +53857,10 @@ index eaf7d1e..fb32c40 100644
      GetContentClient()->browser()->CreateWebSocket(
          frame, std::move(factory), url, isolation_info_.site_for_cookies(),
 diff --git a/content/public/browser/BUILD.gn b/content/public/browser/BUILD.gn
-index debe2d1..09f6dbf 100644
+index 0851075..bdfaa25 100644
 --- a/content/public/browser/BUILD.gn
 +++ b/content/public/browser/BUILD.gn
-@@ -493,6 +493,7 @@ source_set("browser_sources") {
+@@ -492,6 +492,7 @@ source_set("browser_sources") {
      "visibility.h",
      "weak_document_ptr.cc",
      "weak_document_ptr.h",
@@ -53927,7 +53927,7 @@ index 8385e54..9eab693 100644
  }
  
 diff --git a/extensions/browser/script_executor.cc b/extensions/browser/script_executor.cc
-index 8f88930..7ace6df 100644
+index fbaee3a..63de42a 100644
 --- a/extensions/browser/script_executor.cc
 +++ b/extensions/browser/script_executor.cc
 @@ -3,6 +3,8 @@
@@ -53947,7 +53947,7 @@ index 8f88930..7ace6df 100644
  #include "content/public/browser/render_process_host.h"
  #include "content/public/browser/render_view_host.h"
  #include "content/public/browser/web_contents.h"
-@@ -458,6 +461,13 @@ std::string ScriptExecutor::GenerateInjectionKey(const mojom::HostID& host_id,
+@@ -477,6 +480,13 @@ std::string ScriptExecutor::GenerateInjectionKey(const mojom::HostID& host_id,
                              host_id.id.c_str(), base::FastHash(source));
  }
  
@@ -53961,7 +53961,7 @@ index 8f88930..7ace6df 100644
  void ScriptExecutor::ExecuteScript(
      const mojom::HostID& host_id,
      mojom::CodeInjectionPtr injection,
-@@ -467,7 +477,8 @@ void ScriptExecutor::ExecuteScript(
+@@ -486,7 +496,8 @@ void ScriptExecutor::ExecuteScript(
      mojom::RunLocation run_at,
      ScriptExecutor::ProcessType process_type,
      const GURL& webview_src,
@@ -53971,7 +53971,7 @@ index 8f88930..7ace6df 100644
    const Extension* extension = nullptr;
    if (host_id.type == mojom::HostID::HostType::kExtensions) {
      // Don't execute if the extension has been unloaded.
-@@ -505,7 +516,20 @@ void ScriptExecutor::ExecuteScript(
+@@ -524,7 +535,20 @@ void ScriptExecutor::ExecuteScript(
    params->run_at = run_at;
    params->is_web_view = (process_type == WEB_VIEW_PROCESS);
    params->webview_src = webview_src;
@@ -54103,7 +54103,7 @@ index ebbf7a2..5c99778 100644
    virtual void ViewsHostableSetBounds(const gfx::Rect& bounds_in_superview,
                                        int superview_height) = 0;
 diff --git a/ui/views/controls/native/native_view_host_mac.h b/ui/views/controls/native/native_view_host_mac.h
-index 0353bd6..0711d2d 100644
+index c2989e4..81c911a 100644
 --- a/ui/views/controls/native/native_view_host_mac.h
 +++ b/ui/views/controls/native/native_view_host_mac.h
 @@ -35,6 +35,7 @@ class NativeViewHostMac : public NativeViewHostWrapper,
@@ -54115,7 +54115,7 @@ index 0353bd6..0711d2d 100644
    remote_cocoa::mojom::Application* GetRemoteCocoaApplication() const override;
    uint64_t GetNSViewId() const override;
 diff --git a/ui/views/controls/native/native_view_host_mac.mm b/ui/views/controls/native/native_view_host_mac.mm
-index 4245018..2772381 100644
+index 7d480dd..8637b8d 100644
 --- a/ui/views/controls/native/native_view_host_mac.mm
 +++ b/ui/views/controls/native/native_view_host_mac.mm
 @@ -16,6 +16,7 @@
@@ -54126,7 +54126,7 @@ index 4245018..2772381 100644
  
  namespace views {
  namespace {
-@@ -82,6 +83,14 @@ void EnsureNativeViewHasNoChildWidgets(NSView* native_view) {
+@@ -82,6 +83,14 @@ NativeWidgetMacNSWindowHost* NativeViewHostMac::GetNSWindowHost() const {
  ////////////////////////////////////////////////////////////////////////////////
  // NativeViewHostMac, ViewsHostableView::Host implementation:
  
@@ -54145,7 +54145,7 @@ diff --git a/ui/views/controls/native/native_view_host_mac_unittest.mm b/ui/view
 index 6bfb9c6..e42b644 100644
 --- a/ui/views/controls/native/native_view_host_mac_unittest.mm
 +++ b/ui/views/controls/native/native_view_host_mac_unittest.mm
-@@ -29,6 +29,7 @@ id parent_accessibility_element() const {
+@@ -29,6 +29,7 @@ class TestViewsHostable : public ui::ViewsHostableView {
  
   private:
    // ui::ViewsHostableView:
@@ -54154,10 +54154,10 @@ index 6bfb9c6..e42b644 100644
    void ViewsHostableDetach() override {
      parent_accessibility_element_ = gfx::NativeViewAccessible();
 diff --git a/ui/webui/resources/tools/eslint/BUILD.gn b/ui/webui/resources/tools/eslint/BUILD.gn
-index a43eed9..fca6861 100644
+index f931421..9137d98 100644
 --- a/ui/webui/resources/tools/eslint/BUILD.gn
 +++ b/ui/webui/resources/tools/eslint/BUILD.gn
-@@ -27,6 +27,7 @@ ts_library("build_ts") {
+@@ -28,6 +28,7 @@ ts_library("build_ts") {
    ]
  
    path_mappings = [

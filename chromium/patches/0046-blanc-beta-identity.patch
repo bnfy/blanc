@@ -1,3 +1,5 @@
+diff --git a/build/config/chrome_build.gni b/build/config/chrome_build.gni
+index 92cffc2..f7eca60 100644
 --- a/build/config/chrome_build.gni
 +++ b/build/config/chrome_build.gni
 @@ -2,6 +2,7 @@
@@ -8,7 +10,7 @@
  import("//build/config/gclient_args.gni")
  import("//build_overrides/build.gni")
  
-@@ -108,8 +109,16 @@
+@@ -108,8 +109,16 @@ declare_args() {
  declare_args() {
    # The path to the BRANDING file in chrome/app/theme.
    branding_file_path = "//chrome/app/theme/$branding_path_component/BRANDING"
@@ -25,9 +27,11 @@
 +  assert(!is_chrome_branded && !is_chrome_for_testing)
 +  assert(branding_file_path == "//blanc/branding/beta/BRANDING")
 +}
+diff --git a/chrome/BUILD.gn b/chrome/BUILD.gn
+index d640dc2..b7216e5 100644
 --- a/chrome/BUILD.gn
 +++ b/chrome/BUILD.gn
-@@ -541,10 +541,27 @@
+@@ -541,10 +541,27 @@ if (is_win) {
      }
    }
  
@@ -55,7 +59,7 @@
      extra_substitutions = [
        "CHROMIUM_BUNDLE_ID=$chrome_mac_bundle_id",
        "BLANC_PRODUCT_DIR_NAME=$blanc_product_dir_name",
-@@ -778,6 +795,9 @@
+@@ -780,6 +797,9 @@ if (is_win) {
  
    compile_entitlements("entitlements") {
      entitlements_templates = [ "app/app-entitlements.plist" ]
@@ -65,17 +69,19 @@
      if (is_chrome_branded && include_branded_entitlements) {
        # These entitlements are bound to the official Google Chrome signing
        # certificate and will not necessarily work in any other build.
-@@ -1341,6 +1361,7 @@
+@@ -1343,6 +1363,7 @@ if (is_win) {
  
      deps = [
        ":dependencies",
 +      "//blanc:beta_identity",
        "//build:chromeos_buildflags",
+       "//chrome/app:chrome_crash_user_streams",
        "//chrome/app:command_ids",
-       "//chrome/browser:chrome_browser_application_mac",
+diff --git a/chrome/app/BUILD.gn b/chrome/app/BUILD.gn
+index 44867c7..8f9fbeb 100644
 --- a/chrome/app/BUILD.gn
 +++ b/chrome/app/BUILD.gn
-@@ -158,6 +158,7 @@
+@@ -169,6 +169,7 @@ static_library("test_support") {
  
    deps = [
      "//base",
@@ -83,6 +89,8 @@
      "//chrome/browser",
      "//chrome/browser:buildflags",
      "//chrome/browser:chrome_content_browser_client",
+diff --git a/chrome/app/chrome_main_delegate.cc b/chrome/app/chrome_main_delegate.cc
+index 594230c..2c8fa6e 100644
 --- a/chrome/app/chrome_main_delegate.cc
 +++ b/chrome/app/chrome_main_delegate.cc
 @@ -40,6 +40,12 @@
@@ -98,10 +106,10 @@
  #include "chrome/common/buildflags.h"
  #include "chrome/common/channel_info.h"
  #include "chrome/common/chrome_constants.h"
-@@ -696,6 +702,12 @@
- #endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
+@@ -700,6 +706,12 @@ void InitializeUserDataDir(base::CommandLine* command_line) {
  #if BUILDFLAG(IS_MAC)
-   policy::path_parser::CheckUserDataDirPolicy(&user_data_dir);
+   const bool policy_set =
+       policy::path_parser::CheckUserDataDirPolicy(&user_data_dir);
 +#if BUILDFLAG(BLANC_BETA_CHANNEL)
 +  if (!blanc::beta::ConfigureDataDirectory(command_line, &user_data_dir)) {
 +    LOG(ERROR) << "Blanc Beta refused a non-isolated data directory.";
@@ -111,7 +119,7 @@
  #endif  // BUILDFLAG(IS_MAC)
  
    const bool specified_directory_was_invalid =
-@@ -1194,6 +1206,12 @@
+@@ -1210,6 +1222,12 @@ void ChromeMainDelegate::SetupTracing() {
  }
  
  std::optional<int> ChromeMainDelegate::BasicStartupComplete() {
@@ -124,9 +132,11 @@
    crash_reporter::InitializeCrashKeys();
  
  #if BUILDFLAG(IS_CHROMEOS)
+diff --git a/components/os_crypt/common/keychain_password_mac.mm b/components/os_crypt/common/keychain_password_mac.mm
+index aadc1de..64a91f3 100644
 --- a/components/os_crypt/common/keychain_password_mac.mm
 +++ b/components/os_crypt/common/keychain_password_mac.mm
-@@ -35,6 +35,9 @@
+@@ -35,6 +35,9 @@ namespace {
  #if BUILDFLAG(GOOGLE_CHROME_BRANDING)
  const char kDefaultServiceName[] = "Chrome Safe Storage";
  const char kDefaultAccountName[] = "Chrome";

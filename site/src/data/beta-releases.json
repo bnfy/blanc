@@ -1,5 +1,102 @@
 [
   {
+    "tag": "chromium-beta-2.0.0-beta.11",
+    "product": "beta",
+    "platform": "mac",
+    "version": "2.0.0-beta.11",
+    "name": "Blanc Beta 2.0.0-beta.11",
+    "publishedAt": "2026-11-25T21:02:08.000Z",
+    "humanDate": "November 25, 2026",
+    "machineDate": "2026-11-25",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.11",
+    "anchor": "beta-mac-2-0-0-beta-11",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "One Check for Updates… in the Blanc Beta menu."
+                  },
+                  {
+                    "type": "text",
+                    "value": " It was listed twice since beta.7."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "New in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Chromium 159 (159.0.8154.33),"
+                  },
+                  {
+                    "type": "text",
+                    "value": " Chrome's current beta milestone, a few weeks ahead of its stable release on December 8."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play. Blanc Beta shows a notice offering to open the site in the regular Blanc."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "chromium-beta-2.0.0-beta.10",
     "product": "beta",
     "platform": "mac",

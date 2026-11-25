@@ -56,7 +56,7 @@ gap with the milestone that closes it. Windows design:
 
 ### Ctrl+Tab
 
-At the 158.0.8127.2 pin, X11Window::DispatchUiEvent forwards the translated
+At the 159.0.8154.33 pin (re-checked 2026-11-25; first written at 158.0.8127.2), X11Window::DispatchUiEvent forwards the translated
 key to the platform window delegate. WaylandEventSource::OnKeyboardKeyEvent
 decodes the compositor's key with the current XKB modifiers and dispatches to
 the keyboard-focused WaylandWindow. Both reach aura's WindowEventDispatcher.
@@ -88,7 +88,7 @@ VM on November 22, 2026.
 
 ### Caption buttons
 
-At Chromium 158.0.8127.2 an Island is a normal browser window. X11 and
+At Chromium 159.0.8154.33 (re-checked 2026-11-25; first written at 158.0.8127.2) an Island is a normal browser window. X11 and
 Wayland both use CreateBrowserFrameViewLinux. With the system theme and a
 toolkit NavButtonProvider it constructs BrowserFrameViewLinuxNative and
 BrowserFrameViewLayoutLinuxNative. Otherwise it constructs BrowserFrameViewLinux

@@ -43,22 +43,22 @@ Today `CHROME_VERSION` and `UPSTREAM` are hard-coded in `chromium/release/policy
 **Interfaces:**
 - Produces: `VERSION_PREFIX` in both daily scripts computed as `` `${CHROME_VERSION.split('.').slice(0, 3).join('.')}.` `` from `policy.mjs`, the same rule `windows-release.mjs:48` already uses. `policy.mjs`'s two constants stay literal, edited by hand at a pin move, because the policy names the reviewed pin.
 
-- [ ] **Step 1: Write the failing test.** `pin-consistency.test.mjs` asserts that `CHROME_VERSION` and `UPSTREAM` equal `lanes/desktop.json`'s `version` and `upstream`, and that neither daily script contains a literal version (`/\d+\.0\.\d{4}\./` does not match its source).
-- [ ] **Step 2: Run it** with `node --test chromium/release/pin-consistency.test.mjs`. Expected: FAIL on the two literals.
-- [ ] **Step 3: Derive `VERSION_PREFIX`** in both scripts from `CHROME_VERSION`.
-- [ ] **Step 4: Run the fork unit suite:** `node --test chromium/tools/*.test.mjs chromium/tests/*.test.mjs chromium/release/*.test.mjs`. Expected: PASS. This task can land on `chromium/next` before the move.
-- [ ] **Step 5: Commit** "Fork release tooling: the nightly version prefix follows the pin".
+- [x] **Step 1: Write the failing test.** `pin-consistency.test.mjs` asserts that `CHROME_VERSION` and `UPSTREAM` equal `lanes/desktop.json`'s `version` and `upstream`, and that neither daily script contains a literal version (`/\d+\.0\.\d{4}\./` does not match its source).
+- [x] **Step 2: Run it** with `node --test chromium/release/pin-consistency.test.mjs`. Expected: FAIL on the two literals.
+- [x] **Step 3: Derive `VERSION_PREFIX`** in both scripts from `CHROME_VERSION`.
+- [x] **Step 4: Run the fork unit suite:** `node --test chromium/tools/*.test.mjs chromium/tests/*.test.mjs chromium/release/*.test.mjs`. Expected: PASS. This task can land on `chromium/next` before the move.
+- [x] **Step 5: Commit** "Fork release tooling: the nightly version prefix follows the pin".
 
 ### Task 2: Pick the revision and read what it needs
 
 **Files:**
 - Create: `chromium/reports/rebase-159-preflight.md`
 
-- [ ] **Step 1: Pick the version.** Take the newest 159 Beta for Mac from `https://chromiumdash.appspot.com/fetch_releases?channel=Beta&platform=Mac&num=1` (159.0.8154.13 on November 22, 2026) and its `hashes.chromium` commit. Check that Windows and Linux Beta show the same version. Record the version, commit and start time in the report.
-- [ ] **Step 2: Make a sparse copy, no build.** In the scratchpad on the MacBook Pro: `git init`, add `https://chromium.googlesource.com/chromium/src` as `origin`, `git sparse-checkout set --no-cone` with every path in `chromium/upstream/manifest.json`'s `files` plus `chrome/VERSION`, `DEPS`, `build/vs_toolchain.py`, `build/config/mac/mac_sdk.gni`, `build/linux/sysroot_scripts/sysroots.json` and `.gn`, then `git fetch --depth 1 --filter=blob:none origin <commit>` and `git checkout FETCH_HEAD`. Expected: `chrome/VERSION` reads the picked version.
-- [ ] **Step 3: Read the toolchain changes.** Compare each of those five build files with the 158 tree on the Mac Studio (read-only `git show`). Note: `TOOLCHAIN_HASH`, `SDK_VERSION` and the first `MSVS_VERSIONS` entry (a new Windows toolchain package if any changed); the macOS SDK and Xcode minimum (whether the Mac Studio's Xcode is still enough); the Linux sysroots; the clang and Siso revisions in `DEPS`. Each "changed" becomes an approval to ask for in Task 4 or 5.
-- [ ] **Step 4: Check disk room.** `df -h` on the Mac Studio and the server. A milestone sync and cold builds of every output need roughly the size of one output folder free on top of what is used now. Record the numbers.
-- [ ] **Step 5: Commit** the report on the rebase branch (Task 3, Step 1).
+- [x] **Step 1: Pick the version.** Take the newest 159 Beta for Mac from `https://chromiumdash.appspot.com/fetch_releases?channel=Beta&platform=Mac&num=1` (159.0.8154.13 on November 22, 2026) and its `hashes.chromium` commit. Check that Windows and Linux Beta show the same version. Record the version, commit and start time in the report.
+- [x] **Step 2: Make a sparse copy, no build.** In the scratchpad on the MacBook Pro: `git init`, add `https://chromium.googlesource.com/chromium/src` as `origin`, `git sparse-checkout set --no-cone` with every path in `chromium/upstream/manifest.json`'s `files` plus `chrome/VERSION`, `DEPS`, `build/vs_toolchain.py`, `build/config/mac/mac_sdk.gni`, `build/linux/sysroot_scripts/sysroots.json` and `.gn`, then `git fetch --depth 1 --filter=blob:none origin <commit>` and `git checkout FETCH_HEAD`. Expected: `chrome/VERSION` reads the picked version.
+- [x] **Step 3: Read the toolchain changes.** Compare each of those five build files with the 158 tree on the Mac Studio (read-only `git show`). Note: `TOOLCHAIN_HASH`, `SDK_VERSION` and the first `MSVS_VERSIONS` entry (a new Windows toolchain package if any changed); the macOS SDK and Xcode minimum (whether the Mac Studio's Xcode is still enough); the Linux sysroots; the clang and Siso revisions in `DEPS`. Each "changed" becomes an approval to ask for in Task 4 or 5.
+- [x] **Step 4: Check disk room.** `df -h` on the Mac Studio and the server. A milestone sync and cold builds of every output need roughly the size of one output folder free on top of what is used now. Record the numbers.
+- [x] **Step 5: Commit** the report on the rebase branch (Task 3, Step 1).
 
 ### Task 3: Refresh the pin and rebase the patches (no build tree touched)
 
@@ -66,12 +66,14 @@ Today `CHROME_VERSION` and `UPSTREAM` are hard-coded in `chromium/release/policy
 - Modify: `chromium/upstream/**`, `chromium/upstream/manifest.json`, `chromium/source-map.json`, `chromium/lanes/desktop.json`, conflicting files in `chromium/patches/`, `chromium/tools/check-patches.test.mjs` (only if the file count changes), `chromium/release/policy.mjs:10-11`
 - Create: `chromium/rebase-ledger.json`, rows shaped like the Android ledger's `{from, to, startedAt, finishedAt, hours, patchesConflicted, notes}`
 
-- [ ] **Step 1: Branch.** `git switch -c chromium/rebase-159 origin/chromium/next`, push it, and merge `chromium/next` into it at the start of each working session.
-- [ ] **Step 2: Refresh:** `python3 chromium/tools/refresh-upstream.py --lane desktop --src <sparse copy> --version <x.y.z.w>`. Exit 0 means every patch applies. Exit 1 means a pinned file moved: find where, update the patch and the manifest by hand, then run it again. Exit 3 means a patch no longer applies: rebase that patch against the new file in `chromium/upstream/`, then `refresh-upstream.py --lane desktop --patched-only`, and list it in the ledger row. Repeat until exit 0.
-- [ ] **Step 3: Set the release policy pin.** `policy.mjs`'s `CHROME_VERSION` and `UPSTREAM` take the new version and commit; Task 1's test proves they agree with the lane file.
-- [ ] **Step 4: Check the patch set:** `python3 chromium/tools/check-patches.py --lane desktop` and the Android lane too (a shared tool change must not break it). Expected: both pass, `fileCount` equal to the manifest's file count.
-- [ ] **Step 5: Run the fork unit suite.** Expected: PASS. Fixtures that name 158 on purpose (past releases, ledgers) stay as they are; only tests that read the current pin change.
-- [ ] **Step 6: Commit and push** the branch: "Desktop lane: refresh the pin to <version> and rebase the patches".
+- [x] **Step 1: Branch.** `git switch -c chromium/rebase-159 origin/chromium/next`, push it, and merge `chromium/next` into it at the start of each working session.
+- [x] **Step 2: Refresh:** `python3 chromium/tools/refresh-upstream.py --lane desktop --src <sparse copy> --version <x.y.z.w>`. Exit 0 means every patch applies. Exit 1 means a pinned file moved: find where, update the patch and the manifest by hand, then run it again. Exit 3 means a patch no longer applies: rebase that patch against the new file in `chromium/upstream/`, then `refresh-upstream.py --lane desktop --patched-only`, and list it in the ledger row. Repeat until exit 0.
+- [x] **Step 3: Set the release policy pin.** `policy.mjs`'s `CHROME_VERSION` and `UPSTREAM` take the new version and commit; Task 1's test proves they agree with the lane file.
+- [x] **Step 4: Check the patch set:** `python3 chromium/tools/check-patches.py --lane desktop` and the Android lane too (a shared tool change must not break it). Expected: both pass, `fileCount` equal to the manifest's file count.
+- [x] **Step 5: Run the fork unit suite.** Expected: PASS. Fixtures that name 158 on purpose (past releases, ledgers) stay as they are; only tests that read the current pin change.
+- [x] **Step 6: Commit and push** the branch: "Desktop lane: refresh the pin to <version> and rebase the patches".
+
+**Stage 1 status (2026-11-24):** Tasks 1–3 are done on `chromium/rebase-159` at 159.0.8154.33 (`ab2e5d8ad16c`, which replaced .13 as the newest Beta on all three platforms), with Task 1's change committed there rather than on `chromium/next`. The preflight and what every patch needed are in `chromium/reports/rebase-159-preflight.md`; the ledger row is open in `chromium/rebase-ledger.json`. Tasks 4 and 5 wait for the owner's approvals listed in the report.
 
 ### Task 4: Move the Mac Studio and build
 

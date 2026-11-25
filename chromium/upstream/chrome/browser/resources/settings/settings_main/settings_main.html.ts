@@ -1,3 +1,13 @@
+// Copyright 2026 The Chromium Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import {html} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+
+import type {SettingsMainElement} from './settings_main.js';
+
+export function getHtml(this: SettingsMainElement) {
+  return html`<!--_html_template_start_-->
 <div id="noSearchResults" ?hidden="${!this.showNoResultsFound_}">
   <div>$i18n{searchNoResults}</div>
   <div>$i18nRaw{searchNoResultsHelp}</div>
@@ -12,7 +22,19 @@ ${this.showResetProfileBanner_ ? html`
 ` : ''}
 
 <cr-view-manager id="switcher" ?show-all="${this.shouldShowAll_()}">
-  ${this.showPage_(this.pageVisibility_?.people) ? html`
+  ${this.settingsRefresh2026Enabled_ &&
+          this.showPage_(this.pageVisibility_?.home) ?
+      html`
+    <div slot="view" id="home">
+      ${this.renderPlugin_(this.routes_.BASIC) ? html`
+        <div>Home page placeholder</div>
+      ` : ''}
+    </div>
+  ` : ''}
+
+  ${!this.settingsRefresh2026Enabled_ &&
+          this.showPage_(this.pageVisibility_?.people) ?
+      html`
     <div slot="view" id="people">
       ${this.renderPlugin_(this.routes_.PEOPLE) ? html`
         <settings-people-page-index ?in-search-mode="${this.inSearchMode_}">
@@ -42,7 +64,8 @@ ${this.showResetProfileBanner_ ? html`
   ${this.showPage_(this.pageVisibility_?.performance) ? html`
     <div slot="view" id="performance">
       ${this.renderPlugin_(this.routes_.PERFORMANCE) ? html`
-        <settings-performance-page-index ?in-search-mode="${this.inSearchMode_}">
+        <settings-performance-page-index
+            ?in-search-mode="${this.inSearchMode_}">
         </settings-performance-page-index>
       ` : ''}
     </div>
@@ -74,7 +97,9 @@ ${this.showResetProfileBanner_ ? html`
   </div>
 
 <if expr="not is_chromeos">
-  ${this.showPage_(this.pageVisibility_?.defaultBrowser) ? html`
+  ${!this.settingsRefresh2026Enabled_ &&
+          this.showPage_(this.pageVisibility_?.defaultBrowser) ?
+      html`
     <div slot="view" id="defaultBrowser">
       ${this.renderPlugin_(this.routes_.DEFAULT_BROWSER) ? html`
         <settings-default-browser-page></settings-default-browser-page>
@@ -83,7 +108,9 @@ ${this.showResetProfileBanner_ ? html`
   ` : ''}
 </if>
 
-  ${this.showPage_(this.pageVisibility_?.onStartup) ? html`
+  ${!this.settingsRefresh2026Enabled_ &&
+          this.showPage_(this.pageVisibility_?.onStartup) ?
+      html`
     <div slot="view" id="onStartup">
       ${this.renderPlugin_(this.routes_.ON_STARTUP) ? html`
         <settings-on-startup-page></settings-on-startup-page>
@@ -99,15 +126,16 @@ ${this.showResetProfileBanner_ ? html`
         </settings-languages-page-index-cros>
 </if>
 <if expr="not is_chromeos">
-        <settings-languages-page-index
-            ?in-search-mode="${this.inSearchMode_}">
+        <settings-languages-page-index ?in-search-mode="${this.inSearchMode_}">
         </settings-languages-page-index>
 </if>
       ` : ''}
     </div>
   ` : ''}
 
-  ${this.showPage_(this.pageVisibility_?.downloads) ? html`
+  ${!this.settingsRefresh2026Enabled_ &&
+          this.showPage_(this.pageVisibility_?.downloads) ?
+      html`
     <div slot="view" id="downloads">
       ${this.renderPlugin_(this.routes_.DOWNLOADS) ? html`
         <settings-downloads-page></settings-downloads-page>
@@ -124,8 +152,21 @@ ${this.showResetProfileBanner_ ? html`
     </div>
   ` : ''}
 
+  ${this.settingsRefresh2026Enabled_ &&
+          this.showPage_(this.pageVisibility_?.general) ?
+      html`
+    <div slot="view" id="general">
+      ${this.renderPlugin_(this.routes_.GENERAL) ? html`
+        <settings-general-page-index ?in-search-mode="${this.inSearchMode_}">
+        </settings-general-page-index>
+      ` : ''}
+    </div>
+  ` : ''}
+
 <if expr="not is_chromeos">
-  ${this.showPage_(this.pageVisibility_?.system) ? html`
+  ${!this.settingsRefresh2026Enabled_ &&
+          this.showPage_(this.pageVisibility_?.system) ?
+      html`
     <div slot="view" id="system">
       ${this.renderPlugin_(this.routes_.SYSTEM) ? html`
         <settings-system-page></settings-system-page>
@@ -134,7 +175,9 @@ ${this.showResetProfileBanner_ ? html`
   ` : ''}
 </if>
 
-  ${this.showPage_(this.pageVisibility_?.reset) ? html`
+  ${!this.settingsRefresh2026Enabled_ &&
+          this.showPage_(this.pageVisibility_?.reset) ?
+      html`
     <div slot="view" id="reset">
       ${this.renderPlugin_(this.routes_.RESET) ? html`
         <settings-reset-page></settings-reset-page>
@@ -149,3 +192,5 @@ ${this.showResetProfileBanner_ ? html`
     ` : ''}
   </div>
 </cr-view-manager>
+<!--_html_template_end_-->`;
+}
