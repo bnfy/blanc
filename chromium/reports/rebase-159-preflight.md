@@ -196,9 +196,7 @@ The Linux beta guard first refused BlancLinuxBeta for two leftovers of the sync 
 lane's map: the 158 checkout of `third_party/wayland-protocols/kde` (159 moved that dependency to
 `kde/src`) and `buildtools/reclient_cfgs/reproxy.cfg`, which a sync hook writes and 159's
 `.gitignore` no longer covers. Both were moved into `~/blanc-evidence/move-159/stale/`, not deleted.
-**Open:** every future `gclient sync` writes `reproxy.cfg` again, so the guard
-(`tools/checkout-status.mjs`) will stop Linux beta builds until it is moved aside again or the guard
-learns that file; that is a release-guard change for the owner to decide.
+**Decided (owner, 2026-11-25):** every `gclient sync` writes `reproxy.cfg` again, so the guard (`tools/checkout-status.mjs`) now skips exactly that path while it is untracked (`GCLIENT_HOOK_OUTPUTS`, tested in `tools/checkout-status.test.mjs`); any other file outside the map, or a tracked change to that one, still stops a Linux beta build.
 
 Not done yet: nothing has been run (Task 6), the branch is not merged into `chromium/next`, and
 the nightlies stay paused. The Studio's BlancRelease output was not regenerated or rebuilt.
