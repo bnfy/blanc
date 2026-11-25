@@ -39,7 +39,7 @@
     },
     {
       "text": "Blanc Beta is Blanc built directly on Chromium, for Mac, Windows and Linux.",
-      "evidence": "Mac: The release is built from the fork's Chromium 158 tree (release.json chromiumVersion 158.0.8127.37); the approved release notes say the same. Windows: The release is built from the fork's Chromium 158 tree (windows-release.json's candidate windows-x64-24363262869b62ec, tree 7721085b0); the approved release notes say the same. Linux: The release is built from the fork's Chromium 158 tree (linux-release.json sourceCommit a52e29005, candidates linux-x64-400b354c5624ec89 and linux-arm64-4834316238c1f96d); the approved release notes say the same. The sentence names the three desktop builds because the panel also lists the iPhone and iPad TestFlight beta and the Android signup, which are not built on Chromium or not released."
+      "evidence": "Mac: The release is built from the fork's Chromium 159 tree (release.json chromiumVersion 159.0.8154.33); the approved release notes say the same. Windows: The release is built from the fork's Chromium 158 tree (windows-release.json's candidate windows-x64-24363262869b62ec, tree 7721085b0); the approved release notes say the same. Linux: The release is built from the fork's Chromium 158 tree (linux-release.json sourceCommit a52e29005, candidates linux-x64-400b354c5624ec89 and linux-arm64-4834316238c1f96d); the approved release notes say the same. The sentence names the three desktop builds because the panel also lists the iPhone and iPad TestFlight beta and the Android signup, which are not built on Chromium or not released."
     },
     {
       "text": "It installs beside Blanc and never replaces it.",
