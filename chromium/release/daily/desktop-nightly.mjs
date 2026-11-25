@@ -19,10 +19,12 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {nextWindowsBuild, skipReason, judgeWindowsNight} from './desktop-nightly-rules.mjs';
 import {acquireHold, readHold, uploadUnderHold, deleteUnderHold, releaseHold, REPO} from '../../windows/draft-hold.mjs';
+import {CHROME_VERSION} from '../policy.mjs';
 
 const WORKFLOW = 'chromium-windows-candidate.yml';
 const SERVER_EVIDENCE = '~/blanc-evidence/windows';
-const VERSION_PREFIX = '158.0.8127.';
+// The pinned Chromium's first three numbers; the build is the last.
+const VERSION_PREFIX = `${CHROME_VERSION.split('.').slice(0, 3).join('.')}.`;
 const DEFAULT_DRAFT = 'fork-windows-candidate';
 
 export function parseRunId(result) {

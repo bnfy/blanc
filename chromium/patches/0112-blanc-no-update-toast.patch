@@ -1,10 +1,10 @@
 diff --git a/chrome/browser/ui/ui_features.cc b/chrome/browser/ui/ui_features.cc
-index a287e97..932edf2 100644
+index e40a118..62ddb2a 100644
 --- a/chrome/browser/ui/ui_features.cc
 +++ b/chrome/browser/ui/ui_features.cc
-@@ -387,7 +387,16 @@ BASE_FEATURE(kTabsFromOtherDevicesSidePanel, base::FEATURE_DISABLED_BY_DEFAULT);
- BASE_FEATURE(kTabsFromOtherDevicesSidePanelPinnedByDefault,
-              base::FEATURE_DISABLED_BY_DEFAULT);
+@@ -427,7 +427,16 @@ BASE_FEATURE(kByDateHistoryInSidePanel, base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+ BASE_FEATURE(kTabsFromOtherDevicesSidePanel, base::FEATURE_DISABLED_BY_DEFAULT);
  
 -BASE_FEATURE(kNonMilestoneUpdateToast, base::FEATURE_ENABLED_BY_DEFAULT);
 +// Blanc (owner, 2026-11-21): off. After an update it showed Chromium's own

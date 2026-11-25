@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
-index ffb7bf8..6d6381a 100644
+index 17ff180..d86c9ca 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.html.ts
 +++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
-@@ -34,8 +34,10 @@ export function getHtml(this: SettingsAboutPageElement) {
+@@ -32,8 +32,10 @@ export function getHtml(this: SettingsAboutPageElement) {
      <!-- Set the icon from the iconset (when it's obsolete/EOL and
        when update is done) or set the src (when it's updating). -->
  <if expr="not is_chromeos">
@@ -12,10 +12,10 @@ index ffb7bf8..6d6381a 100644
 +         updater; the Windows beta's are Chromium's own updater (W3). -->
 +    <div class="icon-container"
 +        ?hidden="${!this.windowsUpdater_ || !this.shouldShowIcons_()}">
-       <cr-icon
-           ?hidden="${this.shouldShowThrobber_()}"
+       <cr-icon ?hidden="${this.shouldShowThrobber_()}"
            icon="${this.getUpdateStatusIcon_()}">
-@@ -46,11 +48,12 @@ export function getHtml(this: SettingsAboutPageElement) {
+       </cr-icon>
+@@ -43,11 +45,12 @@ export function getHtml(this: SettingsAboutPageElement) {
  </if>
      <div class="flex cr-padded-text">
  <if expr="not is_chromeos">
@@ -30,7 +30,7 @@ index ffb7bf8..6d6381a 100644
              href="https://support.google.com/chrome?p=update_error"
              aria-label="$i18nPolymer{aboutLearnMoreUpdatingErrors}">
            $i18n{learnMore}
-@@ -75,6 +78,11 @@ export function getHtml(this: SettingsAboutPageElement) {
+@@ -72,6 +75,11 @@ export function getHtml(this: SettingsAboutPageElement) {
          $i18n{aboutRelaunch}
        </cr-button>
      </span>
@@ -42,7 +42,7 @@ index ffb7bf8..6d6381a 100644
  </if>
    </div>
  <if expr="_google_chrome and is_macosx">
-@@ -109,6 +117,7 @@ export function getHtml(this: SettingsAboutPageElement) {
+@@ -105,6 +113,7 @@ export function getHtml(this: SettingsAboutPageElement) {
    <cr-link-row class="hr" id="blancWelcomeTour" @click="${this.onBlancWelcomeTourClick_}"
        label="$i18n{blancWelcomeTour}" sub-label="$i18n{blancWelcomeTourHint}">
    </cr-link-row>
@@ -50,7 +50,7 @@ index ffb7bf8..6d6381a 100644
    <!-- Blanc: bring a person's data across from the released (Electron) app.
         The browser picks that app's own folder; this page names nothing. -->
    <div class="cr-row" id="blancImport">
-@@ -120,6 +129,7 @@ export function getHtml(this: SettingsAboutPageElement) {
+@@ -116,6 +125,7 @@ export function getHtml(this: SettingsAboutPageElement) {
        ${this.blancImportButton_}
      </cr-button>
    </div>
@@ -59,10 +59,10 @@ index ffb7bf8..6d6381a 100644
    ${this.blancImportDetails_.map(row => html`
      <div class="cr-row blanc-import-row" data-kind="${row.kind}">
 diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
-index 1dee3df..e04548f 100644
+index 408384a..47e5262 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.ts
 +++ b/chrome/browser/resources/settings/about_page/about_page.ts
-@@ -143,6 +143,18 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
+@@ -147,6 +147,18 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
  
    private betaUpdaterTimer_: number|null = null;
    protected readonly betaBuild_ = loadTimeData.getBoolean('blancBetaUpdater');
@@ -82,10 +82,10 @@ index 1dee3df..e04548f 100644
      inProgress: boolean, version: string}|null = null;
    private async refreshBetaUpdater_() {
 diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
-index 941878a..e4612c7 100644
+index 98a64f2..7af7b11 100644
 --- a/chrome/browser/ui/webui/settings/settings_ui.cc
 +++ b/chrome/browser/ui/webui/settings/settings_ui.cc
-@@ -285,6 +285,10 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+@@ -281,6 +281,10 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
    // mechanism as the other Blanc Settings controls. Shipping keys and new
    // consent copy are recorded in CODEX-NOTES-s4a-sync-ui.md.
    html_source->AddBoolean("blancBetaUpdater", blanc_prototype::IsBetaBuild() && BUILDFLAG(IS_MAC));

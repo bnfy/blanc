@@ -175,21 +175,20 @@ zxI!~aH?ZBOW2dpBD%%>p!d(@+zfGQ9gkjJE090=!9+-^6DF6Tf07*qoM6N<$f`K&q
 AnE(I)
 
 diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
-index 7b397577dd1cf12bff953e2d933c1c21deb97e83..18add3736b934e5026670dd5ea43220e84a0ec76 100644
+index 133fbd9..f327ac7 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.html.ts
 +++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
-@@ -24,8 +24,8 @@ export function getHtml(this: SettingsAboutPageElement) {
+@@ -22,7 +22,8 @@ export function getHtml(this: SettingsAboutPageElement) {
      <!-- Set the icon from the iconset (when it's obsolete/EOL and
        when update is done) or set the src (when it's updating). -->
  <if expr="not is_chromeos">
--    <div class="icon-container"
--        ?hidden="${!this.shouldShowIcons_()}">
+-    <div class="icon-container" ?hidden="${!this.shouldShowIcons_()}">
 +    <!-- Blanc (S3, owner): updates are Blanc's own, not Chromium's updater. -->
 +    <div class="icon-container" hidden>
-       <cr-icon
-           ?hidden="${this.shouldShowThrobber_()}"
+       <cr-icon ?hidden="${this.shouldShowThrobber_()}"
            icon="${this.getUpdateStatusIcon_()}">
-@@ -36,7 +36,7 @@ export function getHtml(this: SettingsAboutPageElement) {
+       </cr-icon>
+@@ -32,7 +33,7 @@ export function getHtml(this: SettingsAboutPageElement) {
  </if>
      <div class="flex cr-padded-text">
  <if expr="not is_chromeos">
@@ -199,7 +198,7 @@ index 7b397577dd1cf12bff953e2d933c1c21deb97e83..18add3736b934e5026670dd5ea43220e
              .innerHTML="${this.getUpdateStatusMessage_()}">
          </div>
 diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
-index 1b765f818d3992c0f0d814cf7712aed440af92f6..5068e4206cf348009e07b33fd7df47a7ab66a6fc 100644
+index 1b765f8..5068e42 100644
 --- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
 +++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
 @@ -185,6 +185,28 @@ function blancTokens(p: BlancPalette): Record<string, string> {
@@ -232,7 +231,7 @@ index 1b765f818d3992c0f0d814cf7712aed440af92f6..5068e4206cf348009e07b33fd7df47a7
  }
  
 diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.css b/chrome/browser/resources/settings/settings_menu/settings_menu.css
-index 6e6a63e1ef51a27ce73e6f5abe9c5a450deae2bb..bf6b45a8058e8d6934d89214599f38f11437ff51 100644
+index 6e6a63e..bf6b45a 100644
 --- a/chrome/browser/resources/settings/settings_menu/settings_menu.css
 +++ b/chrome/browser/resources/settings/settings_menu/settings_menu.css
 @@ -19,6 +19,28 @@
@@ -265,10 +264,10 @@ index 6e6a63e1ef51a27ce73e6f5abe9c5a450deae2bb..bf6b45a8058e8d6934d89214599f38f1
    --cr-nav-menu-item-content-height: 20px;
    border-radius: 100px;
 diff --git a/chrome/browser/resources/settings/settings_page/settings_section.css b/chrome/browser/resources/settings/settings_page/settings_section.css
-index 620aad3462a4addb1dc69283b5466aa24bf32a4f..e8a01c8d77f104e5fc25785851d1ba4f72f3d52b 100644
+index 69efe82..ed3b861 100644
 --- a/chrome/browser/resources/settings/settings_page/settings_section.css
 +++ b/chrome/browser/resources/settings/settings_page/settings_section.css
-@@ -45,9 +45,10 @@
+@@ -49,9 +49,10 @@
  
  #header .title {
    color: var(--cr-primary-text-color);
@@ -283,10 +282,10 @@ index 620aad3462a4addb1dc69283b5466aa24bf32a4f..e8a01c8d77f104e5fc25785851d1ba4f
    margin-top: var(--cr-section-vertical-margin);
    outline: none;
 diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.css b/chrome/browser/resources/settings/settings_ui/settings_ui.css
-index b2a8a4d89b43c47d5c3c2022273342a2c797e42c..10cd9d4f5278627489b174b05ff601a2d4a9388a 100644
+index a6b4383..a6c0d28 100644
 --- a/chrome/browser/resources/settings/settings_ui/settings_ui.css
 +++ b/chrome/browser/resources/settings/settings_ui/settings_ui.css
-@@ -59,6 +59,18 @@ cr-toolbar:not([narrow]) {
+@@ -63,6 +63,18 @@ cr-toolbar:not([narrow]) {
    --cr-toolbar-left-spacer-width: var(--settings-menu-width);
  }
  
@@ -305,21 +304,21 @@ index b2a8a4d89b43c47d5c3c2022273342a2c797e42c..10cd9d4f5278627489b174b05ff601a2
  @media (prefers-color-scheme: light) {
    cr-toolbar {
      --iron-icon-fill-color: white;
-diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.html b/chrome/browser/resources/settings/settings_ui/settings_ui.html
-index 9fa15fadefdcce196a194d1a70bef3a9ca5cc84a..58b88d2d133216613f150078726488f76f3aedd8 100644
---- a/chrome/browser/resources/settings/settings_ui/settings_ui.html
-+++ b/chrome/browser/resources/settings/settings_ui/settings_ui.html
-@@ -10,7 +10,7 @@
-         role="banner"
-         ?narrow="${this.narrow_}"
-         @narrow-changed="${this.onToolbarNarrowChanged_}"
--        narrow-threshold="980"
-+        narrow-threshold="600"
-         ?show-menu="${this.getLeftMenuHidden_()}">
-     </cr-toolbar>
-     <cr-drawer id="drawer" @close="${this.onMenuClose_}" heading="$i18n{settings}"
+diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts b/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts
+index ea43150..6e0d356 100644
+--- a/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts
++++ b/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts
+@@ -16,7 +16,7 @@ export function getHtml(this: SettingsUiElement) {
+     menu-label="$i18n{menuButtonLabel}"
+     @search-changed="${this.onSearchChanged_}" role="banner"
+     ?narrow="${this.narrow_}" @narrow-changed="${this.onToolbarNarrowChanged_}"
+-    narrow-threshold="980" ?show-menu="${this.getLeftMenuHidden_()}">
++    narrow-threshold="600" ?show-menu="${this.getLeftMenuHidden_()}">
+ </cr-toolbar>
+ ${this.isSettingsSearch2026Enabled_ ? html`
+   <settings-search-dropdown .query="${this.lastSearchQuery_}">
 diff --git a/chrome/browser/ui/webui/settings/profile_info_handler.cc b/chrome/browser/ui/webui/settings/profile_info_handler.cc
-index 283e3b87363ef1c9b659c255d6710b8d97a929cb..0875503057ed6512e6b34478bc9ffb3faf9874e1 100644
+index 283e3b8..0875503 100644
 --- a/chrome/browser/ui/webui/settings/profile_info_handler.cc
 +++ b/chrome/browser/ui/webui/settings/profile_info_handler.cc
 @@ -5,12 +5,15 @@
@@ -351,7 +350,7 @@ index 283e3b87363ef1c9b659c255d6710b8d97a929cb..0875503057ed6512e6b34478bc9ffb3f
      // and update theme_source.cc to get high res avatar icons. This does less
      // work here, sends less over IPC, and is more stable with returned results.
 diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
-index 19c1097b2ca6a976dc2e6caea36d8e3dbbcd926d..43b00107377e4de253085d0ee8629cdd34577c52 100644
+index 3839e8d..c178195 100644
 --- a/chrome/browser/ui/webui/settings/settings_ui.cc
 +++ b/chrome/browser/ui/webui/settings/settings_ui.cc
 @@ -18,6 +18,7 @@
@@ -362,7 +361,7 @@ index 19c1097b2ca6a976dc2e6caea36d8e3dbbcd926d..43b00107377e4de253085d0ee8629cdd
  #include "base/values.h"
  #include "build/branding_buildflags.h"
  #include "build/build_config.h"
-@@ -107,6 +108,7 @@
+@@ -109,6 +110,7 @@
  #include "chrome/common/pref_names.h"
  #include "chrome/common/url_constants.h"
  #include "chrome/grit/generated_resources.h"
@@ -370,10 +369,10 @@ index 19c1097b2ca6a976dc2e6caea36d8e3dbbcd926d..43b00107377e4de253085d0ee8629cdd
  #include "chrome/grit/settings_resources.h"
  #include "chrome/grit/settings_resources_map.h"
  #include "components/account_manager_core/account_manager_facade.h"
-@@ -146,6 +148,7 @@
+@@ -147,6 +149,7 @@
+ #include "components/search_engines/template_url_service.h"
  #include "components/signin/public/base/signin_pref_names.h"
  #include "components/signin/public/base/signin_switches.h"
- #include "components/skills/features.h"
 +#include "components/strings/grit/components_branded_strings.h"
  #include "components/strings/grit/components_strings.h"
  #include "components/subscription_eligibility/subscription_eligibility_service.h"
@@ -397,10 +396,10 @@ index 19c1097b2ca6a976dc2e6caea36d8e3dbbcd926d..43b00107377e4de253085d0ee8629cdd
  
    ManagedUIHandler::Initialize(web_ui, html_source);
 diff --git a/content/browser/webui/web_ui_data_source_impl.cc b/content/browser/webui/web_ui_data_source_impl.cc
-index ec001ac21c5f20825458e13bbc10129a558813c9..e28c0a38a8d124fa81a192307f6e128af28a8ab1 100644
+index b250500..6fa2427 100644
 --- a/content/browser/webui/web_ui_data_source_impl.cc
 +++ b/content/browser/webui/web_ui_data_source_impl.cc
-@@ -237,25 +237,41 @@ WebUIDataSourceImpl::WebUIDataSourceImpl(const std::string& source_name)
+@@ -238,25 +238,41 @@ WebUIDataSourceImpl::WebUIDataSourceImpl(const std::string& source_name)
  
  WebUIDataSourceImpl::~WebUIDataSourceImpl() = default;
  

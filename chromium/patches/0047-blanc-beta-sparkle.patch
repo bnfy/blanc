@@ -1,6 +1,8 @@
+diff --git a/chrome/BUILD.gn b/chrome/BUILD.gn
+index b7216e5..4e78a66 100644
 --- a/chrome/BUILD.gn
 +++ b/chrome/BUILD.gn
-@@ -544,14 +544,20 @@
+@@ -544,14 +544,20 @@ if (is_win) {
    if (blanc_beta_channel) {
      assert(!enable_widevine && !bundle_widevine_cdm && !enable_updater)
      assert(mac_deployment_target == "13.0" && mac_min_system_version == "13.0")
@@ -22,20 +24,22 @@
      }
    }
  
-@@ -568,6 +574,10 @@
-       "CHROMIUM_SHORT_NAME=$chrome_product_short_name",
+@@ -569,6 +575,10 @@ if (is_win) {
        "CHROMIUM_CREATOR=$chrome_mac_creator_code",
      ]
-+
+ 
 +    if (blanc_beta_channel) {
 +      public_deps = [ "//blanc:sparkle_bundle" ]
 +    }
- 
++
      sources = [ "app/chrome_exe_main_mac.c" ]
  
+     configs -= [ "//build/config/sanitizers:alloc_token" ]
+diff --git a/chrome/browser/BUILD.gn b/chrome/browser/BUILD.gn
+index 73a6b23..601bbca 100644
 --- a/chrome/browser/BUILD.gn
 +++ b/chrome/browser/BUILD.gn
-@@ -1801,6 +1801,7 @@
+@@ -1801,6 +1801,7 @@ source_set("core") {
    }
  
    if (is_mac) {
@@ -43,6 +47,8 @@
      sources += [
        "app_controller_mac.mm",
        "browser_process_platform_part_mac.mm",
+diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
+index 4ae2569..5153d22 100644
 --- a/chrome/browser/app_controller_mac.mm
 +++ b/chrome/browser/app_controller_mac.mm
 @@ -3,6 +3,10 @@
@@ -56,7 +62,7 @@
  
  #include <AppKit/AppKit.h>
  #include <dispatch/dispatch.h>
-@@ -772,6 +776,9 @@
+@@ -773,6 +777,9 @@ class AppControllerProfileObserver : public ProfileAttributesStorage::Observer,
    // `activationPolicy` for `NSRunningApplication.currentApplication` we can
    // recreate `_keepAlive` if and when the activation policy changes.
    std::unique_ptr<ScopedKeepAlive> _keepAlive;
@@ -66,7 +72,7 @@
  
    // Set to `NSRunningApplication.currentApplication` while we're observing
    // the `activationPolicy` of ourselves.
-@@ -1059,6 +1066,9 @@
+@@ -1060,6 +1067,9 @@ class AppControllerProfileObserver : public ProfileAttributesStorage::Observer,
  // HandleAppExitingForPlatform(), not from within AppKit!) At this point,
  // termination will happen, so tear everything down.
  - (void)applicationWillTerminate:(NSNotification*)aNotification {
@@ -76,7 +82,7 @@
    // There better be no browser windows left at this point.
    CHECK(!KeepAliveRegistry::GetInstance()->IsOriginRegistered(
        KeepAliveOrigin::BROWSER));
-@@ -1342,6 +1352,12 @@
+@@ -1344,6 +1354,12 @@ class AppControllerProfileObserver : public ProfileAttributesStorage::Observer,
    [self registerServicesMenuTypesTo:[notify object]];
  
    _startupComplete = YES;
@@ -89,19 +95,32 @@
  
    if (base::CommandLine::ForCurrentProcess()->HasSwitch(switches::kKioskMode))
      ConfigureNSAppForKioskMode();
---- a/chrome/browser/ui/webui/settings/settings_ui.cc
-+++ b/chrome/browser/ui/webui/settings/settings_ui.cc
-@@ -284,6 +284,7 @@
-   // Blanc desktop Sync (S4a): English fallback through the same loadTimeData
-   // mechanism as the other Blanc Settings controls. Shipping keys and new
-   // consent copy are recorded in CODEX-NOTES-s4a-sync-ui.md.
-+  html_source->AddBoolean("blancBetaUpdater", blanc_prototype::IsBetaBuild() && BUILDFLAG(IS_MAC));
-   html_source->AddString("blancVerticalTabsTextSize", u"Vertical tab text size");
-   html_source->AddString("blancVerticalTabsTextSizeHint", u"Make tab titles and group names easier to read in the vertical tab rail.");
-   html_source->AddString("blancSyncStartWithPassphrase", u"Start with a name and passphrase");
+diff --git a/chrome/browser/resources/settings/about_page/about_page.html.ts b/chrome/browser/resources/settings/about_page/about_page.html.ts
+index f327ac7..b619119 100644
+--- a/chrome/browser/resources/settings/about_page/about_page.html.ts
++++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
+@@ -11,6 +11,16 @@ import type {SettingsAboutPageElement} from './about_page.js';
+ export function getHtml(this: SettingsAboutPageElement) {
+   return html`<!--_html_template_start_-->
+ <settings-section page-title="$i18n{aboutPageTitle}">
++  ${this.betaBuild_ ? html`
++    <div class="cr-row two-line">
++      <div class="flex cr-padded-text">
++        <div>Blanc Beta ${this.betaUpdateState_?.version || ''}</div>
++        <div class="secondary">Check for beta updates. The update window lets you download an update and choose when to install and restart.</div>
++        <div role="status">${this.betaUpdateState_?.inProgress ? 'An update check is in progress.' : ''}</div>
++      </div>
++      <cr-button id="blancBetaUpdate" ?disabled="${!this.betaUpdateState_?.canCheck}"
++          @click="${this.onBlancCheckForUpdatesClick_}">Check for Updates…</cr-button>
++    </div>` : ''}
+   <div class="cr-row two-line first">
+     <img id="productLogo" @click="${this.onProductLogoClick_}"
+         srcset="chrome://theme/current-channel-logo@1x 1x,
+diff --git a/chrome/browser/resources/settings/about_page/about_page.ts b/chrome/browser/resources/settings/about_page/about_page.ts
+index 61a75bd..1eadf45 100644
 --- a/chrome/browser/resources/settings/about_page/about_page.ts
 +++ b/chrome/browser/resources/settings/about_page/about_page.ts
-@@ -26,6 +26,7 @@
+@@ -26,6 +26,7 @@ import {OpenWindowProxyImpl} from 'chrome://resources/js/open_window_proxy.js';
  // </if>
  import {OpenWindowProxyImpl as BlancOpenWindow} from 'chrome://resources/js/open_window_proxy.js';
  import {blancSettings} from '../blanc_settings_proxy.js';
@@ -109,7 +128,7 @@
  import {sanitizeInnerHtml} from 'chrome://resources/js/parse_html_subset.js';
  import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
  import type {PropertyValues} from 'chrome://resources/lit/v3_0/lit.rollup.js';
-@@ -80,6 +81,7 @@
+@@ -80,6 +81,7 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
    static override get properties() {
      return {
        currentUpdateStatusEvent_: {type: Object},
@@ -117,9 +136,9 @@
        isManaged_: {type: Boolean},
        managedByIcon_: {type: String},
  
-@@ -130,6 +132,19 @@
-   protected accessor feedbackAllowedPref_:
+@@ -134,6 +136,19 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
        chrome.settingsPrivate.PrefObject<boolean>|undefined;
+   // </if>
  
 +  private betaUpdaterTimer_: number|null = null;
 +  protected readonly betaBuild_ = loadTimeData.getBoolean('blancBetaUpdater');
@@ -137,7 +156,7 @@
    private aboutBrowserProxy_: AboutPageBrowserProxy =
        AboutPageBrowserProxyImpl.getInstance();
  
-@@ -137,6 +152,12 @@
+@@ -141,6 +156,12 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
      super.connectedCallback();
  
      this.aboutBrowserProxy_.pageReady();
@@ -150,7 +169,7 @@
  
      // <if expr="not is_chromeos">
      this.startListening_();
-@@ -148,6 +169,12 @@
+@@ -152,6 +173,12 @@ export class SettingsAboutPageElement extends SettingsAboutPageElementBase
    }
  
    // <if expr="not is_chromeos">
@@ -163,22 +182,15 @@
    override willUpdate(changedProperties: PropertyValues<this>) {
      super.willUpdate(changedProperties);
  
---- a/chrome/browser/resources/settings/about_page/about_page.html.ts
-+++ b/chrome/browser/resources/settings/about_page/about_page.html.ts
-@@ -12,6 +12,16 @@
-   // clang-format off
-   return html`<!--_html_template_start_-->
- <settings-section page-title="$i18n{aboutPageTitle}">
-+  ${this.betaBuild_ ? html`
-+    <div class="cr-row two-line">
-+      <div class="flex cr-padded-text">
-+        <div>Blanc Beta ${this.betaUpdateState_?.version || ''}</div>
-+        <div class="secondary">Check for beta updates. The update window lets you download an update and choose when to install and restart.</div>
-+        <div role="status">${this.betaUpdateState_?.inProgress ? 'An update check is in progress.' : ''}</div>
-+      </div>
-+      <cr-button id="blancBetaUpdate" ?disabled="${!this.betaUpdateState_?.canCheck}"
-+          @click="${this.onBlancCheckForUpdatesClick_}">Check for Updates…</cr-button>
-+    </div>` : ''}
-   <div class="cr-row two-line first">
-     <img id="productLogo" @click="${this.onProductLogoClick_}"
-         srcset="chrome://theme/current-channel-logo@1x 1x,
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index 0c12908..9fd8ec8 100644
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -280,6 +280,7 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+   // Blanc desktop Sync (S4a): English fallback through the same loadTimeData
+   // mechanism as the other Blanc Settings controls. Shipping keys and new
+   // consent copy are recorded in CODEX-NOTES-s4a-sync-ui.md.
++  html_source->AddBoolean("blancBetaUpdater", blanc_prototype::IsBetaBuild() && BUILDFLAG(IS_MAC));
+   html_source->AddString("blancVerticalTabsTextSize", u"Vertical tab text size");
+   html_source->AddString("blancVerticalTabsTextSizeHint", u"Make tab titles and group names easier to read in the vertical tab rail.");
+   html_source->AddString("blancSyncStartWithPassphrase", u"Start with a name and passphrase");

@@ -1,7 +1,8 @@
 diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
+index 5153d22..79ce55f 100644
 --- a/chrome/browser/app_controller_mac.mm
 +++ b/chrome/browser/app_controller_mac.mm
-@@ -2115,6 +2115,7 @@
+@@ -2118,6 +2118,7 @@ class AppControllerProfileObserver : public ProfileAttributesStorage::Observer,
      }
    }
  
@@ -10,9 +11,10 @@ diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controlle
      [self openStartupTabsReplacingNTP:std::move(startupTabs)];
    }
 diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 6638479..e3c3b26 100644
 --- a/chrome/browser/prefs/browser_prefs.cc
 +++ b/chrome/browser/prefs/browser_prefs.cc
-@@ -1723,6 +1723,8 @@
+@@ -1789,6 +1789,8 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
    // Interface language (F44): "system" or a selectable language, read once
    // per launch (blanc/browser/ui/ui_language.h).
    registry->RegisterStringPref("blanc.ui_language", "system");
@@ -22,9 +24,10 @@ diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browse
    // shipping's are. The preview channel never sends.
    registry->RegisterDoublePref("blanc.first_run.completed_at", 0);
 diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+index 4c337e2..853cb4f 100644
 --- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
 +++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
-@@ -42,7 +42,24 @@
+@@ -42,7 +42,24 @@ export interface BlancResult {
    state: BlancSettingsState;
  }
  
@@ -50,62 +53,64 @@ diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/
    addBang: (code: string, name: string, template: string) =>
        sendWithPromise<BlancResult>('blancSettingsAddBang', code, name, template),
 diff --git a/chrome/browser/resources/settings/people_page/people_page.html.ts b/chrome/browser/resources/settings/people_page/people_page.html.ts
+index 015725a..85e93a6 100644
 --- a/chrome/browser/resources/settings/people_page/people_page.html.ts
 +++ b/chrome/browser/resources/settings/people_page/people_page.html.ts
-@@ -113,6 +113,49 @@
-             @click="${this.onBlancProfilesClick_}" external>
-         </cr-link-row>
+@@ -104,6 +104,49 @@ export function getHtml(this: SettingsPeoplePageElement) {
+         @click="${this.onBlancProfilesClick_}" external>
+     </cr-link-row>
  
-+        <section id="linkRoutesCard" ?hidden="${!this.blancRouteState_?.shown}" style="padding:16px">
-+          <h2>$i18n{blancLinkRouteTitle}</h2>
-+          <p>$i18n{blancLinkRouteHint}</p>
-+          <div id="linkRoutesList">
-+            ${this.blancRouteDrafts_.map((draft,index)=>html`
-+              <fieldset class="link-route-row" data-route-id="${draft.route.id}" data-index="${index}" aria-label="${this.routeSummary_(draft)}" style="margin:12px 0;padding:12px;border:1px solid var(--cr-separator-color);border-radius:8px;min-width:0">
-+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-+                  <select data-field="kind" aria-label="$i18n{blancLinkRouteMore}" .value="${draft.route.match.kind}" @change="${this.onBlancRouteChange_}">
-+                    <option value="domain">$i18n{blancLinkRouteLinksTo}</option><option value="contains">$i18n{blancLinkRouteLinksContaining}</option>
-+                  </select>
-+                  <input type="text" data-field="value" maxlength="200" autocomplete="off" spellcheck="false" style="min-width:120px;flex:1" .value="${draft.route.match.value}"
-+                    aria-label="${this.routeString_(draft.route.match.kind==='domain'?'DomainLabel':'ContainsLabel')}" aria-invalid="${!!draft.error}"
-+                    aria-describedby="linkRouteError-${draft.route.id}" @change="${this.onBlancRouteChange_}">
-+                  <span>$i18n{blancLinkRouteOpenIn}</span>
-+                  <select data-field="profile" aria-label="$i18n{blancLinkRouteProfileLabel}" .value="${draft.route.destination.profileId}" @change="${this.onBlancRouteChange_}">
-+                    ${this.blancRouteState_?.profiles.map(p=>html`<option value="${p.id}" ?selected="${p.id===draft.route.destination.profileId}">${p.name}</option>`)}
-+                    ${!this.blancRouteState_?.profiles.some(p=>p.id===draft.route.destination.profileId)?html`<option value="${draft.route.destination.profileId}" selected>$i18n{blancLinkRouteProfileDeleted}</option>`:''}
-+                  </select>
-+                  <select data-field="space" aria-label="$i18n{blancLinkRouteSpaceLabel}" .value="${draft.route.destination.spaceId??''}" @change="${this.onBlancRouteChange_}">
-+                    <option value="" ?selected="${!draft.route.destination.spaceId}">$i18n{blancLinkRouteAnyWindow}</option>
-+                    ${this.routeSpaces_(draft).map(s=>html`<option value="${s.id}" ?selected="${s.id===draft.route.destination.spaceId}">${s.name}</option>`)}
-+                    ${draft.route.destination.spaceId&&!this.routeSpaces_(draft).some(s=>s.id===draft.route.destination.spaceId)?html`<option value="${draft.route.destination.spaceId}" selected>$i18n{blancLinkRouteSpaceDeleted}</option>`:''}
-+                  </select>
-+                  <label><input data-field="private" type="checkbox" .checked="${draft.route.destination.private}" @change="${this.onBlancRouteChange_}"> $i18n{blancLinkRoutePrivate}</label>
-+                </div>
-+                <p class="link-route-error" id="linkRouteError-${draft.route.id}" ?hidden="${!draft.error&&!draft.note}">${draft.error||draft.note}</p>
-+                <p ?hidden="${!this.routeTargetNote_(draft)}">${this.routeTargetNote_(draft)}</p>
-+                <div style="display:flex;gap:8px;margin-top:8px">
-+                  <cr-button ?disabled="${index===0}" data-action="up" @click="${this.onBlancRouteActionClick_}">$i18n{blancLinkRouteMoveUp}</cr-button>
-+                  <cr-button ?disabled="${index===this.blancRouteDrafts_.length-1}" data-action="down" @click="${this.onBlancRouteActionClick_}">$i18n{blancLinkRouteMoveDown}</cr-button>
-+                  <cr-button data-action="delete" @click="${this.onBlancRouteActionClick_}">$i18n{blancLinkRouteDelete}</cr-button>
-+                </div>
-+              </fieldset>`)}
-+          </div>
-+          <p class="link-route-fallback">$i18n{blancLinkRouteFallback}</p>
-+          <cr-button id="linkRouteAdd" ?disabled="${this.blancRouteDrafts_.length>=50}" @click="${this.onAddBlancRouteClick_}">$i18n{blancLinkRouteAdd}</cr-button>
-+          <label style="display:flex;align-items:flex-start;gap:8px;margin-top:16px">
-+            <input id="linkRoutesInApp" type="checkbox" .checked="${this.blancRouteState_?.inApp??false}" @change="${this.onBlancRouteInAppChange_}">
-+            <span><strong>$i18n{blancLinkRouteInAppLabel}</strong><br>$i18n{blancLinkRouteInAppHint}</span>
-+          </label>
-+          <p id="linkRoutesStatus" role="status">${this.blancRouteError_}</p>
-+        </section>
++    <section id="linkRoutesCard" ?hidden="${!this.blancRouteState_?.shown}" style="padding:16px">
++      <h2>$i18n{blancLinkRouteTitle}</h2>
++      <p>$i18n{blancLinkRouteHint}</p>
++      <div id="linkRoutesList">
++        ${this.blancRouteDrafts_.map((draft,index)=>html`
++          <fieldset class="link-route-row" data-route-id="${draft.route.id}" data-index="${index}" aria-label="${this.routeSummary_(draft)}" style="margin:12px 0;padding:12px;border:1px solid var(--cr-separator-color);border-radius:8px;min-width:0">
++            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
++              <select data-field="kind" aria-label="$i18n{blancLinkRouteMore}" .value="${draft.route.match.kind}" @change="${this.onBlancRouteChange_}">
++                <option value="domain">$i18n{blancLinkRouteLinksTo}</option><option value="contains">$i18n{blancLinkRouteLinksContaining}</option>
++              </select>
++              <input type="text" data-field="value" maxlength="200" autocomplete="off" spellcheck="false" style="min-width:120px;flex:1" .value="${draft.route.match.value}"
++                aria-label="${this.routeString_(draft.route.match.kind==='domain'?'DomainLabel':'ContainsLabel')}" aria-invalid="${!!draft.error}"
++                aria-describedby="linkRouteError-${draft.route.id}" @change="${this.onBlancRouteChange_}">
++              <span>$i18n{blancLinkRouteOpenIn}</span>
++              <select data-field="profile" aria-label="$i18n{blancLinkRouteProfileLabel}" .value="${draft.route.destination.profileId}" @change="${this.onBlancRouteChange_}">
++                ${this.blancRouteState_?.profiles.map(p=>html`<option value="${p.id}" ?selected="${p.id===draft.route.destination.profileId}">${p.name}</option>`)}
++                ${!this.blancRouteState_?.profiles.some(p=>p.id===draft.route.destination.profileId)?html`<option value="${draft.route.destination.profileId}" selected>$i18n{blancLinkRouteProfileDeleted}</option>`:''}
++              </select>
++              <select data-field="space" aria-label="$i18n{blancLinkRouteSpaceLabel}" .value="${draft.route.destination.spaceId??''}" @change="${this.onBlancRouteChange_}">
++                <option value="" ?selected="${!draft.route.destination.spaceId}">$i18n{blancLinkRouteAnyWindow}</option>
++                ${this.routeSpaces_(draft).map(s=>html`<option value="${s.id}" ?selected="${s.id===draft.route.destination.spaceId}">${s.name}</option>`)}
++                ${draft.route.destination.spaceId&&!this.routeSpaces_(draft).some(s=>s.id===draft.route.destination.spaceId)?html`<option value="${draft.route.destination.spaceId}" selected>$i18n{blancLinkRouteSpaceDeleted}</option>`:''}
++              </select>
++              <label><input data-field="private" type="checkbox" .checked="${draft.route.destination.private}" @change="${this.onBlancRouteChange_}"> $i18n{blancLinkRoutePrivate}</label>
++            </div>
++            <p class="link-route-error" id="linkRouteError-${draft.route.id}" ?hidden="${!draft.error&&!draft.note}">${draft.error||draft.note}</p>
++            <p ?hidden="${!this.routeTargetNote_(draft)}">${this.routeTargetNote_(draft)}</p>
++            <div style="display:flex;gap:8px;margin-top:8px">
++              <cr-button ?disabled="${index===0}" data-action="up" @click="${this.onBlancRouteActionClick_}">$i18n{blancLinkRouteMoveUp}</cr-button>
++              <cr-button ?disabled="${index===this.blancRouteDrafts_.length-1}" data-action="down" @click="${this.onBlancRouteActionClick_}">$i18n{blancLinkRouteMoveDown}</cr-button>
++              <cr-button data-action="delete" @click="${this.onBlancRouteActionClick_}">$i18n{blancLinkRouteDelete}</cr-button>
++            </div>
++          </fieldset>`)}
++      </div>
++      <p class="link-route-fallback">$i18n{blancLinkRouteFallback}</p>
++      <cr-button id="linkRouteAdd" ?disabled="${this.blancRouteDrafts_.length>=50}" @click="${this.onAddBlancRouteClick_}">$i18n{blancLinkRouteAdd}</cr-button>
++      <label style="display:flex;align-items:flex-start;gap:8px;margin-top:16px">
++        <input id="linkRoutesInApp" type="checkbox" .checked="${this.blancRouteState_?.inApp??false}" @change="${this.onBlancRouteInAppChange_}">
++        <span><strong>$i18n{blancLinkRouteInAppLabel}</strong><br>$i18n{blancLinkRouteInAppHint}</span>
++      </label>
++      <p id="linkRoutesStatus" role="status">${this.blancRouteError_}</p>
++    </section>
 +
  <if expr="not is_chromeos">
-         ${this.signinAllowed_ ? html`
-           <cr-link-row id="manage-google-account"
+     ${this.signinAllowed_ ? html`
+       <cr-link-row id="manage-google-account" label="$i18n{manageGoogleAccount}"
 diff --git a/chrome/browser/resources/settings/people_page/people_page.ts b/chrome/browser/resources/settings/people_page/people_page.ts
+index f77ddc3..c4d05d7 100644
 --- a/chrome/browser/resources/settings/people_page/people_page.ts
 +++ b/chrome/browser/resources/settings/people_page/people_page.ts
-@@ -37,7 +37,8 @@
+@@ -37,7 +37,8 @@ import {isChromeOS} from 'chrome://resources/js/platform.js';
  import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
  import type {PropertyValues} from 'chrome://resources/lit/v3_0/lit.rollup.js';
  
@@ -115,22 +120,20 @@ diff --git a/chrome/browser/resources/settings/people_page/people_page.ts b/chro
  import {loadTimeData} from '../i18n_setup.js';
  import {routes} from '../route.js';
  import type {Route} from '../router.js';
-@@ -78,6 +79,9 @@
+@@ -78,6 +79,9 @@ export class SettingsPeoplePageElement extends SettingsPeoplePageElementBase {
  
    static override get properties() {
      return {
 +      blancRouteState_: {type:Object},
 +      blancRouteDrafts_: {type:Array},
 +      blancRouteError_: {type:String},
+       // <if expr="not is_chromeos">
        /**
         * This flag is used to conditionally show a set of new sign-in UIs to the
-        * profiles that have been migrated to be consistent with the web
-@@ -141,6 +145,131 @@
-       showSignoutDialog_: {type: Boolean},
-       // </if>
+@@ -143,6 +147,131 @@ export class SettingsPeoplePageElement extends SettingsPeoplePageElementBase {
      };
-+  }
-+
+   }
+ 
 +  protected accessor blancRouteState_: BlancRouteState|null = null;
 +  protected accessor blancRouteDrafts_: BlancRouteDraft[] = [];
 +  protected accessor blancRouteError_: string = '';
@@ -254,10 +257,12 @@ diff --git a/chrome/browser/resources/settings/people_page/people_page.ts b/chro
 +    if (!result.ok) throw Error('refused');
 +    if (revision!==this.blancRouteRevision_) return;
 +    this.blancRouteDrafts_=drafts;this.blancRouteState_=result.state;this.blancRouteError_='';
-   }
- 
++  }
++
+   // <if expr="not is_chromeos">
    protected accessor signinAllowed_: boolean =
-@@ -171,6 +300,8 @@
+       loadTimeData.getBoolean('signinAllowed');
+@@ -173,6 +302,8 @@ export class SettingsPeoplePageElement extends SettingsPeoplePageElementBase {
  
    override connectedCallback() {
      super.connectedCallback();
@@ -266,7 +271,7 @@ diff --git a/chrome/browser/resources/settings/people_page/people_page.ts b/chro
  
      let useProfileNameAndIcon = true;
      // <if expr="is_chromeos">
-@@ -208,6 +339,11 @@
+@@ -210,6 +341,11 @@ export class SettingsPeoplePageElement extends SettingsPeoplePageElementBase {
    }
  
    // <if expr="not is_chromeos">
@@ -279,6 +284,7 @@ diff --git a/chrome/browser/resources/settings/people_page/people_page.ts b/chro
      super.willUpdate(changedProperties);
  
 diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
+index b89a449..f35840f 100644
 --- a/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
 +++ b/chrome/browser/ui/browser_web_contents_delegate/browser_web_contents_delegate.cc
 @@ -5,6 +5,7 @@
@@ -289,7 +295,7 @@ diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_content
  #include "base/feature_list.h"
  #include "base/metrics/histogram_macros.h"
  #include "base/notimplemented.h"
-@@ -703,6 +704,8 @@
+@@ -723,6 +724,8 @@ content::WebContents* BrowserWebContentsDelegate::AddNewContents(
      const blink::mojom::WindowFeatures& window_features,
      bool user_gesture,
      bool* was_blocked) {
@@ -298,7 +304,7 @@ diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_content
    // Handle a window.open() split tab request. The renderer chooses a tab or
    // popup disposition as the fallback, and the browser decides whether to
    // create the split. The renderer doesn't send the request if the user's
-@@ -1113,6 +1116,10 @@
+@@ -1136,6 +1139,10 @@ void BrowserWebContentsDelegate::WebContentsCreated(
      const std::string& frame_name,
      const GURL& target_url,
      content::WebContents* new_contents) {
@@ -310,6 +316,7 @@ diff --git a/chrome/browser/ui/browser_web_contents_delegate/browser_web_content
    // This method is called from WebContentsImpl::CreateNewWindow() for a created
    // `new_contents`. This occurs before ownership of `new_contents` is
 diff --git a/chrome/browser/ui/navigator/browser_navigator.cc b/chrome/browser/ui/navigator/browser_navigator.cc
+index 054b99f..04f00f2 100644
 --- a/chrome/browser/ui/navigator/browser_navigator.cc
 +++ b/chrome/browser/ui/navigator/browser_navigator.cc
 @@ -5,6 +5,7 @@
@@ -320,7 +327,7 @@ diff --git a/chrome/browser/ui/navigator/browser_navigator.cc b/chrome/browser/u
  
  #include <algorithm>
  #include <memory>
-@@ -770,6 +771,8 @@
+@@ -778,6 +779,8 @@ base::WeakPtr<content::NavigationHandle> NavigateImpl(
    }
  #endif  // BUILDFLAG(IS_CHROMEOS)
  
@@ -330,9 +337,10 @@ diff --git a/chrome/browser/ui/navigator/browser_navigator.cc b/chrome/browser/u
    // TODO(crbug.com/40136163): Remove this code after we integrate with intent
    // handling.
 diff --git a/content/renderer/render_frame_impl.cc b/content/renderer/render_frame_impl.cc
+index ca04d96..d3f1148 100644
 --- a/content/renderer/render_frame_impl.cc
 +++ b/content/renderer/render_frame_impl.cc
-@@ -7134,6 +7134,7 @@
+@@ -7129,6 +7129,7 @@ WebView* RenderFrameImpl::CreateNewWindow(
          request.GetReferrerPolicy());
    }
    params->features = ConvertWebWindowFeaturesToMojoWindowFeatures(features);
@@ -341,9 +349,10 @@ diff --git a/content/renderer/render_frame_impl.cc b/content/renderer/render_fra
    params->is_form_submission = request.IsFormSubmission();
    params->consumes_user_activation =
 diff --git a/third_party/blink/public/mojom/window_features/window_features.mojom b/third_party/blink/public/mojom/window_features/window_features.mojom
+index 2d66582..eb05340 100644
 --- a/third_party/blink/public/mojom/window_features/window_features.mojom
 +++ b/third_party/blink/public/mojom/window_features/window_features.mojom
-@@ -30,6 +30,10 @@
+@@ -30,6 +30,10 @@ struct WindowFeatures {
      bool has_width = false;
      bool has_height = false;
  
@@ -355,9 +364,10 @@ diff --git a/third_party/blink/public/mojom/window_features/window_features.mojo
      bool always_on_top = false;
  
 diff --git a/third_party/blink/public/web/web_window_features.h b/third_party/blink/public/web/web_window_features.h
+index 37cfc49..0da31c9 100644
 --- a/third_party/blink/public/web/web_window_features.h
 +++ b/third_party/blink/public/web/web_window_features.h
-@@ -64,6 +64,8 @@
+@@ -64,6 +64,8 @@ struct WebWindowFeatures {
    // Below members are the ones not transferred through mojo.
    bool resizable = true;
  
@@ -367,9 +377,10 @@ diff --git a/third_party/blink/public/web/web_window_features.h b/third_party/bl
    bool explicit_opener = false;
    bool noreferrer = false;
 diff --git a/third_party/blink/renderer/core/page/chrome_client_impl.cc b/third_party/blink/renderer/core/page/chrome_client_impl.cc
+index 8d56e87..0fca156 100644
 --- a/third_party/blink/renderer/core/page/chrome_client_impl.cc
 +++ b/third_party/blink/renderer/core/page/chrome_client_impl.cc
-@@ -428,9 +428,15 @@
+@@ -428,9 +428,15 @@ Page* ChromeClientImpl::CreateWindowDelegate(
    NotifyPopupOpeningObservers();
    const AtomicString& frame_name =
        !EqualIgnoringAsciiCase(name, "_blank") ? name : g_empty_atom;

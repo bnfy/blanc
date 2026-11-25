@@ -6,7 +6,7 @@ This beta is a separate application alongside shipping Electron Blanc, updates w
 
 ## 1. Inputs and immutable version ledger
 
-Start from `chromium/lanes/desktop.json`, `chromium/upstream/manifest.json` and `chromium/source-map.json`. On `chromium/migration` at `6875f564` (this tooling was first written against `ed162e36` on the S3 branch and rebased), the desktop lane has 38 ordered patches and 142 pristine upstream files. Recount before relying on these figures. The pinned upstream is **681cd621e82e606d7536eae8ea2576afb3c7d65c**, version **158.0.8127.2**. Preserve the order, the reconstructed hashes, canonical `chromium/blanc/` source and asset manifest. `python3 chromium/tools/check-patches.py --lane desktop` reconstructs those inputs without a Chromium checkout.
+Start from `chromium/lanes/desktop.json`, `chromium/upstream/manifest.json` and `chromium/source-map.json`. On `chromium/migration` at `6875f564` (this tooling was first written against `ed162e36` on the S3 branch and rebased), the desktop lane has 38 ordered patches and 142 pristine upstream files. Recount before relying on these figures. The pinned upstream was then **681cd621e82e606d7536eae8ea2576afb3c7d65c**, version **158.0.8127.2**; the current pin is the lane file's (159.0.8154.33 at `ab2e5d8ad16c` since 2026-11-25). Preserve the order, the reconstructed hashes, canonical `chromium/blanc/` source and asset manifest. `python3 chromium/tools/check-patches.py --lane desktop` reconstructs those inputs without a Chromium checkout.
 
 Create a real `release.json` outside the repository from the *schema* in `chromium/release/fixtures/release.json`; its zero digests, keys and candidate IDs are test data, never release inputs. It must include:
 
@@ -23,8 +23,8 @@ Approved beta version mapping (owner decision, 2026-11-10):
 | Git tag | `chromium-beta-2.0.0-beta.1` | `chromium-beta-2.0.0-beta.2` |
 | Outer `CFBundleShortVersionString` and Sparkle `sparkle:shortVersionString` | `2.0.0-beta.1` | `2.0.0-beta.2` |
 | Outer `CFBundleVersion` / Sparkle `sparkle:version` | `1` | `2` |
-| Chromium `chrome/VERSION` | `158.0.8127.2` | unchanged until a reviewed upstream update |
-| Chromium framework directory/version | `158.0.8127.2` | follows Chromium, not Sparkle |
+| Chromium `chrome/VERSION` | `159.0.8154.33` (the lane pin) | unchanged until a reviewed upstream update |
+| Chromium framework directory/version | `159.0.8154.33` (the lane pin) | follows Chromium, not Sparkle |
 
 The policy accepts integer builds 1–9999 and fails at exhaustion; review an extension before then. Beta sequence and build are distinct: private qualification attempts also consume build numbers. Never reset the build at a Chromium milestone change. Chromium's [mac plist generator](https://chromium.googlesource.com/chromium/src/+/681cd621e82e606d7536eae8ea2576afb3c7d65c/build/apple/tweak_info_plist.py) normally makes the outer short version `158.0.8127.2` and bundle version `8127.2`. A beta-only packaging action must override **only the outer app's two keys before signing**, set the short version to the full beta version (`2.0.0-beta.N`, the owner's choice on November 10, 2026, so About and the update prompt name the same version the feed does), and preserve framework/dylib/helper versions. Apple documents `CFBundleShortVersionString` as three period-separated integers; a suffixed string is common outside the App Store, but confirm on the first real build that notarization, Gatekeeper and Sparkle accept it. Do not rewrite `chrome/VERSION` to a three-part Blanc semver: Chromium depends on its four integers. The signing sanity check in `signing/parts.py::_sanity_check_version_keys` skips the Keystone comparison when `KSVersion` is absent; do not introduce Keystone keys to solve this.
 

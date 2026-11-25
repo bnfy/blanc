@@ -24,7 +24,7 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {ROOT} from '../preflight.mjs';
-import {ReleaseCheckError, reason} from '../policy.mjs';
+import {CHROME_VERSION, ReleaseCheckError, reason} from '../policy.mjs';
 import {load, CANDIDATE_DRAFTS} from '../windows-release.mjs';
 import {claimExact} from '../build-claims.mjs';
 import {acquireHold, newOwner, releaseHold, uploadUnderHold, REPO} from '../../windows/draft-hold.mjs';
@@ -33,7 +33,8 @@ const STUDIO = ['-i', path.join(os.homedir(), '.ssh/id_ed25519_macmini'), '-o', 
   '-o', 'ConnectTimeout=15', 'anthonyjloria@Mac-Studio.local'];
 export const NIGHTS = '~/Projects/Blanc/records/nightly/windows';
 export const PREP_HOLD = 'PREP-HOLD';
-const VERSION_PREFIX = '158.0.8127.';
+// The pinned Chromium's first three numbers; the build is the last.
+const VERSION_PREFIX = `${CHROME_VERSION.split('.').slice(0, 3).join('.')}.`;
 const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const stop = message => { throw new ReleaseCheckError(message); };
 

@@ -195,7 +195,7 @@ base::DictValue TrustReceiptFacts(Profile* profile) {
   if (!bundle.first.empty()) version = bundle.first;
   build = bundle.second;
 #elif BUILDFLAG(IS_WIN)
-  // The Windows beta's build is its version's last number (158.0.8127.<build>).
+  // The Windows beta's build is its version's last number (<pinned a.b.c>.<build>).
   build = base::NumberToString(version_info::GetVersion().components().back());
 #endif
   auto dns = SystemNetworkContextManager::GetStubResolverConfigReader()->GetSecureDnsConfiguration(false);

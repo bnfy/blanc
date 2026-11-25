@@ -1,7 +1,8 @@
 diff --git a/chrome/browser/ui/browser_live_tab_context.cc b/chrome/browser/ui/browser_live_tab_context.cc
+index 93d4507..ef95b87 100644
 --- a/chrome/browser/ui/browser_live_tab_context.cc
 +++ b/chrome/browser/ui/browser_live_tab_context.cc
-@@ -201,6 +201,7 @@
+@@ -200,6 +200,7 @@ std::map<std::string, std::string> BrowserLiveTabContext::GetExtraDataForTab(
      int index) const {
    std::map<std::string, std::string> extra_data;
    tabs::TabInterface* const tab = tab_strip_model_->GetTabAtIndex(index);
@@ -9,40 +10,19 @@ diff --git a/chrome/browser/ui/browser_live_tab_context.cc b/chrome/browser/ui/b
    const auto identity = blanc_prototype::TabIdentity(tab_strip_model_->GetWebContentsAt(index));
    if (!identity.empty()) extra_data[blanc_prototype::kTabIdentityKey] = identity;
    if (blanc_prototype::IsPersistentSplitTab(tab_strip_model_->GetWebContentsAt(index)))
-diff --git a/components/sessions/core/tab_restore_service_helper.h b/components/sessions/core/tab_restore_service_helper.h
---- a/components/sessions/core/tab_restore_service_helper.h
-+++ b/components/sessions/core/tab_restore_service_helper.h
-@@ -8,6 +8,7 @@
- #include <map>
- #include <optional>
- #include <set>
-+#include <string>
- #include <vector>
- 
- #include "base/memory/raw_ptr.h"
-@@ -68,6 +69,10 @@
- 
-   // Max number of entries we'll keep around.
-   static const int kMaxEntries = 25;
-+  // A Blanc selection batch occupies one history slot, like a native window
-+  // or group. Retain/evict all of its entries together, including on reload.
-+  static std::string EntryBatchId(const Entry& entry);
-+  static size_t EntrySlotCount(const Entries& entries);
- 
-   // Creates a new TabRestoreServiceHelper and provides an object that provides
-   // the current time. The TabRestoreServiceHelper does not take ownership of
 diff --git a/components/sessions/core/tab_restore_service_helper.cc b/components/sessions/core/tab_restore_service_helper.cc
+index 8d8dca4..ebbfbaa 100644
 --- a/components/sessions/core/tab_restore_service_helper.cc
 +++ b/components/sessions/core/tab_restore_service_helper.cc
-@@ -29,6 +29,7 @@
+@@ -30,6 +30,7 @@
  #include "base/trace_event/memory_usage_estimator.h"
  #include "base/trace_event/process_memory_dump.h"
  #include "base/values.h"
 +#include "base/uuid.h"
- #include "components/dom_distiller/core/url_constants.h"
  #include "components/sessions/core/live_tab.h"
  #include "components/sessions/core/live_tab_context.h"
-@@ -1272,10 +1273,38 @@
+ #include "components/sessions/core/serialized_navigation_entry.h"
+@@ -1365,10 +1366,38 @@ void TabRestoreServiceHelper::NotifyLoaded() {
    }
  }
  
@@ -82,7 +62,7 @@ diff --git a/components/sessions/core/tab_restore_service_helper.cc b/components
      return false;
    }
  
-@@ -1335,11 +1364,15 @@
+@@ -1428,11 +1457,15 @@ bool TabRestoreServiceHelper::AddEntry(std::unique_ptr<Entry> entry,
  
  void TabRestoreServiceHelper::PruneEntries() {
    Entries new_entries;
@@ -102,10 +82,34 @@ diff --git a/components/sessions/core/tab_restore_service_helper.cc b/components
    }
  
    entries_ = std::move(new_entries);
+diff --git a/components/sessions/core/tab_restore_service_helper.h b/components/sessions/core/tab_restore_service_helper.h
+index a89f83b..b8d731d 100644
+--- a/components/sessions/core/tab_restore_service_helper.h
++++ b/components/sessions/core/tab_restore_service_helper.h
+@@ -8,6 +8,7 @@
+ #include <map>
+ #include <optional>
+ #include <set>
++#include <string>
+ #include <vector>
+ 
+ #include "base/memory/raw_ptr.h"
+@@ -73,6 +74,10 @@ class SESSIONS_EXPORT TabRestoreServiceHelper
+ 
+   // Max number of entries we'll keep around.
+   static const int kMaxEntries = 25;
++  // A Blanc selection batch occupies one history slot, like a native window
++  // or group. Retain/evict all of its entries together, including on reload.
++  static std::string EntryBatchId(const Entry& entry);
++  static size_t EntrySlotCount(const Entries& entries);
+ 
+   // Creates a new TabRestoreServiceHelper and provides an object that provides
+   // the current time. The TabRestoreServiceHelper does not take ownership of
 diff --git a/components/sessions/core/tab_restore_service_impl.cc b/components/sessions/core/tab_restore_service_impl.cc
+index a89dd45..b6279a0 100644
 --- a/components/sessions/core/tab_restore_service_impl.cc
 +++ b/components/sessions/core/tab_restore_service_impl.cc
-@@ -865,7 +865,7 @@
+@@ -877,7 +877,7 @@ void TabRestoreServiceImpl::PersistenceDelegate::LoadTabsFromLastSession() {
    if (load_state_ != NOT_LOADED) {
      return;
    }
@@ -114,7 +118,7 @@ diff --git a/components/sessions/core/tab_restore_service_impl.cc b/components/s
      // We already have the max number of entries we can take. There is no point
      // in attempting to load since we'll just drop the results. Skip to loaded.
      load_state_ = (LOADING | LOADED_LAST_SESSION | LOADED_LAST_TABS);
-@@ -1251,7 +1251,7 @@
+@@ -1263,7 +1263,7 @@ void TabRestoreServiceImpl::PersistenceDelegate::OnGotLastSessionCommands(
  void TabRestoreServiceImpl::PersistenceDelegate::CreateEntriesFromCommands(
      const std::vector<std::unique_ptr<SessionCommand>>& commands,
      std::vector<std::unique_ptr<tab_restore::Entry>>* loaded_entries) {
@@ -123,7 +127,7 @@ diff --git a/components/sessions/core/tab_restore_service_impl.cc b/components/s
      return;
    }
    // Iterate through the commands, populating |entries|.
-@@ -1757,23 +1757,14 @@
+@@ -1769,23 +1769,14 @@ void TabRestoreServiceImpl::PersistenceDelegate::LoadStateChanged() {
    load_state_ ^= LOADING;
  
    const Entries& entries = tab_restore_service_helper_->entries();

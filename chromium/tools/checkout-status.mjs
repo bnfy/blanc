@@ -8,6 +8,12 @@ const localIO = {
   exec: (cmd, args) => spawnSync(cmd, args, {encoding: 'utf8', maxBuffer: 256 * 1024 * 1024}),
 };
 
+// Files a gclient hook writes into the checkout that Chromium's .gitignore doesn't cover, and that
+// no Blanc build reads. Since 159, configure_reclient_cfgs.py writes reproxy.cfg from the
+// checkout's own template on every sync; it configures remote execution, and Blanc builds run
+// Siso offline (owner, 2026-11-25). Exact paths, and only while untracked.
+export const GCLIENT_HOOK_OUTPUTS = new Set(['buildtools/reclient_cfgs/reproxy.cfg']);
+
 export function checkoutStatusProblem(src, current, io = localIO) {
   // Nothing else in the Chromium checkout, submodules included, may differ from the pin.
   const known = new Set([...Object.keys(current.upstreamFiles), ...Object.keys(current.canonicalSha256)]);
@@ -36,6 +42,7 @@ export function checkoutStatusProblem(src, current, io = localIO) {
   for (const line of String(status.stdout).split('\n').filter(Boolean)) {
     const name = line.slice(3).replace(/^"|"$/g, '');
     if (name.startsWith('out/')) continue;
+    if (line.startsWith('?? ') && GCLIENT_HOOK_OUTPUTS.has(name)) continue;
     if (!known.has(name) && !gclientOnly(name)) return "the Chromium checkout has a change outside the lane's map";
   }
   return null;

@@ -6,8 +6,11 @@ import path from 'node:path';
 import test from 'node:test';
 import YAML from 'yaml';
 import {packageNames} from '../linux/candidate.mjs';
+import {CHROME_VERSION as PINNED_CHROME} from '../release/policy.mjs';
+// The pinned Chromium's first three numbers; a build is the last.
+const PIN = PINNED_CHROME.split('.').slice(0, 3).join('.');
 
-const version = '158.0.8127.906';
+const version = `${PIN}.906`;
 const tag = 'chromium-beta-linux-' + version;
 const sourceCommit = 'a'.repeat(40);
 const download = 'https://github.com/bnfy/blanc/releases/download/' + tag + '/';
@@ -228,9 +231,9 @@ for (const [system, why, change] of [
   ['ubuntu', 'recoverable apt warning', {warning: 'W: Some index files failed to download.'}],
   ['fedora', 'successful dnf exit with a warning', {warning: 'Warning: skipped repository blanc-beta'}],
   ['fedora', 'makecache failure', {error: true}],
-  ['fedora', 'wrong repository version', {listing: 'blanc-beta 158.0.8127.905-1 x86_64'}],
+  ['fedora', 'wrong repository version', {listing: `blanc-beta ${PIN}.905-1 x86_64`}],
   ['fedora', 'smoke from another distro', {smoke: {system: 'debian'}}],
-  ['debian', 'wrong installed version', {smoke: {version: '158.0.8127.905'}}],
+  ['debian', 'wrong installed version', {smoke: {version: `${PIN}.905`}}],
   ['debian', 'smoke from another arch', {smoke: {arch: 'arm64'}}],
   ['ubuntu', 'missing blocker evidence', {smoke: {blockedError: null}}]
 ]) test(system + ' withholds the pass report for ' + why, async t => {
