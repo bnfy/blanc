@@ -1,5 +1,85 @@
 [
   {
+    "tag": "chromium-beta-windows-159.0.8154.910",
+    "product": "beta",
+    "platform": "windows",
+    "version": "159.0.8154.910",
+    "name": "Blanc Beta 159.0.8154.910 for Windows",
+    "publishedAt": "2026-11-25T22:28:27.000Z",
+    "humanDate": "November 25, 2026",
+    "machineDate": "2026-11-25",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-159.0.8154.910",
+    "anchor": "beta-windows-159-0-8154-910",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Chromium 159."
+              },
+              {
+                "type": "text",
+                "value": " Blanc Beta moves to Chromium 159 (159.0.8154.33), Chrome's current beta milestone, a few weeks ahead of its stable release on December 8."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "The Spaces menu stays put as it closes."
+              },
+              {
+                "type": "text",
+                "value": " It used to jump to the left edge of the window while it faded out."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Updating."
+              },
+              {
+                "type": "text",
+                "value": " If you have 158.0.8127.907, Blanc Beta updates itself through Blanc's updater; About Blanc Beta checks right away. To install fresh, download "
+              },
+              {
+                "type": "code",
+                "value": "Blanc-Beta-Setup-159.0.8154.910.exe"
+              },
+              {
+                "type": "text",
+                "value": " and run it. Made for x64 Windows PCs and tested on Windows 11."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Not yet."
+              },
+              {
+                "type": "text",
+                "value": " Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "chromium-beta-2.0.0-beta.11",
     "product": "beta",
     "platform": "mac",
