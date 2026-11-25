@@ -7368,6 +7368,7 @@ function currentTabsPayload() {
     islandTabIcons,
     islandSize,
     miniWindow: rt().mini === true,
+    miniWindowCanMove: rt().mini === true && !!miniWindowMovableIds(rt()),
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...captureBroadcastState(serialized),
@@ -12134,6 +12135,7 @@ function registerIpcHandlers() {
     islandTabIcons,
     islandSize,
     miniWindow: rt().mini === true,
+    miniWindowCanMove: rt().mini === true && !!miniWindowMovableIds(rt()),
     ...verticalTabsMetrics(),
   }));
   chromeHandle('tabs:find', (_e, id, query, options) => {
@@ -12442,8 +12444,9 @@ function registerIpcHandlers() {
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-open', (_e, id, opts) => {
-    // A mini window (#1138) holds no Space and reaches no other profile's.
-    if (rt().mini) return { ok: false, error: 'busy' };
+    // A mini window (#1138) holds no Space and reaches no other profile's:
+    // choosing one of its profile's Spaces moves its tabs there (#1734).
+    if (rt().mini) return otherProfileTarget(opts) ? { ok: false, error: 'busy' } : { ...moveMiniWindowToSpace(rt(), id, null), ...workspacesProjection() };
     // Another profile's Space opens in a window of that profile; this window
     // and its tabs are never touched (spec 2026-11-19 D1).
     const otherProfile = otherProfileTarget(opts);
@@ -12463,7 +12466,13 @@ function registerIpcHandlers() {
     return { ...result, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-create-blank', (_e, name, opts) => {
-    if (rt().mini) return { ok: false, error: 'busy' };
+    // New Space… from a mini window makes the Space with its tabs (#1734).
+    if (rt().mini) {
+      if (otherProfileTarget(opts)) return { ok: false, error: 'busy' };
+      return { ...moveMiniWindowToSpace(rt(), null, { name,
+        color: typeof opts?.color === 'string' ? opts.color : undefined,
+        symbol: typeof opts?.symbol === 'string' ? opts.symbol : undefined }), ...workspacesProjection() };
+    }
     const otherProfile = otherProfileTarget(opts);
     if (otherProfile) {
       const made = createSpaceInProfile(otherProfile, name, {
@@ -12933,7 +12942,10 @@ function buildMenuForRuntime(runtime) {
         // Mini Window (#1138): a small window that isn't saved; "Open in
         // Blanc" (shown in one) keeps it as an ordinary window.
         { label: t('menu.newMiniWindow'), click: bound(() => openMiniWindow()) },
-        ...(runtime.mini ? [{ label: t('mini.openInBlanc'), click: bound(() => keepMiniWindow(runtime)) }] : []),
+        ...(runtime.mini ? [
+          { label: t('mini.openInBlanc'), click: bound(() => keepMiniWindow(runtime)) },
+          { label: t('mini.moveToSpace.menu'), submenu: miniWindowSpaceMenu(runtime) },
+        ] : []),
         { label: t('menu.newProfileWindow'), click: bound(() => openNewProfileWindow()) },
         command('new-tab'),
         command('new-private-tab'),
@@ -14093,6 +14105,56 @@ function keepMiniWindow(runtime = rt()) {
     buildMenu(runtime);
   });
   return true;
+}
+
+/** Move to Space (#1734): the tabs a mini window takes into a Space, or null
+ * when it can't move now. An unused start page stays behind; any other page
+ * that can't go to a Space (canMoveTabToSpace) stops the whole move. */
+function miniWindowMovableIds(runtime) {
+  if (!runtime?.mini || runtime.closing || !runtime.window || runtime.window.isDestroyed()) return null;
+  const ids = miniWindow.miniWindowMoveIds(runtime.tabOrder.map((id) => {
+    const tab = tabs.get(id);
+    return { id, blank: !!tab && tab.url === NEW_TAB_URL && !newTabPageUsed(tab) };
+  }));
+  return ids.length && ids.every((id) => canMoveTabToSpace(tabs.get(id), runtime, true)) ? ids : null;
+}
+
+/** Move to Space from a mini window (#1734, spec 2026-11-25 D1): every tab
+ * joins `workspaceId` (or a new Space, `creation`) through the write-first
+ * Space move, then the mini window closes and the Space comes forward in its
+ * profile. A refused or failed move leaves the window as it was and shows
+ * why in its Spaces menu; a name the editor refused is shown by the editor. */
+function moveMiniWindowToSpace(runtime, workspaceId, creation = null) {
+  const ids = miniWindowMovableIds(runtime);
+  const spaceName = () => creation?.name ?? namedWorkspaces.get(workspaceId)?.name ?? '';
+  const fail = (result) => {
+    withWindowRuntime(runtime, () => showOverlay('spaces', { purpose: { spaceMoveError: {
+      name: spaceName(), error: result.error, movedCount: result.movedCount ?? 0,
+    } } }));
+    return result;
+  };
+  if (!ids || (workspaceId && !namedWorkspaces.get(workspaceId))) return fail({ ok: false, error: ids ? 'not-found' : 'busy', movedCount: 0 });
+  const result = withWindowRuntime(runtime, () => moveTabsToSpace(ids, workspaceId, creation));
+  if (!result.ok) return creation && !result.workspaceId && !result.movedCount ? result : fail(result);
+  const spaceId = workspaceId ?? result.workspaceId;
+  const { profileId } = runtime;
+  runtime.window.close();
+  openSpaceInProfile({ profileId, spaceId });
+  return result;
+}
+
+/** File → Move to Space ▸ in a mini window: the profile's Spaces, then New
+ * Space…, which opens the Spaces menu's editor in move mode. */
+function miniWindowSpaceMenu(runtime) {
+  const movable = !!miniWindowMovableIds(runtime);
+  const spaces = spaceMoveTargets(runtime);
+  return [
+    ...spaces.map((space) => ({ label: space.name, enabled: movable && space.enabled,
+      click: () => withWindowRuntime(runtime, () => moveMiniWindowToSpace(runtime, space.id, null)) })),
+    ...(spaces.length ? [{ type: 'separator' }] : []),
+    { label: mainI18n.t('tabMenu.newSpace'), enabled: movable && spaces.length < MAX_WORKSPACES,
+      click: () => withWindowRuntime(runtime, () => showOverlay('spaces', { purpose: { miniNewSpace: true } })) },
+  ];
 }
 
 // The global shortcut (Settings → General → Mini window shortcut). Off by

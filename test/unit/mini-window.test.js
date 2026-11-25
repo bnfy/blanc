@@ -156,3 +156,20 @@ test('a mini window moves every tab but an unused start page (#1734)', () => {
   assert.deepEqual(mini.miniWindowMoveIds([{ id: 1, blank: true }]), []);
   assert.deepEqual(mini.miniWindowMoveIds([]), []);
 });
+
+test('a mini window moves to a Space of its own profile, then closes (#1734)', () => {
+  const main = read('src/main/main.js');
+  const movable = main.match(/function miniWindowMovableIds\(runtime\) \{[\s\S]*?\n\}/)[0];
+  assert.match(movable, /miniWindow\.miniWindowMoveIds\(/);
+  assert.match(movable, /tab\.url === NEW_TAB_URL && !newTabPageUsed\(tab\)/);
+  assert.match(movable, /ids\.every\(\(id\) => canMoveTabToSpace\(tabs\.get\(id\), runtime, true\)\)/);
+  const move = main.match(/function moveMiniWindowToSpace\(runtime, workspaceId, creation = null\) \{[\s\S]*?\n\}/)[0];
+  assert.match(move, /const ids = miniWindowMovableIds\(runtime\);/);
+  assert.match(move, /withWindowRuntime\(runtime, \(\) => moveTabsToSpace\(ids, workspaceId, creation\)\)/);
+  assert.match(move, /runtime\.window\.close\(\);\s*openSpaceInProfile\(\{ profileId, spaceId \}\);/);
+  assert.match(move, /showOverlay\('spaces', \{ purpose: \{ spaceMoveError:/);
+  assert.match(main, /if \(rt\(\)\.mini\) return otherProfileTarget\(opts\) \? \{ ok: false, error: 'busy' \} : \{ \.\.\.moveMiniWindowToSpace\(rt\(\), id, null\), \.\.\.workspacesProjection\(\) \};/);
+  assert.match(main, /if \(rt\(\)\.mini\) \{\s*if \(otherProfileTarget\(opts\)\) return \{ ok: false, error: 'busy' \};\s*return \{ \.\.\.moveMiniWindowToSpace\(rt\(\), null, \{ name,/);
+  assert.equal(main.match(/\n    miniWindowCanMove: rt\(\)\.mini === true && !!miniWindowMovableIds\(rt\(\)\),\n/g)?.length, 2, 'both tab payloads say so');
+  assert.match(main, /label: t\('mini\.moveToSpace\.menu'\), submenu: miniWindowSpaceMenu\(runtime\)/);
+});

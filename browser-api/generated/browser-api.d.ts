@@ -320,6 +320,8 @@ export interface TabsSnapshot {
   islandTabIcons: boolean;
   /** This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. */
   miniWindow: boolean;
+  /** A mini window whose tabs can move to a Space now (#1734): something besides an unused start page, and every page movable. */
+  miniWindowCanMove: boolean;
   /** The resting Island's size: default, large or extra-large (device-local setting, #1292). */
   islandSize: string;
   verticalTabsWidth: number;
@@ -348,6 +350,8 @@ export interface TabsUpdatedPayload {
   islandTabIcons: boolean;
   /** This window is a mini window (#1138): small, never saved, with Open in Blanc on the Island. */
   miniWindow: boolean;
+  /** A mini window whose tabs can move to a Space now (#1734): something besides an unused start page, and every page movable. */
+  miniWindowCanMove: boolean;
   /** The resting Island's size: default, large or extra-large (device-local setting, #1292). */
   islandSize: string;
   adblockEnabled: boolean;

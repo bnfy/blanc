@@ -1623,6 +1623,7 @@
           "verticalTabsTextSize": "tabs-snapshot-1",
           "islandTabIcons": true,
           "miniWindow": true,
+          "miniWindowCanMove": true,
           "islandSize": "tabs-snapshot-1",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
@@ -1717,6 +1718,7 @@
           "verticalTabsTextSize": "tabs-snapshot-1",
           "islandTabIcons": true,
           "miniWindow": true,
+          "miniWindowCanMove": true,
           "islandSize": "tabs-snapshot-1",
           "verticalTabsWidth": 1,
           "verticalTabsPreferredWidth": 1,
@@ -7157,6 +7159,7 @@
               "verticalTabsTextSize": "tabs-updated-payload-1",
               "islandTabIcons": true,
               "miniWindow": true,
+              "miniWindowCanMove": true,
               "islandSize": "tabs-updated-payload-1",
               "adblockEnabled": true,
               "shieldPopover": {
@@ -7220,6 +7223,7 @@
                 "verticalTabsTextSize": "tabs-updated-payload-1",
                 "islandTabIcons": true,
                 "miniWindow": true,
+                "miniWindowCanMove": true,
                 "islandSize": "tabs-updated-payload-1",
                 "adblockEnabled": true,
                 "shieldPopover": {
@@ -7358,6 +7362,7 @@
               "verticalTabsTextSize": "tabs-updated-payload-1",
               "islandTabIcons": true,
               "miniWindow": true,
+              "miniWindowCanMove": true,
               "islandSize": "tabs-updated-payload-1",
               "adblockEnabled": true,
               "shieldPopover": {
@@ -7528,6 +7533,7 @@
                 "verticalTabsTextSize": "tabs-updated-payload-1",
                 "islandTabIcons": true,
                 "miniWindow": true,
+                "miniWindowCanMove": true,
                 "islandSize": "tabs-updated-payload-1",
                 "adblockEnabled": true,
                 "shieldPopover": {
