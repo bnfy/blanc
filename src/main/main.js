@@ -7368,7 +7368,7 @@ function currentTabsPayload() {
     islandTabIcons,
     islandSize,
     miniWindow: rt().mini === true,
-    miniWindowCanMove: rt().mini === true && !!miniWindowMoveCandidates(rt()),
+    miniWindowCanMove: !!miniWindowMoveCandidates(rt()),
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...captureBroadcastState(serialized),
@@ -12135,7 +12135,7 @@ function registerIpcHandlers() {
     islandTabIcons,
     islandSize,
     miniWindow: rt().mini === true,
-    miniWindowCanMove: rt().mini === true && !!miniWindowMoveCandidates(rt()),
+    miniWindowCanMove: !!miniWindowMoveCandidates(rt()),
     ...verticalTabsMetrics(),
   }));
   chromeHandle('tabs:find', (_e, id, query, options) => {
@@ -14120,13 +14120,6 @@ function miniWindowMoveCandidates(runtime) {
   return ids.length ? ids : null;
 }
 
-/** The candidates, or null unless every one can go to a Space now
- * (canMoveTabToSpace): one page that can't stops the whole move. */
-function miniWindowMovableIds(runtime) {
-  const ids = miniWindowMoveCandidates(runtime);
-  return ids && ids.every((id) => canMoveTabToSpace(tabs.get(id), runtime, true)) ? ids : null;
-}
-
 /** Move to Space from a mini window (#1734, spec 2026-11-25 D1): every tab
  * joins `workspaceId` (or a new Space, `creation`) through the write-first
  * Space move, then the mini window closes and the Space comes forward in its
@@ -14134,7 +14127,8 @@ function miniWindowMovableIds(runtime) {
  * why in its Spaces menu; a name the editor refused is shown by the editor. */
 function moveMiniWindowToSpace(runtime, workspaceId, creation = null, { showError = true } = {}) {
   const candidates = miniWindowMoveCandidates(runtime);
-  const ids = miniWindowMovableIds(runtime);
+  // All or nothing: one page that can't go to a Space now stops the move.
+  const ids = candidates?.every((id) => canMoveTabToSpace(tabs.get(id), runtime, true)) ? candidates : null;
   const spaceName = () => creation?.name ?? namedWorkspaces.get(workspaceId)?.name ?? '';
   // From the Spaces menu (`showError` false) the menu renders the reply
   // itself; from the File menu the Spaces menu opens to say why.
