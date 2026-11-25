@@ -205,6 +205,15 @@ export const EDITS = {
     // host has the member, as /1password is.
     ["    { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'), run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },\n",
       "    { cmd: '/dark-site', hint: blancI18n.t('slash.darkSite.hint'),\n      available: typeof window.browserAPI.toggleDarkSiteOnActiveSite === 'function',\n      run: () => window.browserAPI.toggleDarkSiteOnActiveSite() },\n"],
+    // F41-27: shipping's main drops the overlay view at RETRACT_MS, but the
+    // fork's host can hold it longer, and the closing Spaces menu stays drawn
+    // for its 340 ms display transition (styles.css). Its placement
+    // (data-closing) lasts as long, or the faded menu jumps to the left edge
+    // (Windows and Linux at 158, the Mac at 159).
+    ['      overlayExitTimer = setTimeout(endOverlayExit, RETRACT_MS);',
+     "      overlayExitTimer = setTimeout(endOverlayExit, leaving === 'spaces' ? SPACES_EXIT_MS : RETRACT_MS);"],
+    ['  const RETRACT_MS = 200; // keep in step with OVERLAY_RETRACT_MS in main.js\n',
+     "  const RETRACT_MS = 200; // keep in step with OVERLAY_RETRACT_MS in main.js\n  const SPACES_EXIT_MS = 340; // the Spaces menu's display transition in styles.css\n"],
   ],
 };
 

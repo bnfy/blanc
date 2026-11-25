@@ -41,7 +41,12 @@ for (const s of SCENARIOS) {
   const started = new Date().toISOString();
   const browser = spawn(path.join(app, 'Contents/MacOS/Blanc Beta'), [`--user-data-dir=${profile}`, '--no-first-run',
     '--no-default-browser-check', `--log-net-log=${netlog}`, '--net-log-capture-mode=Default',
-    ...(offline ? ['--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1'] : []), ...s.args, url], {stdio: 'ignore'});
+    ...(offline ? ['--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1'] : []),
+    // The offline run is active-session.mjs in the logged-in account: a rebuilt
+    // unsigned beta has a new code hash, so the login keychain's "Blanc Beta
+    // Safe Storage" item would put a prompt on screen and hold cookie reads
+    // (2026-11-25, 159). A throwaway key changes nothing on the network.
+    ...(offline ? ['--use-mock-keychain'] : []), ...s.args, url], {stdio: 'ignore'});
   await new Promise(r => setTimeout(r, (short ? 20 : s.seconds) * 1000));
   browser.kill('SIGTERM');
   await Promise.race([new Promise(r => browser.once('exit', r)), new Promise(r => setTimeout(r, 15000))]);

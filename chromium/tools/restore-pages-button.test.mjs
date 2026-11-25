@@ -23,7 +23,7 @@ test('the Restore button takes the Sunrise accent in light and dark', () => {
   assert.match(added, /SkColorSetRGB\(0x80, 0x5d, 0x28\)/, 'light accent #805d28');
   assert.match(added, /SkColorSetRGB\(0xd4, 0xad, 0x66\)/, 'dark accent #d4ad66');
   assert.match(added, /SkColorSetRGB\(0x17, 0x13, 0x0f\)/, 'dark on-accent #17130f');
-  assert.match(added, /SetBgColorOverrideDeprecated/);
+  assert.match(added, /SetBgColorOverride\(/);
   assert.match(added, /SetEnabledTextColors/);
   assert.match(added, /color_utils::IsDark/, 'light or dark from the bubble\'s own background');
 });

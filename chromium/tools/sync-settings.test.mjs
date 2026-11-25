@@ -91,8 +91,8 @@ test('native bridge rejects arbitrary runner exports and malformed argument shap
 
 test('Sync routes, menu, template resources and strings are wired in reconstructed patches',()=>{
  assert.match(read(path.join(web,'route.ts')),/r\.BLANC_SYNC = r\.BASIC\.createSection\(\s*'\/sync', 'blancSync'/);
- assert.match(read(path.join(web,'settings_main/settings_main.html')),/settings-blanc-sync-page/);
- assert.match(read(path.join(web,'settings_menu/settings_menu.html')), /id="blancSync" href="\/sync"/);
+ assert.match(read(path.join(web,'settings_main/settings_main.html.ts')),/settings-blanc-sync-page/);
+ assert.match(read(path.join(web,'settings_menu/settings_menu.html.ts')), /id="blancSync" href="\/sync"/);
  const build=read(path.join(web,'BUILD.gn'));
  for(const file of ['blanc_sync_page.ts','blanc_sync_page.css'])assert.ok(build.includes(`"blanc_sync_page/${file}"`));
  const html=read(path.join(web,'blanc_sync_page/blanc_sync_page.html'));

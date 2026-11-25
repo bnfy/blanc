@@ -20,6 +20,31 @@ and its incremental rebuilds, and one GN regeneration on the Mac Studio
 hardware stays pending.
 
 ## Current work
+- **2026-11-24 to 25 — Desktop lane on Chromium 159.0.8154.33 (plan `docs/superpowers/plans/2026-11-22-desktop-fork-chromium-159.md`, branch `chromium/rebase-159`, not merged).**
+  Tasks 1–5 and 6: every desktop patch applies to the 159 Beta (`ab2e5d8ad16c`), the Mac Studio and
+  the Linux server checkouts moved (owner approved 2026-11-24), and all eight desktop outputs build;
+  `reports/rebase-159-preflight.md` has the patch, toolchain and build record. Task 6, on the 159
+  prototypes with the Spaces menu fix (`tools/island-renderer.mjs`, F41-27):
+  - **Mac** (`macos-0dd860d9e9c65826`): the full suite 637 pass, 0 fail, 30 excluded, as at 158; the
+    environment API-key check, the pf outbound check (`beta-20261125T165912Z`: 20 controls, only
+    localhost and the probe) and the active-session check (only localhost and the probe; it now runs
+    with `--use-mock-keychain`, since a rebuilt unsigned beta's keychain prompt made the first run
+    invalid) pass on the 159 BlancBeta. A copy of the owner's used 158.0.8127.37 Blanc Beta data (five
+    profiles, 25 Favorites, Spaces, Sync) opened in the 159 Beta offline: the version moved to 159, and
+    Favorites, Spaces, session URLs, Sync state and Island settings were unchanged in every profile, with
+    no crash. The Touch ID passkey check is not due (no `webauthn` path in `standing.json` changed).
+  - **Windows** (`windows-x64-dd191713b8f2ad9b`, run 45657910859): launch and frame pass; 633 pass,
+    2 fail, 32 excluded. `local-profiles:27` passed on rerun; `F41:16` failed again (45679873683) but
+    passed in the first 159 run (45632894403). The 159 beta's install smoke passed all 14 checks
+    (45632900285). Windows night `20261124-0400` on 158.0.8127.37 failed seven cases; five of them pass
+    on 159, and `F41:133`, which began failing with the .37 move, is intermittent on 159.
+  - **Linux x64** (`linux-x64-435fe7054393ac0a`, run 45657907501): 634 pass, 2 fail, 31 excluded.
+    `F41:133` passed on rerun; `island-and-commands:61` failed again (45680647667) but passed in the
+    first 159 run (45632905414).
+  - **Linux arm64** (`linux-arm64-00d2e79e6743b649`, run 45659618547): 634 pass, 2 fail, 31 excluded;
+    `ad-blocking:77` and `island-and-commands:49` passed on rerun (45680651296), as the same timing
+    cases did at 158.
+  - The Studio's two nightlies stay paused (since 2026-11-24 19:09 UTC) until the branch merges (Task 7).
 - **2026-11-19 — Spaces across profiles (spec `docs/superpowers/specs/2026-11-19-spaces-across-profiles-design.md` §6, plan `docs/superpowers/plans/2026-11-19-fork-spaces-across-profiles.md`; the owner said "go" after the plan merged in #1643), candidate macos-8614a3a373fe16f9:**
   With two or more Chromium profiles, the Spaces menu and the Quick Switcher
   list every profile's Spaces under their names, open another profile's

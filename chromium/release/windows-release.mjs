@@ -2,7 +2,7 @@
 // The Blanc Beta for Windows release (W3 Task E1), as ordered stages the owner
 // runs one at a time in a foreground Terminal on the MacBook Pro. A Windows
 // beta is its own GitHub pre-release, never latest (owner, 2026-11-19), tag
-// chromium-beta-windows-<version>, version 158.0.8127.<build>. Each stage
+// chromium-beta-windows-<version>, version <pinned a.b.c>.<build>. Each stage
 // checks the one before it and records what it made in WORK/state.json, bound
 // to WORK/windows-release.json. Once the draft exists nothing before it runs
 // again; the draft and publication ask for a typed confirmation first.

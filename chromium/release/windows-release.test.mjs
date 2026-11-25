@@ -9,13 +9,16 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {CHROME_VERSION as PINNED_CHROME} from './policy.mjs';
+// The pinned Chromium's first three numbers; a build is the last.
+const PIN = PINNED_CHROME.split('.').slice(0, 3).join('.');
 import {STAGES, STAGING, validateWindowsRelease, admit, nextStage, setupName, assetNames, makeManifest, verifyManifest, runStage, load}
   from './windows-release.mjs';
 
 const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const PUBLISHER = 'CN=Bananify Creative, O=Bananify Creative, L=North Chili, S=New York, C=US';
-const release = {schema: 1, product: 'Blanc Beta', platform: 'windows-x64', version: '158.0.8127.902', build: 902, previousBuild: 0,
-  tag: 'chromium-beta-windows-158.0.8127.902', sourceCommit: 'a'.repeat(40), prerelease: true, makeLatest: false,
+const release = {schema: 1, product: 'Blanc Beta', platform: 'windows-x64', version: `${PIN}.902`, build: 902, previousBuild: 0,
+  tag: `chromium-beta-windows-${PIN}.902`, sourceCommit: 'a'.repeat(40), prerelease: true, makeLatest: false,
   candidate: {id: 'windows-x64-893ba1a4a1a8a164', zipSha256: 'b'.repeat(64)}};
 const ledger = {schema: 1, builds: []};
 const done = stages => Object.fromEntries(stages.map(stage => [stage, {at: 'test'}]));
@@ -55,11 +58,11 @@ const draftAssets = zip => ['release view fork-windows-candidate', {stdout: JSON
 
 test('a Windows beta is its own pre-release, numbered above the last one', () => {
   validateWindowsRelease(release, ledger);
-  validateWindowsRelease({...release, version: '158.0.8127.903', build: 903, previousBuild: 902, tag: 'chromium-beta-windows-158.0.8127.903'},
+  validateWindowsRelease({...release, version: `${PIN}.903`, build: 903, previousBuild: 902, tag: `chromium-beta-windows-${PIN}.903`},
     {schema: 1, builds: [{build: 902}]});
   for (const [name, change, l] of [
-    ['tag', {tag: 'chromium-beta-158.0.8127.902'}],
-    ['version and build disagree', {version: '158.0.8127.901'}],
+    ['tag', {tag: `chromium-beta-${PIN}.902`}],
+    ['version and build disagree', {version: `${PIN}.901`}],
     ['not the pinned Chromium', {version: '157.0.8127.902', tag: 'chromium-beta-windows-157.0.8127.902'}],
     ['latest', {makeLatest: true}],
     ['not a pre-release', {prerelease: false}],
@@ -245,7 +248,7 @@ test('the manifest lists exactly the public files with their digests', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-win-assets-'));
   for (const name of assetNames(release)) fs.writeFileSync(path.join(dir, name), `bytes of ${name}`);
   assert.ok(assetNames(release).includes(setupName(release)));
-  assert.equal(setupName(release), 'Blanc-Beta-Setup-158.0.8127.902.exe');
+  assert.equal(setupName(release), `Blanc-Beta-Setup-${PIN}.902.exe`);
   const {json, checksums} = makeManifest(release, dir);
   fs.writeFileSync(path.join(dir, 'RELEASE-MANIFEST.json'), json);
   fs.writeFileSync(path.join(dir, 'SHA256SUMS'), checksums);

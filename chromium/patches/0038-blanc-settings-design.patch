@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/resources/extensions/item_list.html.ts b/chrome/browser/resources/extensions/item_list.html.ts
-index 054f137ce302ae538fde716bd41f10c3eb6ac225..9dee4a7f8b6a54cd2330cb7a3645490d6dd0eb62 100644
+index 054f137..9dee4a7 100644
 --- a/chrome/browser/resources/extensions/item_list.html.ts
 +++ b/chrome/browser/resources/extensions/item_list.html.ts
 @@ -49,8 +49,8 @@ export function getHtml(this: ExtensionsItemListElement) {
@@ -14,7 +14,7 @@ index 054f137ce302ae538fde716bd41f10c3eb6ac225..9dee4a7f8b6a54cd2330cb7a3645490d
              <cr-toggle id="pinned-toggle"
                  ?checked="${this.extensionsPinnedByDefault}"
 diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
-index 5068e4206cf348009e07b33fd7df47a7ab66a6fc..832cf7f1d894fb2364c1dd0c9f24f23c5fe778a7 100644
+index 5068e42..832cf7f 100644
 --- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
 +++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
 @@ -30,6 +30,7 @@ export interface BlancSettingsState {
@@ -80,7 +80,7 @@ index 5068e4206cf348009e07b33fd7df47a7ab66a6fc..832cf7f1d894fb2364c1dd0c9f24f23c
      blancSurface = state.surfaceStyle;
      applyBlancTheme();
 diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.css b/chrome/browser/resources/settings/settings_menu/settings_menu.css
-index bf6b45a8058e8d6934d89214599f38f11437ff51..ca2778ce7798df35bdae19154408e2bb3d55c8de 100644
+index bf6b45a..ca2778c 100644
 --- a/chrome/browser/resources/settings/settings_menu/settings_menu.css
 +++ b/chrome/browser/resources/settings/settings_menu/settings_menu.css
 @@ -15,7 +15,7 @@
@@ -129,7 +129,7 @@ index bf6b45a8058e8d6934d89214599f38f11437ff51..ca2778ce7798df35bdae19154408e2bb
  
  :host .cr-nav-menu-item cr-icon,
 diff --git a/chrome/browser/resources/settings/settings_page/settings_section.css b/chrome/browser/resources/settings/settings_page/settings_section.css
-index e8a01c8d77f104e5fc25785851d1ba4f72f3d52b..2a3239cb508d6115d232f0c1f666ead8412c74ae 100644
+index ed3b861..a3aaba8 100644
 --- a/chrome/browser/resources/settings/settings_page/settings_section.css
 +++ b/chrome/browser/resources/settings/settings_page/settings_section.css
 @@ -10,6 +10,8 @@
@@ -141,7 +141,7 @@ index e8a01c8d77f104e5fc25785851d1ba4f72f3d52b..2a3239cb508d6115d232f0c1f666ead8
    position: relative;
  }
  
-@@ -46,14 +48,14 @@
+@@ -50,14 +52,14 @@
  #header .title {
    color: var(--cr-primary-text-color);
    /* Blanc (S3, owner): shipping's section heading. */
@@ -163,7 +163,7 @@ index e8a01c8d77f104e5fc25785851d1ba4f72f3d52b..2a3239cb508d6115d232f0c1f666ead8
  
  #feedback {
 diff --git a/chrome/browser/resources/settings/settings_page/settings_subpage.css b/chrome/browser/resources/settings/settings_page/settings_subpage.css
-index ff9dd87d6b7568e6d56733266d8cb91eb613f083..7307c8eb923f788ab35036278092df7fbf26068a 100644
+index ff9dd87..7307c8e 100644
 --- a/chrome/browser/resources/settings/settings_page/settings_subpage.css
 +++ b/chrome/browser/resources/settings/settings_page/settings_subpage.css
 @@ -15,12 +15,12 @@
@@ -227,10 +227,10 @@ index ff9dd87d6b7568e6d56733266d8cb91eb613f083..7307c8eb923f788ab35036278092df7f
  
  cr-search-field {
 diff --git a/chrome/browser/resources/settings/settings_shared_lit.css b/chrome/browser/resources/settings/settings_shared_lit.css
-index 9cfad28aaf611b4af13f34c7cc71723919d72757..a9c2ed7b9aef44c09f34bb75b4dd1944d9266feb 100644
+index 2548984..36657aa 100644
 --- a/chrome/browser/resources/settings/settings_shared_lit.css
 +++ b/chrome/browser/resources/settings/settings_shared_lit.css
-@@ -298,6 +298,9 @@ h2.first {
+@@ -303,6 +303,9 @@ h2.first {
  /* TODO: Remove and merge with .cr-secondary-text. */
  .secondary {
    color: var(--cr-secondary-text-color);
@@ -240,7 +240,7 @@ index 9cfad28aaf611b4af13f34c7cc71723919d72757..a9c2ed7b9aef44c09f34bb75b4dd1944
    font-weight: 400;
  }
  
-@@ -422,3 +425,99 @@ iron-list,
+@@ -427,3 +430,99 @@ iron-list,
            calc(100% - var(--cr-section-padding)),
        transparent calc(100% - var(--cr-section-padding))) 1 0 0 0;
  }
@@ -341,7 +341,7 @@ index 9cfad28aaf611b4af13f34c7cc71723919d72757..a9c2ed7b9aef44c09f34bb75b4dd1944
 +  padding-block-end: 14px;
 +}
 diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.css b/chrome/browser/resources/settings/settings_ui/settings_ui.css
-index 10cd9d4f5278627489b174b05ff601a2d4a9388a..61bbaef7422959875d3928857d07c86a1b79537b 100644
+index a6c0d28..0e99b0f 100644
 --- a/chrome/browser/resources/settings/settings_ui/settings_ui.css
 +++ b/chrome/browser/resources/settings/settings_ui/settings_ui.css
 @@ -16,7 +16,8 @@
@@ -354,8 +354,8 @@ index 10cd9d4f5278627489b174b05ff601a2d4a9388a..61bbaef7422959875d3928857d07c86a
    /* Centered cards has a max-width of var(--cr-centered-card-max-width)
     * and a width of a certain percentage. Therefore, to make room for the
     * cards to be at their max width, the flex-basis of #main needs to be
-@@ -55,20 +56,25 @@ cr-toolbar {
-   --cr-toolbar-center-basis: var(--settings-main-basis);
+@@ -59,20 +60,25 @@ cr-toolbar::part(search-field) {
+   anchor-name: --search-field;
  }
  
 +/* Blanc (S3, owner): shipping's sheet. The heading is the sheet's own, so the
@@ -390,7 +390,7 @@ index 10cd9d4f5278627489b174b05ff601a2d4a9388a..61bbaef7422959875d3928857d07c86a
  }
  
  @media (prefers-color-scheme: light) {
-@@ -97,10 +103,61 @@ cr-toolbar:not([narrow]) {
+@@ -111,10 +117,61 @@ settings-search-dropdown {
    top: 0;
  }
  
@@ -453,24 +453,24 @@ index 10cd9d4f5278627489b174b05ff601a2d4a9388a..61bbaef7422959875d3928857d07c86a
    width: var(--settings-menu-width);
  }
  
-diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.html b/chrome/browser/resources/settings/settings_ui/settings_ui.html
-index 58b88d2d133216613f150078726488f76f3aedd8..d7f456ed5b257db309abf031896f764f85d4c1c5 100644
---- a/chrome/browser/resources/settings/settings_ui/settings_ui.html
-+++ b/chrome/browser/resources/settings/settings_ui/settings_ui.html
-@@ -1,7 +1,7 @@
-     <cr-toolbar id="toolbar"
-         page-name="$i18n{settings}"
-         clear-label="$i18n{clearSearch}"
--        autofocus
-+        sidebar-search
-         search-prompt="$i18n{searchPrompt}"
-         @cr-toolbar-menu-click="${this.onCrToolbarMenuClick_}"
-         ?spinner-active="${this.toolbarSpinnerActive_}"
+diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts b/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts
+index 6e0d356..9557750 100644
+--- a/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts
++++ b/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts
+@@ -9,7 +9,7 @@ import type {SettingsUiElement} from './settings_ui.js';
+ export function getHtml(this: SettingsUiElement) {
+   return html`<!--_html_template_start_-->
+ <cr-toolbar id="toolbar" page-name="$i18n{settings}"
+-    clear-label="$i18n{clearSearch}" autofocus
++    clear-label="$i18n{clearSearch}" sidebar-search
+     search-prompt="$i18n{searchPrompt}"
+     @cr-toolbar-menu-click="${this.onCrToolbarMenuClick_}"
+     ?spinner-active="${this.toolbarSpinnerActive_}"
 diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.ts b/chrome/browser/resources/settings/settings_ui/settings_ui.ts
-index 8fd66a2076122f29b01977dba3b302ade0cb6529..abe78f6b631cbf60ba4b34a6ecfdfd1110b33120 100644
+index f195c13..b00e525 100644
 --- a/chrome/browser/resources/settings/settings_ui/settings_ui.ts
 +++ b/chrome/browser/resources/settings/settings_ui/settings_ui.ts
-@@ -186,7 +186,11 @@ export class SettingsUiElement extends SettingsUiElementBase {
+@@ -190,7 +190,11 @@ export class SettingsUiElement extends SettingsUiElementBase {
      }
    }
  
@@ -484,7 +484,7 @@ index 8fd66a2076122f29b01977dba3b302ade0cb6529..abe78f6b631cbf60ba4b34a6ecfdfd11
          'force-on', route === routes.PRIVACY_GUIDE || route.depth > 1);
  
 diff --git a/chrome/browser/ui/webui/settings/profile_info_handler.cc b/chrome/browser/ui/webui/settings/profile_info_handler.cc
-index 0875503057ed6512e6b34478bc9ffb3faf9874e1..bb23fff2bb804726666dc9d2b2d7272e1a2c8dd6 100644
+index 0875503..bb23fff 100644
 --- a/chrome/browser/ui/webui/settings/profile_info_handler.cc
 +++ b/chrome/browser/ui/webui/settings/profile_info_handler.cc
 @@ -166,6 +166,11 @@ base::DictValue ProfileInfoHandler::GetAccountNameAndIcon() {
@@ -500,7 +500,7 @@ index 0875503057ed6512e6b34478bc9ffb3faf9874e1..bb23fff2bb804726666dc9d2b2d7272e
  #endif  // BUILDFLAG(IS_CHROMEOS)
  
 diff --git a/ui/webui/resources/cr_elements/cr_link_row/cr_link_row.css b/ui/webui/resources/cr_elements/cr_link_row/cr_link_row.css
-index 343742f00f79e01909b9af43f8cf33b7f73829e7..f53b64d72854148ba2abe67d6bb67671e6a515ea 100644
+index e7a33cb..51ace65 100644
 --- a/ui/webui/resources/cr_elements/cr_link_row/cr_link_row.css
 +++ b/ui/webui/resources/cr_elements/cr_link_row/cr_link_row.css
 @@ -55,6 +55,11 @@
@@ -516,7 +516,7 @@ index 343742f00f79e01909b9af43f8cf33b7f73829e7..f53b64d72854148ba2abe67d6bb67671
    clip: rect(0,0,0,0);
    display: block;
 diff --git a/ui/webui/resources/cr_elements/cr_shared_style_lit.css b/ui/webui/resources/cr_elements/cr_shared_style_lit.css
-index db892c21a9e32c9f9bb998d5ef9fd80a1e407739..cb03105a8be5f92e7acc04b03108d2e55308930e 100644
+index db892c2..cb03105 100644
 --- a/ui/webui/resources/cr_elements/cr_shared_style_lit.css
 +++ b/ui/webui/resources/cr_elements/cr_shared_style_lit.css
 @@ -64,7 +64,7 @@
@@ -540,7 +540,7 @@ index db892c21a9e32c9f9bb998d5ef9fd80a1e407739..cb03105a8be5f92e7acc04b03108d2e5
  
  .cr-form-field-label {
 diff --git a/ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css b/ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css
-index de24f1a045261121bf8f913ffb800bee01f256a3..8fea32a166311a7b7fcc629ef3880af0fad64e6f 100644
+index de24f1a..8fea32a 100644
 --- a/ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css
 +++ b/ui/webui/resources/cr_elements/cr_toolbar/cr_toolbar.css
 @@ -82,6 +82,12 @@ cr-icon-button {
@@ -557,7 +557,7 @@ index de24f1a045261121bf8f913ffb800bee01f256a3..8fea32a166311a7b7fcc629ef3880af0
    transition: visibility var(--cr-toolbar-overlay-animation-duration);
    visibility: hidden;
 diff --git a/ui/webui/resources/cr_elements/md_select_lit.css b/ui/webui/resources/cr_elements/md_select_lit.css
-index d427d50b6627d28464ee17ea00cd533b4ea70b1b..a806ce639f2a24847e3209623f8d7710d2c0ae34 100644
+index d8ca7e6..623ef32 100644
 --- a/ui/webui/resources/cr_elements/md_select_lit.css
 +++ b/ui/webui/resources/cr_elements/md_select_lit.css
 @@ -9,21 +9,22 @@
@@ -574,8 +574,8 @@ index d427d50b6627d28464ee17ea00cd533b4ea70b1b..a806ce639f2a24847e3209623f8d7710
    --md-select-text-color: inherit;
  
    -webkit-appearance: none;
--  background: url(//resources/images/arrow_down.svg)
-+  background: var(--blanc-select-chevron, url(//resources/images/arrow_down.svg))
+-  background: url(chrome://resources/images/arrow_down.svg)
++  background: var(--blanc-select-chevron, url(chrome://resources/images/arrow_down.svg))
        calc(100% - var(--md-select-side-padding))
        center no-repeat;
    background-color: var(--md-select-bg-color);
@@ -591,8 +591,8 @@ index d427d50b6627d28464ee17ea00cd533b4ea70b1b..a806ce639f2a24847e3209623f8d7710
  @media (prefers-color-scheme: dark) {
    .md-select {
      --md-select-option-bg-color: var(--google-grey-900-white-4-percent);
--    background-image: url(//resources/images/dark/arrow_down.svg);
-+    background-image: var(--blanc-select-chevron, url(//resources/images/dark/arrow_down.svg));
+-    background-image: url(chrome://resources/images/dark/arrow_down.svg);
++    background-image: var(--blanc-select-chevron, url(chrome://resources/images/dark/arrow_down.svg));
    }
  }
  
