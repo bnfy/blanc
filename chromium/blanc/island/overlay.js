@@ -3427,6 +3427,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   const MORPH_MS = 320;          // the contents' 60 ms delay + 160 ms fade in styles.css finish inside this
   const MORPH_MAX_STEP_MS = 50;  // a longer gap between frames is a stall, not time to make up
   const RETRACT_MS = 200; // keep in step with OVERLAY_RETRACT_MS in main.js
+  const SPACES_EXIT_MS = 340; // the Spaces menu's display transition in styles.css
   let lastPillRect = null;
   let morphTimer = null;
   // Closing, the Spaces menu fades back into the Island's mark from where it
@@ -3680,7 +3681,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     if (leaving) {
       endOverlayExit();
       document.body.dataset.closing = leaving;
-      overlayExitTimer = setTimeout(endOverlayExit, RETRACT_MS);
+      overlayExitTimer = setTimeout(endOverlayExit, leaving === 'spaces' ? SPACES_EXIT_MS : RETRACT_MS);
     }
     mode = null;
     glancePickerPurpose = null;
