@@ -4168,6 +4168,14 @@ or release host appeared in the update proof's network logs.
 Open: DEP-11 metadata before the 158.0.8127.37 update; the 158.0.8127.37 Linux betas after the
 build server moves to .37; the ship note to the release-notes list (owner).
 
+**Blanc Beta for Linux 159.0.8154.912 is public (November 26, 2026)**, the first Linux beta on
+Chromium 159 (159.0.8154.33), published at 14:18 UTC from `afd08df8d` with 911 as its proof-only
+N-1. Update proof 45761487715 and repository lifecycle 45761910883 passed on all six legs, the
+VM hand check moved 911 to 912 through Restart to update (`chromium/linux/hand-checks-l3.md`), and
+verify-public 45839063871 passed on all six legs (its first run, 45837770153, failed only removing
+a smoke profile still being written, fixed in `2f6c07ece`). Production pkg.blanc.day is on
+generation 912; latest stayed v1.52.0. Ledger: `chromium/release/linux-ledger.json`.
+
 ## Android
 Betas and stable on Play, once production exists: `docs/android/channels.md` (nightly, weekly beta, four-weekly stable, security releases).
 

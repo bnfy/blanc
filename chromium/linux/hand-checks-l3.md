@@ -71,3 +71,24 @@ had generation 909 without the plain name, was reset to 906 with the owner's app
 re-signed and re-staged.
 
 Screens: `chromium/reports/l3-hand-check-909/`.
+
+## 912: the first Chromium 159 beta (November 26, 2026)
+
+The same VM, the same way, for release `chromium-beta-linux-159.0.8154.912` (Chromium
+159.0.8154.33, source `afd08df8d`): `B-1` is 911 (`blanc-beta_159.0.8154.911-1_arm64.deb`,
+SHA-256 `053b09629eef371aa203c7ac91d3f96f0dad46ef0a495a24b4451cb706e9ccc9`, the hash in the
+owner-signed approval, verified in the VM), staging generation 912, digest
+`129df1b4c9c11e195b624e6c95f966ed6d169fba2ff53bbb5074af6e9984d6fa`.
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Install 911, staging source | Pass. 911 installed; apt verified staging's `InRelease` and offered 912, and PackageKit (which App Center reads) listed the 912 update. |
+| 2 | Restart to update | Pass. With 911 running, apt installed 912 from staging; the Island showed **Restart to update**; a real click relaunched Blanc (pid 21218 → 31416, started 00:41:14, after the upgrade) with no update button. |
+| 3 | Dock, keyring | Pass. One Sunrise icon before and after; no keyring prompt. |
+| 4 | Restore | Staging list removed, `apt-get purge blanc-beta`, test profile deleted, Parallels' agent resumed. |
+
+Not repeated by eye this time: App Center's own Manage page (PackageKit offered the update it
+reads, and the repository's DEP-11 catalog is unchanged since 909) and screen sharing (no change
+to the portal or capture code since 909).
+
+Screens: `chromium/reports/l3-hand-check-912/`.
