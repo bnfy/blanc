@@ -1,5 +1,92 @@
 [
   {
+    "tag": "chromium-beta-linux-159.0.8154.912",
+    "product": "beta",
+    "platform": "linux",
+    "version": "159.0.8154.912",
+    "name": "Blanc Beta 159.0.8154.912 for Linux",
+    "publishedAt": "2026-11-26T14:18:32.000Z",
+    "humanDate": "November 26, 2026",
+    "machineDate": "2026-11-26",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-159.0.8154.912",
+    "anchor": "beta-linux-159-0-8154-912",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "What's new",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Chromium 159."
+                  },
+                  {
+                    "type": "text",
+                    "value": " This beta moves to Chromium 159 (159.0.8154.33), Chrome's current beta milestone, a few weeks ahead of its stable release on December 8."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The Spaces menu stays put as it closes."
+                  },
+                  {
+                    "type": "text",
+                    "value": " It used to jump to the left edge of the window while it faded out."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "chromium-beta-windows-159.0.8154.910",
     "product": "beta",
     "platform": "windows",

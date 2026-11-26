@@ -22,12 +22,12 @@ export const BETA_WINDOWS_DOWNLOAD = 'https://github.com/bnfy/blanc/releases/dow
 // Blanc Beta for Linux (owner, 2026-11-23): one counted route per package.
 // Update with site/src/data/blanc-beta-linux.json;
 // test/unit/site-blanc-beta-linux.test.js keeps the two equal.
-const BETA_LINUX_RELEASE = 'https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-158.0.8127.909/';
+const BETA_LINUX_RELEASE = 'https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-159.0.8154.912/';
 export const BETA_LINUX_DOWNLOADS = Object.freeze({
-  'beta-linux-x64-deb': BETA_LINUX_RELEASE + 'blanc-beta_158.0.8127.909-1_amd64.deb',
-  'beta-linux-x64-rpm': BETA_LINUX_RELEASE + 'blanc-beta-158.0.8127.909-1.x86_64.rpm',
-  'beta-linux-arm64-deb': BETA_LINUX_RELEASE + 'blanc-beta_158.0.8127.909-1_arm64.deb',
-  'beta-linux-arm64-rpm': BETA_LINUX_RELEASE + 'blanc-beta-158.0.8127.909-1.aarch64.rpm',
+  'beta-linux-x64-deb': BETA_LINUX_RELEASE + 'blanc-beta_159.0.8154.912-1_amd64.deb',
+  'beta-linux-x64-rpm': BETA_LINUX_RELEASE + 'blanc-beta-159.0.8154.912-1.x86_64.rpm',
+  'beta-linux-arm64-deb': BETA_LINUX_RELEASE + 'blanc-beta_159.0.8154.912-1_arm64.deb',
+  'beta-linux-arm64-rpm': BETA_LINUX_RELEASE + 'blanc-beta-159.0.8154.912-1.aarch64.rpm',
 });
 
 export function fixedDownload(target) {
