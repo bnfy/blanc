@@ -1,12 +1,7 @@
 'use strict';
 
-// Blanc for iPhone's app icons: seven Icon Composer packages, so iOS 26 and
-// later draw them in Liquid Glass with their Light, Dark, Clear and Tinted
-// styles, and Xcode generates flat copies for older iOS. Sunrise is the
-// primary icon (owner, 2026-11-11; Sunrise Gold was until then); Sunrise
-// Bronze and Sunrise Dawn (iPhone only), Sunrise Gold and the Mac's other
-// icons are alternates in Settings → Appearance → App icon. Spec:
-// docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md.
+// Sunrise Amber Glass is the authored iOS primary (AppIcon.icon). This catalog
+// drives its picker preview and the seven alternates generated below.
 //
 // Bronze, Dawn and Gold are cut from the Sunrise's native layer (itself cut
 // from the locked master), split into sun, rays and water, each a
@@ -25,10 +20,10 @@ const ROOT = path.join(__dirname, '..');
 const IOS_APP_ICON_DIR = 'ios/Blanc/Blanc/AppIcons';
 const SCHEMA_LABELS = new Map(SCHEMA_ICONS.map((icon) => [icon.id, icon.label]));
 
-// In picker order, the primary (standard) icon first. Every id but Dawn's is
-// shared with the Mac, so its label comes from the settings schema.
+// The primary icon comes first. Shared icons take their labels from the settings schema.
 const IOS_APP_ICONS = Object.freeze([
-  ['sunrise', 'AppIcon'],
+  ['sunrise-amber-glass', 'AppIcon', 'Sunrise Amber Glass'],
+  ['sunrise', 'Sunrise'],
   ['sunrise-bronze', 'SunriseBronze', 'Sunrise Bronze'],
   ['sunrise-gold', 'SunriseGold'],
   ['sunrise-dawn', 'SunriseDawn', 'Sunrise Dawn'],
@@ -277,7 +272,7 @@ function macPackage(definition) {
 }
 
 /**
- * Every file of the six packages, keyed by repository-relative path. The mark
+ * Every file of the generated alternates, keyed by repository-relative path. The mark
  * is cut from the committed native layer (written earlier in the same
  * brand:build run), never from the in-memory copy: brand:check accepts a
  * native layer one rounding level off on another platform, and the grow ramp
@@ -291,7 +286,7 @@ async function iosAppIconFiles() {
     water: await grow(split.water, GROW.water),
   };
   const packages = {
-    AppIcon: macPackage(APP_ICON_ASSETS.sunrise),
+    Sunrise: macPackage(APP_ICON_ASSETS.sunrise),
     SunriseBronze: await bronzePackage(parts),
     SunriseGold: await goldPackage(parts),
     SunriseDawn: await dawnPackage(parts),
@@ -300,8 +295,7 @@ async function iosAppIconFiles() {
     SunriseAmber: macPackage(APP_ICON_ASSETS['sunrise-amber']),
   };
   const files = {};
-  for (const { nativeName } of IOS_APP_ICONS) {
-    const { doc, images } = packages[nativeName];
+  for (const [nativeName, { doc, images }] of Object.entries(packages)) {
     const dir = `${IOS_APP_ICON_DIR}/${nativeName}.icon`;
     files[`${dir}/icon.json`] = `${JSON.stringify({ ...doc, 'supported-platforms': SHARED_PLATFORMS }, null, 2)}\n`;
     for (const [name, bytes] of Object.entries(images)) files[`${dir}/Assets/${name}`] = bytes;

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Settings → Appearance → App icon: the six icons, each with Icon Composer's
+/// Settings → Appearance → App icon: the available icons, each with Icon Composer's
 /// own preview, and a checkmark on the one iOS shows now.
 struct AppIconSettingsView: View {
     @ObservedObject var model: AppIconModel
