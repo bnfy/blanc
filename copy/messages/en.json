@@ -10398,5 +10398,13 @@
     "message": "Open in new tab in Blanc",
     "note": "Blanc for Android: Open a link from a Custom Tab in a new tab in the full Blanc browser.",
     "androidOnly": true
+  },
+  "settings.general.hardwareVideoDecoding.label": {
+    "message": "Use hardware video decoding",
+    "note": "Windows video playback setting in Settings → General → Browsing."
+  },
+  "settings.general.hardwareVideoDecoding.hint": {
+    "message": "If videos flicker, turn this off. Quit and reopen Blanc to apply the change.",
+    "note": "Windows video playback setting in Settings → General → Browsing."
   }
 }

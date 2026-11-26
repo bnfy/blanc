@@ -2871,4 +2871,6 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     </plurals>
     <string name="start_devices_fewer">Mostra meno</string>
     <string name="start_mahjong_play">Gioca a Blanc Mahjong</string>
+    <string name="settings_general_hardware_video_decoding_label">Usa la decodifica video hardware</string>
+    <string name="settings_general_hardware_video_decoding_hint">Se i video sfarfallano, disattiva questa opzione. Chiudi e riapri Blanc per applicare la modifica.</string>
 </resources>

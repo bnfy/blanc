@@ -334,6 +334,14 @@
               </select>
             </div>
 
+            <div class="setting" id="hardwareVideoDecodingSetting" hidden>
+              <div class="label">
+                <label for="hardwareVideoDecoding" data-i18n="settings.general.hardwareVideoDecoding.label">Use hardware video decoding</label>
+                <span class="hint" id="hardwareVideoDecodingHint" data-i18n="settings.general.hardwareVideoDecoding.hint">If videos flicker, turn this off. Quit and reopen Blanc to apply the change.</span>
+              </div>
+              <label class="toggle"><input id="hardwareVideoDecoding" type="checkbox" aria-describedby="hardwareVideoDecodingHint"/><span class="track"></span></label>
+            </div>
+
             <div class="setting" id="tabSleepSetting">
               <div class="label">
                 <span data-i18n="settings.general.tabSleep.label">Quiet inactive tabs</span>

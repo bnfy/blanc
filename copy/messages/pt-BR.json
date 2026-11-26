@@ -10102,5 +10102,13 @@
   "android.contextMenu.newBlancTab": {
     "message": "Abrir em uma nova aba do Blanc",
     "source": "sha256:bae530101e3c873c6fd7a7af7cbbcca3fdf632b1fec7677da23d3937a37aaba0"
+  },
+  "settings.general.hardwareVideoDecoding.label": {
+    "message": "Usar decodificação de vídeo por hardware",
+    "source": "sha256:729e18b14ad2f6bd481d8e937f54dd61e8902ed056082ec905d742a4d26e640c"
+  },
+  "settings.general.hardwareVideoDecoding.hint": {
+    "message": "Se os vídeos piscarem, desative esta opção. Feche e abra o Blanc novamente para aplicar a alteração.",
+    "source": "sha256:568eded8e4b9444b294ec570895d202ac997064f1af4731da01d10f9f8ef5fdf"
   }
 }

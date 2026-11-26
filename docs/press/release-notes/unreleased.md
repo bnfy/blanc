@@ -13,6 +13,9 @@ since then are below as they're recorded.
 
 ## Fixed
 
+- **Flickering videos on Windows.** If videos flicker, turn off **Use hardware
+  video decoding** in Settings → General → Browsing, then quit and reopen
+  Blanc. The choice stays on this PC.
 - **Favorites opens with ⌥⌘B on the Mac again.** Since 1.39, ⌥⌘B also
   turned Auto-hide the Island on or off, and Auto-hide always won, so Show
   Favorites never opened from the keyboard. Auto-hide the Island is now ⇧⌘B on
