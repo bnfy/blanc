@@ -10,7 +10,14 @@
           "name": "Horizon",
           "image-name": "Horizon.svg",
           "glass": false,
-          "opacity": 1
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
         }
       ],
       "lighting": "individual",
@@ -31,36 +38,78 @@
           "name": "Reflection 1",
           "image-name": "Reflection 1.svg",
           "glass": false,
-          "opacity": 1
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
         },
         {
           "name": "Reflection 2",
           "image-name": "Reflection 2.svg",
           "glass": false,
-          "opacity": 1
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
         },
         {
           "name": "Reflection 3",
           "image-name": "Reflection 3.svg",
           "glass": false,
-          "opacity": 1
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
         },
         {
           "name": "Reflection 4",
           "image-name": "Reflection 4.svg",
           "glass": false,
-          "opacity": 1
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
         },
         {
           "name": "Reflection 5",
           "image-name": "Reflection 5.svg",
           "glass": false,
-          "opacity": 1
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
         },
         {
           "name": "Seven rays",
           "image-name": "Rays.svg",
-          "glass": false
+          "glass": false,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
         }
       ],
       "lighting": "individual",
@@ -80,7 +129,14 @@
         {
           "name": "Rising sun",
           "image-name": "Sun.svg",
-          "glass": true
+          "glass": true,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
         }
       ],
       "lighting": "individual",
@@ -107,7 +163,14 @@
               "value": true
             }
           ],
-          "opacity": 0.58
+          "opacity": 0.58,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
         },
         {
           "name": "Amber",
