@@ -353,6 +353,8 @@ source_set(target_name) {
       deps += [ "//blanc:beta_blocker_engine_win" ]
     }
     deps += [
+      "//chrome/browser:flags",
+      "//components/webui/flags",
       "//chrome/browser/taskbar",
       "//chrome/browser/win:jumplist",
       "//ui/native_theme",

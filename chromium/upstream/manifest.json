@@ -80,6 +80,8 @@
     "chrome/browser/resources/settings/settings_ui/settings_ui.html.ts": "0ee7993ee394ed9363f006cc91d5fa7336f24c0c7d6ba02da2c7acc2f7ff1be2",
     "chrome/browser/resources/settings/settings_ui/settings_ui.ts": "c2dad7c975bd2f07a16e5046b4e5a5c2a664dcbf53cb75f4e210416eb264fd3f",
     "chrome/browser/resources/settings/system_page/system_page.css": "f2ace1416cb503d6120e8b9505454511d7c77ccea166e9027fde7f4bc4dedd56",
+    "chrome/browser/resources/settings/system_page/system_page.html.ts": "b4c3e8e263657fb1d765b416ffaa4ba7584f0c1d9ed244c6241bec2a712f9bcc",
+    "chrome/browser/resources/settings/system_page/system_page.ts": "1311cb6f9d17df97dfc94e373ee823cadcfb3ce1b15efc477502c6d52b3829ed",
     "chrome/browser/search/search.cc": "0539f9fb6ebfa7ce6575f8e95ce85f32652eb903d6f5e7d352a2367ad4eeb370",
     "chrome/browser/sessions/session_restore.cc": "eaeca4b422c6c8e8cd247337bf978aaf62f0d0044085c92ebc5bbbbb400a1072",
     "chrome/browser/sessions/session_service.cc": "059d1865b6100a82ec5fc7aa636ffefc99adc296e7074966bf51ea3e2d34c888",

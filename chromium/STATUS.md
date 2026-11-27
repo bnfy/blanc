@@ -20,6 +20,14 @@ and its incremental rebuilds, and one GN regeneration on the Mac Studio
 hardware stays pending.
 
 ## Current work
+- **2026-11-27 — Windows video decoding.** Settings → System now exposes the choice
+  previously available under `chrome://flags/#disable-accelerated-video-decode` in
+  public Beta 159.0.8154.910. Both controls use the same Local State flag. The
+  three-launch test in `tests/windows-video-decoding.cjs` passed on Windows 11 with
+  private candidate `windows-x64-d346a0468749e3bf`. It checked both directions,
+  the effective startup switch and the independent graphics acceleration setting.
+  Including 0118, the desktop lane has 116 incremental patches covering 228 paths
+  and 754 hunks (262 paths and 943 hunks with the foundation baseline).
 - **2026-11-24 to 25 — Desktop lane on Chromium 159.0.8154.33 (plan `docs/superpowers/plans/2026-11-22-desktop-fork-chromium-159.md`, branch `chromium/rebase-159`, not merged).**
   Tasks 1–5 and 6: every desktop patch applies to the 159 Beta (`ab2e5d8ad16c`), the Mac Studio and
   the Linux server checkouts moved (owner approved 2026-11-24), and all eight desktop outputs build;

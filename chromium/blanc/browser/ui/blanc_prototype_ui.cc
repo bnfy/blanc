@@ -15,6 +15,11 @@
 #include "content/public/browser/service_process_host.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "build/build_config.h"
+#if BUILDFLAG(IS_WIN)
+#include "chrome/browser/about_flags.h"
+#include "components/webui/flags/flags_ui_pref_names.h"
+#include "components/webui/flags/pref_service_flags_storage.h"
+#endif
 #include "content/public/browser/host_zoom_map.h"
 #include "chrome/browser/ui/zoom/chrome_zoom_level_prefs.h"
 #include "components/zoom/zoom_controller.h"

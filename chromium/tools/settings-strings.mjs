@@ -242,6 +242,8 @@ export const STRINGS = [
 // Strings shipping has no words for (blanc/fork-strings.json), each in every
 // selectable language: loadTimeData name, fork message key.
 export const FORK_STRINGS = [
+  ['blancVideoDecoding', 'settings.videoDecoding.label'],
+  ['blancVideoDecodingHint', 'settings.videoDecoding.hint'],
   ['blancProfileImportTitle', 'settings.profileImport.title'],
   ['blancProfileImportHint', 'settings.profileImport.hint'],
   ['blancProfileImportStart', 'settings.profileImport.start'],

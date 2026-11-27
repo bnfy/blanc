@@ -363,6 +363,10 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
               prefs->GetString("blanc.appearance.surface_style") == "neutral" ? "neutral" : "sunrise");
     state.Set("theme", blanc::browser_api::ThemeOf(profile_));
     state.Set("pageZoom", BlancPagesZoom(*prefs));
+#if BUILDFLAG(IS_WIN)
+    flags_ui::PrefServiceFlagsStorage storage(g_browser_process->local_state());
+    state.Set("hardwareVideoDecoding", !storage.GetFlags().contains(kDisableVideoDecode));
+#endif
     state.Set("usagePing", g_browser_process->local_state()->GetBoolean(kUsagePingPref));
     state.Set("uiLanguage", g_browser_process->local_state()->GetString(std::string(blanc::ui_language::kPref)));
     state.Set("uiLanguages", std::move(languages));
@@ -471,6 +475,24 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
       profile_->GetPrefs()->CommitPendingWrite();
     Resolve(args, base::DictValue().Set("result", "removed"));
   }
+#if BUILDFLAG(IS_WIN)
+  static constexpr char kDisableVideoDecode[] = "disable-accelerated-video-decode";
+
+  void HandleSetHardwareVideoDecoding(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    const auto& choice = args[1].GetString();
+    if (choice != "on" && choice != "off") {
+      RejectJavascriptCallback(args[0], base::Value("Invalid video decoding choice"));
+      return;
+    }
+    flags_ui::PrefServiceFlagsStorage storage(g_browser_process->local_state());
+    // SINGLE_DISABLE_VALUE takes the positive choice, just like chrome://flags.
+    about_flags::SetFeatureEntryEnabled(&storage, kDisableVideoDecode, choice == "on");
+    storage.CommitPendingWrites();
+    ResolveJavascriptCallback(args[0], base::Value(!storage.GetFlags().contains(kDisableVideoDecode)));
+  }
+#endif
+
   void HandleSetUiLanguage(const base::ListValue& args) {
     if (!Begin(args, 1)) return;
     if (blanc::ui_language::IsChoice(args[1].GetString())) {
@@ -575,6 +597,9 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancSyncState", &ChromiumSettingsHandler::HandleSyncState);
   bind("blancSyncCall", &ChromiumSettingsHandler::HandleSyncCall);
   bind("blancSyncConfirmFirstUpload", &ChromiumSettingsHandler::HandleSyncConfirm);
+#if BUILDFLAG(IS_WIN)
+  bind("blancSetHardwareVideoDecoding", &ChromiumSettingsHandler::HandleSetHardwareVideoDecoding);
+#endif
   bind("blancSettingsGet", &ChromiumSettingsHandler::HandleGet);
   bind("blancProfileImport", &ChromiumSettingsHandler::HandleProfileImport);
   bind("blancTrustReceipt", &ChromiumSettingsHandler::HandleTrustReceipt);
@@ -610,6 +635,10 @@ void ChromiumSettingsHandler::OnJavascriptAllowed() {
                            kDefaultFontSizePref, prefs::kBrowserColorScheme})
     prefs_.Add(pref, base::BindRepeating(&ChromiumSettingsHandler::Changed, base::Unretained(this)));
   local_.Init(g_browser_process->local_state());
+#if BUILDFLAG(IS_WIN)
+  local_.Add(flags_ui::prefs::kAboutFlagsEntries,
+             base::BindRepeating(&ChromiumSettingsHandler::Changed, base::Unretained(this)));
+#endif
   local_.Add(std::string(blanc::ui_language::kPref),
              base::BindRepeating(&ChromiumSettingsHandler::Changed, base::Unretained(this)));
 }
