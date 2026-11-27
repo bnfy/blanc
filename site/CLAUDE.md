@@ -156,6 +156,7 @@ BNFY account, canonical domain `blanc.day` since October 13, 2026, read from
 **Deploy `site/dist`, never `site/`.** CI (`.github/workflows/site.yml`) builds
 the site on any change to `site/**`, root `package.json` (a build input — the
 JSON-LD `softwareVersion` imports its `version`), or the changelog generator.
+For website-only pull requests, `website-and-unit-checks` requires the Site suite.
 The explicit `--branch=main` is mandatory: release worktrees are detached at
 `origin/main`, and without it Wrangler labels the upload as a `HEAD` preview
 that never reaches the canonical domain. After deployment, confirm Wrangler
