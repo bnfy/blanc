@@ -88,7 +88,7 @@ test('new guides have unique metadata, keyboard-reachable captures, and the exis
   } finally { await context.close(); }
 });
 
-test('feature hub reaches all sixteen guides and Media kit downloads are real PNGs', async () => {
+test('feature hub reaches all sixteen guides and media kit downloads serve their PNGs and SVGs', async () => {
   const context = await contextFor();
   const page = await context.newPage();
   try {
@@ -100,10 +100,11 @@ test('feature hub reaches all sixteen guides and Media kit downloads are real PN
     // The media kit downloads are native 2x captures of one release, the Blanc
     // logo in ink and white (each as SVG and a 3000 x 864 PNG), the Blanc Mail
     // logo in ink and white (each as SVG and a 3000 x 580 PNG), the Sunrise
-    // mark in full color and in black, and the 1024px Blanc Mail app icon in
+    // mark as a transparent SVG and as gold and black PNGs, and the Blanc Mail app icon in
     // its light and dark appearances.
     const downloads = page.locator('.media-kit figcaption a[download]');
-    assert.equal(await downloads.count(), 14);
+    assert.equal(await downloads.count(), 15);
+    assert.equal(await page.getByRole('link', { name: 'Transparent SVG' }).getAttribute('href'), '/press/blanc-sunrise-mark.svg');
     for (const link of await downloads.all()) {
       const href = await link.getAttribute('href');
       const response = await context.request.get(new URL(href, baseURL).href);

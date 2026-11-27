@@ -3,7 +3,7 @@
  * Builds the Blanc lockup assets the website uses (header, footer and the
  * homepage sunrise) into site/public/lockup/.
  *
- *   - The Sunrise mark, rendered from the master assets/sunrise-mark-4096.png as
+ *   - The Sunrise mark, rendered from the master assets/sunrise-mark.svg as
  *     WebP: 2048 px for the homepage sunrise, sharp on Retina screens and when
  *     zoomed, and 256 px for lockups. The exports share the Icon Composer
  *     canvas and the homepage animation's clipping coordinates. The lock
@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const MARK = path.join(ROOT, 'assets/sunrise-mark-4096.png');
+const MARK = path.join(ROOT, 'assets/sunrise-mark.svg');
 const WORDS = path.join(ROOT, 'assets/wordmark');
 const OUT = path.join(ROOT, 'site/public/lockup');
 const check = process.argv.includes('--check');
@@ -45,16 +45,16 @@ if (check) {
   } catch {
     problems.push('site/scripts/lockup-mark.lock.json is missing or unreadable');
   }
-  if (lock && lock.source?.sha256 !== markSha) problems.push('assets/sunrise-mark-4096.png changed since its exports were rendered');
+  if (lock && lock.source?.sha256 !== markSha) problems.push('assets/sunrise-mark.svg changed since its exports were rendered');
   for (const size of MARK_SIZES) {
     const name = `sunrise-mark-${size}.webp`;
     expectedMark.set(name, lock?.exports?.[name] ?? '');
   }
 } else {
-  const lock = { source: { file: 'assets/sunrise-mark-4096.png', sha256: markSha }, exports: {} };
+  const lock = { source: { file: 'assets/sunrise-mark.svg', sha256: markSha }, exports: {} };
   for (const size of MARK_SIZES) {
     const name = `sunrise-mark-${size}.webp`;
-    const bytes = await sharp(MARK)
+    const bytes = await sharp(MARK, { density: 72 * 2 * size / 1024 })
       .resize(size, size)
       .webp({ quality: 95, alphaQuality: 100, effort: 6 })
       .toBuffer();

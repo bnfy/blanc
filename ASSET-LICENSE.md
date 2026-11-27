@@ -24,7 +24,8 @@ Source mark:
 
 - `build/app-icons/Icon.icon/` — the Icon Composer document, including
   `Assets/blanc-mark.svg`
-- `assets/sunrise-mark.svg` — the approved Sunrise contours with embedded gold material;
+- `assets/sunrise-mark.svg` — the approved Sunrise contours with the vector finish from
+  `assets/sunrise-gold-material.svg`;
   `assets/sunrise-mark-4096.png` — the transparent brushed-gold artwork
 - `assets/sunrise-app-icon.png` — the static Sunrise platform icon, generated
   from the approved gold master
@@ -71,7 +72,7 @@ Platform-packaged forms of the same mark:
   “Blanc” word of the Blanc lockup, drawn from Blubird by Rajesh Rajput (the
   font files themselves are not in this repository)
 - `site/public/lockup/` — the lockup's word outlines and the Sunrise exports
-  (`sunrise-mark-{256,2048}.webp`, rendered from `assets/sunrise-mark-4096.png`) the
+  (`sunrise-mark-{256,2048}.webp`, rendered from `assets/sunrise-mark.svg`) the
   website pairs them with
 - `site/public/press/blanc-lockup-{ink,white}{.svg,.png,-480.png,-600.webp,-1200.webp}` —
   the Blanc lockup as media-kit downloads, previews and the email header, rendered from the two
