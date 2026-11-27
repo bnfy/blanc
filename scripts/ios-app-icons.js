@@ -3,8 +3,7 @@
 // Sunrise Amber Glass is the authored iOS primary (AppIcon.icon). This catalog
 // drives its picker preview and the seven alternates generated below.
 //
-// Bronze, Dawn and Gold are cut from the Sunrise's native layer (itself cut
-// from the locked master), split into sun, rays and water, each a
+// Bronze, Dawn and Gold use the Classic Icon Composer sun, ray and water masks, each a
 // flat-painted glass layer that Icon Composer lights. Sunrise, Sunrise Dark,
 // Spectrum and Amber reuse the Mac's documents and layers unchanged.
 
