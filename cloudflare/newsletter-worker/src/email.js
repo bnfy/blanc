@@ -65,7 +65,7 @@ export function renderEmail({ preheader, heading, paragraphs = [], action, after
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${COLORS.page}" style="background-color:${COLORS.page};">
 <tr><td align="center" style="padding-top:36px;padding-bottom:36px;padding-left:16px;padding-right:16px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
-<tr><td style="padding-bottom:24px;padding-left:4px;"><a href="https://blanc.day" style="text-decoration:none;"><img src="${LOCKUP_URL}" width="160" height="47" alt="Blanc" border="0" style="display:block;width:160px;height:47px;border:0;outline:none;"></a></td></tr>
+<tr><td style="padding-bottom:24px;padding-left:4px;"><a href="https://blanc.day" style="text-decoration:none;"><img src="${LOCKUP_URL}" width="160" height="46" alt="Blanc" border="0" style="display:block;width:160px;height:46px;border:0;outline:none;"></a></td></tr>
 <tr><td bgcolor="${COLORS.card}" style="background-color:${COLORS.card};border:1px solid ${COLORS.border};border-radius:12px;padding-top:36px;padding-bottom:20px;padding-left:32px;padding-right:32px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 <tr><td style="padding-bottom:20px;${FACE}letter-spacing:-0.01em;font-size:28px;line-height:34px;font-weight:500;color:${COLORS.ink};">${escapeHtml(heading)}</td></tr>

@@ -375,7 +375,7 @@ appears without the icon, and it is never recoloured, re-spaced or stacked.
 **Owner direction, October 17, 2026:** every email Blanc sends is branded and
 carries the full lockup. `renderEmail()` in
 `cloudflare/newsletter-worker/src/email.js` is the one layout: the Display
-lockup (`site/public/press/blanc-lockup-ink-480.png`, drawn 160 × 47px and
+lockup (`site/public/press/blanc-lockup-ink-480.png`, drawn 160 × 46px and
 linked to blanc.day) on Blanc White `#F8F2E8`, one white card with a
 `#E1D7C9` border, ink `#111111` buttons with Blanc White labels, and a footer
 with the tagline “A little less browser.” in gold `#805D28` above muted
