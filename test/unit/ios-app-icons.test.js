@@ -133,8 +133,6 @@ test('the Swift catalog and Xcode settings match the brand catalog', () => {
 });
 
 test('the brand build generates only the catalog alternates from the committed native layer', async () => {
-  // brand:check tolerates one level of platform rounding in the native layer;
-  // the grow ramp would multiply that into a stale iPhone package on Linux.
   const { iosAppIconFiles } = require('../../scripts/ios-app-icons');
   const files = await iosAppIconFiles();
   const packages = Object.keys(files).filter((file) => file.endsWith('/icon.json')).sort();
@@ -142,7 +140,7 @@ test('the brand build generates only the catalog alternates from the committed n
   assert.deepEqual(packages, alternates);
   assert.equal(iosAppIconFiles.length, 0, 'iosAppIconFiles takes no layer argument');
   assert.match(fs.readFileSync(path.join(ROOT, 'scripts/ios-app-icons.js'), 'utf8'),
-    /build\/app-icons\/Icon\.icon\/Assets\/sunrise-mark\.png/);
+    /classicParts\(\)/);
   assert.match(fs.readFileSync(path.join(ROOT, 'scripts/build-brand-assets.js'), 'utf8'), /iosAppIconFiles\(\)/);
 });
 

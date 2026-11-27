@@ -12,27 +12,9 @@
 //   - flat Dock fallbacks for Light and Dark on the 824px visible tile, with
 //     the glass approximated (glow, rim, colors).
 
-const CX = 512;
-// Measured from the Sunrise's native layer (sunrise-mark.png): the horizon and
-// the sun's center, the rays' angles and reach, and the six water lines'
-// heights and half widths. The last line sits 8px lower than there, so at
-// these heavier strokes it keeps the others' gap instead of touching the one
-// above.
-const HORIZON = 654;
-const RING_RADIUS = 215;
-const RING_WIDTH = 70;
-const RAY_WIDTH = 54;
-const RAY_REACH = [[0, 570], [28, 505], [52.5, 485], [76, 440]];
-const WATER = [[670, 395], [717, 318], [764, 224], [809, 162], [853, 79], [900, 33]];
-const WATER_WIDTH = 40;
-// Clear space between the ring's outer edge and the rays' caps.
-const RAY_GAP = 30;
-const RAY_START = RING_RADIUS + RING_WIDTH / 2 + RAY_GAP + RAY_WIDTH / 2;
-const RAYS = RAY_REACH.flatMap(([angle, reach]) => (angle ? [-angle, angle] : [0])
-  .map((a) => [a, RAY_START, reach - RAY_WIDTH / 2]));
-// The ring shows above the top water line; below it, only through the water.
-const RING_CUT = WATER[0][0] - WATER_WIDTH / 2;
-const RIM = 24;
+const { cx: CX, cy: HORIZON, rx, ry, rayWidth: RAY_WIDTH, rays: RAYS, water: WATER } = require('./sunrise-geometry');
+const RING_CUT = WATER[0].y;
+const RIM = 3;
 // A soft drop shadow drawn under the white rim, as Arc's icon has one.
 const SHADOW_DY = 12;
 const SHADOW_BLUR = 16;
@@ -40,20 +22,9 @@ const SHADOW_OPACITY = 0.32;
 // In Dark the rim is a muted warm gray: a white one glares on the near-black
 // tile (owner, 2026-11-14).
 const DARK_RIM = '#5C534A';
-// The mark, rim included, fills MARK_FILL px of the full-bleed 1024 canvas in
-// its longer direction. macOS paints the native tile full-bleed; the flat copy
-// draws an 824px tile, so its mark takes the same share of the visible tile.
-const MARK_TOP = HORIZON - RAY_REACH[0][1];
-const MARK_BOTTOM = WATER.at(-1)[0] + WATER_WIDTH / 2;
-const MARK_CENTER = (MARK_TOP + MARK_BOTTOM) / 2;
-const MARK_WIDTH = 2 * (Math.max(
-  ...RAY_REACH.map(([a, reach]) => (reach - RAY_WIDTH / 2) * Math.sin((a * Math.PI) / 180) + RAY_WIDTH / 2),
-  ...WATER.map(([, half]) => half + WATER_WIDTH / 2),
-) + RIM);
-const MARK_HEIGHT = MARK_BOTTOM - MARK_TOP + 2 * RIM;
-const MARK_FILL = 860;
-const NATIVE_SCALE = Number((MARK_FILL / Math.max(MARK_WIDTH, MARK_HEIGHT)).toFixed(3));
-const FLAT_SCALE = NATIVE_SCALE * (824 / 1024);
+const MARK_TOP = RAYS[3].ends[3] - RAY_WIDTH / 2;
+const MARK_BOTTOM = WATER.at(-1).y + WATER.at(-1).height;
+const FLAT_SCALE = 824 / 1024;
 
 const COLORWAYS = {
   spectrum: {
@@ -76,31 +47,24 @@ const DARK_TILE = [[0, '#1F1F1E'], [1, '#100F0F']];
 
 const fixed = (n) => Number(n.toFixed(1));
 
-function ray([angle, inner, outer]) {
-  const a = (angle * Math.PI) / 180;
-  return [
-    CX + inner * Math.sin(a), HORIZON - inner * Math.cos(a),
-    CX + outer * Math.sin(a), HORIZON - outer * Math.cos(a),
-  ];
-}
-
 function line([x1, y1, x2, y2], paint, width) {
   return `<line x1="${fixed(x1)}" y1="${fixed(y1)}" x2="${fixed(x2)}" y2="${fixed(y2)}" stroke="${paint}" `
     + `stroke-width="${fixed(width)}" stroke-linecap="round"/>`;
 }
 
 const rays = (paint, grow = 0) =>
-  RAYS.map((r) => line(ray(r), paint, RAY_WIDTH + 2 * grow)).join('');
-const ring = (paint, grow = 0) =>
-  `<circle cx="${CX}" cy="${HORIZON}" r="${RING_RADIUS}" fill="none" stroke="${paint}" `
-  + `stroke-width="${RING_WIDTH + 2 * grow}"/>`;
+  RAYS.map(({ ends }) => line(ends, paint, RAY_WIDTH + 2 * grow)).join('');
+const ring = (paint) =>
+  `<ellipse cx="${CX}" cy="${HORIZON}" rx="${rx - 14}" ry="${ry - 14}" fill="none" stroke="${paint}" stroke-width="28"/>`;
 const water = (paint, grow = 0) =>
-  WATER.map(([y, half]) => line([CX - half, y, CX + half, y], paint, WATER_WIDTH + 2 * grow)).join('');
+  WATER.map(({ x, y, width, height }) => line(
+    [x + height / 2, y + height / 2, x + width - height / 2, y + height / 2], paint, height + 2 * grow,
+  )).join('');
 
 // The ring above the water, and the ring's color mixed into the water where it
 // passes behind a line (masked, since a clipPath would ignore stroke widths).
 const ABOVE = `<clipPath id="above"><rect width="1024" height="${RING_CUT}"/></clipPath>`;
-const sunAbove = (paint, grow = 0) => `<g clip-path="url(#above)">${ring(paint, grow)}</g>`;
+const sunAbove = (paint, grow = 0) => `<g clip-path="url(#above)"><ellipse cx="${CX}" cy="${HORIZON}" rx="${rx + grow}" ry="${ry + grow}" fill="${paint}"/></g>`;
 const BEHIND = `<mask id="behind" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">${water('#FFFFFF')}</mask>`;
 const waterWithRing = () => water('url(#water)')
   + `<g mask="url(#behind)" opacity="0.55" style="mix-blend-mode:screen">${ring('url(#sun)')}</g>`;
@@ -120,7 +84,7 @@ function paints(colorway) {
 }
 
 function placed(body, scale, centerY) {
-  const dy = centerY - MARK_CENTER * scale;
+  const dy = centerY - 512 * scale;
   return `<g transform="translate(${fixed(CX - CX * scale)} ${fixed(dy)}) scale(${scale})">${body}</g>`;
 }
 
@@ -134,7 +98,7 @@ function nativePart(colorway, part) {
     rays: () => rays('url(#sun)'),
     water: waterWithRing,
   }[part]();
-  return svg(paints(colorway), placed(body, NATIVE_SCALE, 512));
+  return svg(paints(colorway), placed(body, 1, 512));
 }
 
 const SHADOW = '<filter id="drop" x="-20%" y="-20%" width="140%" height="160%">'
@@ -146,7 +110,7 @@ function outline(color) {
 }
 
 function nativeRim(color = '#FFFFFF') {
-  return svg(SHADOW + ABOVE, placed(outline(color), NATIVE_SCALE, 512));
+  return svg(SHADOW + ABOVE, placed(outline(color), 1, 512));
 }
 
 // A full-bleed tile image, for a tile that needs more than the single color an

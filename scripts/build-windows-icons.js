@@ -14,9 +14,9 @@ const SOURCE_ICON = path.join(ROOT, 'build/app-icons/Icon.icon/Assets/sunrise-ma
 const OUTPUT_DIR = path.join(ROOT, 'build/windows-icons');
 const OUTPUT_ICON = path.join(OUTPUT_DIR, 'icon-sunrise.ico');
 const ICON_SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256];
-// The two widest reflection lines end at y=783 in the canonical 1024px source.
-// Cropping at 784 removes only the three shorter lines below them.
-const WINDOWS_SOURCE_CROP_HEIGHT = 784;
+// The two widest reflection lines end at y=751 in the canonical 1024px source.
+// Cropping at 760 removes only the three shorter lines below them.
+const WINDOWS_SOURCE_CROP_HEIGHT = 760;
 const WINDOWS_VISIBLE_SCALE = 1;
 const WINDOWS_PIXEL_DELTA_TOLERANCE = 3;
 

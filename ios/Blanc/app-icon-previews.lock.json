@@ -6,39 +6,39 @@
       "dark": "627604ec2c0aac33d5c052a14ce107afd5c50222de257c14a295c0df5331df92"
     },
     "Sunrise": {
-      "package": "6c4d9f4bfb1c604c289108b846221ff8015ec77ac10ab86b4c2fd5c7d0b2d1bd",
-      "light": "b67e79451349c1a359f32ebea662a790773a31291af0e2ee1fafc372f00b27b9",
-      "dark": "8a3c4fd5a0b762b7364ca6402dbdb2572b3a7bb69ec7ff5ef8744e4302ae0d0d"
+      "package": "768dcac39b87aac1dac2d40c53a34cd2abebf2b10dcb31fae3ef3b2298c419ed",
+      "light": "1c619663b59f72c2f62cf3c7b8928dc633219e2cf7c51f3f8ba244f6c67297af",
+      "dark": "d99f6096021c17eac161c1fe0c415137c117b95ec5a1b3d69a304cc16f54631b"
     },
     "SunriseBronze": {
-      "package": "eb7e8211d825e66865c908602ba1f7687aeda3c6f2f02d14115e37f7e40dd6fc",
-      "light": "7ceffd4864af061cd232909e62a6208fd6de6c153b4c653d7f14116ebc79a291",
-      "dark": "b69c3d80d106e075684b043d4865d0a18851c215fbd866303efc61a93f573ee0"
+      "package": "734e256d12432a9f644df1e5bc4e854444dc2976abe41f1929d2f6cc8a08b055",
+      "light": "044ace68e4a11a635c94c90ac737e1c53565c2c3ca63d3d8ca64374a48b76546",
+      "dark": "0b533f59e0ed9e7b13e2aaea150b1e5b7399fcd1462cc52627bfced5146c5f3d"
     },
     "SunriseGold": {
-      "package": "49f81d6235571b25bf20e18be4e6ff500ddab83defeb557ad97453bcccafce24",
-      "light": "9e36012a3aa57e4459ab474cf4b79eb8a4742a2561ea31e67ba5ba23b7230325",
-      "dark": "4cef523e4698bcca306b51c5aba160877f9ab778940a5e8de65f88c52c868539"
+      "package": "3f1f1dcb20eb95d14bd04f0f6f27510588c86bb69754984aef88cfcee4b10332",
+      "light": "1fab9a8c62f77ed465d94e5bfc004852d0d159cfe7122a951e5d099a860811b9",
+      "dark": "7ba3cceacbb9b7e3aa788594528815bca0c0db0cd0db22b25af4025677fa1f9a"
     },
     "SunriseDawn": {
-      "package": "120ad91bc98bea2a871a1b36d0f44444002bd85d44827932b5439c60d2219e12",
-      "light": "058647b4b4fe0ce45c4bf54d596ed1f82d1689a7453b550db80018cc33118994",
-      "dark": "99cd1e3a02afcf6bce4221389ed22daf72dde32faf4316107ea8291535de6717"
+      "package": "6e433a1e98812d43e67f8615388f61ab45e80ff5df709bbe8b63dd870a41ed90",
+      "light": "cc1a1324efd0267dc7a5c312e6da24e7527588cafb530b6b19ab1fb5a0f680ab",
+      "dark": "6fbc419d4868e7162e1d427adfde7a8912ad4fe163d1e2652d6c0f648bf54c06"
     },
     "SunriseDark": {
-      "package": "799ecc3384faed5d2ef23f5f561a38019d5e4e7cb58250d46d03de40cce7c1ed",
-      "light": "2cc6d91d309c9da133db40b8e9d53ca5b0728f9a260d73e50da368badafcb54c",
-      "dark": "8a3c4fd5a0b762b7364ca6402dbdb2572b3a7bb69ec7ff5ef8744e4302ae0d0d"
+      "package": "0747c86432ce8a8f8210d256bd586172553dca7292ef382c76f0d6a5b80c7926",
+      "light": "7d570b512a3a1ea6a9be2ea3c15b4ae7623cf62fc878d55e089995f1c18ba656",
+      "dark": "d99f6096021c17eac161c1fe0c415137c117b95ec5a1b3d69a304cc16f54631b"
     },
     "SunriseSpectrum": {
-      "package": "36f6bc276f28a84767b82911f7fff590893cdfebd5fc4d7a8ba961187a63e64e",
-      "light": "73d891efe6b2f3694d88798cda766f4c8280e2179e48165202f0b46302a07b02",
-      "dark": "892c29e3e97ce0ffb5e7e296e6416cbab57db6e6db7c0bc8cd95a7c03cc26ffa"
+      "package": "6bb4d0e95ea725776cce8fd693c19a00ef57f0aa8dfb5e0c67f233046b190ffe",
+      "light": "b9ddc0a1aa02f856ffba86952e2419a7a658cde9bae75e5f48a33dba763f6bab",
+      "dark": "0c54fe9121ab40e7af86751dffb74a8cbbf724019d2b30c7f348e013e9214f8a"
     },
     "SunriseAmber": {
-      "package": "aa5982e1670d7e856b76fe9584de4bb5d053fab341ac66d802873fea63ab1b74",
-      "light": "514ac524a00d99f4f83403eed738b783b9735b95c4880c01a793ad52fdfe0c4d",
-      "dark": "f7c4d31b8a0f8ab716b21730b4c4ceba1d30711d84d44aa64303b0bf7893f268"
+      "package": "77a3efe22a86cd06d6491b06ba56e582d28111b3f9a241e01143e268a89d02bc",
+      "light": "21076c2f222b1640334ca70de74080ced2fa04dfce2db1bd44f4faba848880e3",
+      "dark": "ba4b4459f1ecf26efba4f96a683d670869c427ad8a0bc83ccfbe25339d7d9931"
     }
   }
 }
