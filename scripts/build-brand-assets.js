@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const sharp = require('sharp');
@@ -712,6 +713,9 @@ async function main() {
 
   await buildSiteAssets(sunrise);
   await distributionAssets(emit, master, platformIcon);
+
+  // Keep the installer's cross-architecture Sharp settings in its own process.
+  execFileSync(process.execPath, [path.join(ROOT, 'chromium/linux/generate-icons.mjs'), ...(check ? ['--check'] : [])], { stdio: 'inherit' });
 
   if (stale.length) {
     throw new Error(`Brand assets are stale:\n  ${stale.join('\n  ')}\nRun npm run brand:build and commit the generated files.`);
