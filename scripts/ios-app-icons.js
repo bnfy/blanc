@@ -1,15 +1,9 @@
 'use strict';
 
-// Blanc for iPhone's app icons: seven Icon Composer packages, so iOS 26 and
-// later draw them in Liquid Glass with their Light, Dark, Clear and Tinted
-// styles, and Xcode generates flat copies for older iOS. Sunrise is the
-// primary icon (owner, 2026-11-11; Sunrise Gold was until then); Sunrise
-// Bronze and Sunrise Dawn (iPhone only), Sunrise Gold and the Mac's other
-// icons are alternates in Settings → Appearance → App icon. Spec:
-// docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md.
+// Sunrise Amber Glass is the authored iOS primary (AppIcon.icon). This catalog
+// drives its picker preview and the seven alternates generated below.
 //
-// Bronze, Dawn and Gold are cut from the Sunrise's native layer (itself cut
-// from the locked master), split into sun, rays and water, each a
+// Bronze, Dawn and Gold use the Classic Icon Composer sun, ray and water masks, each a
 // flat-painted glass layer that Icon Composer lights. Sunrise, Sunrise Dark,
 // Spectrum and Amber reuse the Mac's documents and layers unchanged.
 
@@ -25,10 +19,10 @@ const ROOT = path.join(__dirname, '..');
 const IOS_APP_ICON_DIR = 'ios/Blanc/Blanc/AppIcons';
 const SCHEMA_LABELS = new Map(SCHEMA_ICONS.map((icon) => [icon.id, icon.label]));
 
-// In picker order, the primary (standard) icon first. Every id but Dawn's is
-// shared with the Mac, so its label comes from the settings schema.
+// The primary icon comes first. Shared icons take their labels from the settings schema.
 const IOS_APP_ICONS = Object.freeze([
-  ['sunrise', 'AppIcon'],
+  ['sunrise-amber-glass', 'AppIcon', 'Sunrise Amber Glass'],
+  ['sunrise', 'Sunrise'],
   ['sunrise-bronze', 'SunriseBronze', 'Sunrise Bronze'],
   ['sunrise-gold', 'SunriseGold'],
   ['sunrise-dawn', 'SunriseDawn', 'Sunrise Dawn'],
@@ -38,20 +32,11 @@ const IOS_APP_ICONS = Object.freeze([
 ].map(([id, nativeName, label = SCHEMA_LABELS.get(id)]) => Object.freeze({ id, nativeName, label })));
 
 const SHARED_PLATFORMS = { circles: ['watchOS'], squares: 'shared' };
-const NATIVE_LAYER = 'build/app-icons/Icon.icon/Assets/sunrise-mark.png';
 const CANVAS = 1024;
 const PNG = { compressionLevel: 9, adaptiveFiltering: true };
 
-// Measured on the native layer: the horizon (the disc's base), the disc's
-// center, and how far from it the sun's region reaches (radius 212 plus a
-// margin short of the nearest ray).
-const HORIZON = 654;
-const WATER_TOP = 655;
-const SUN = { x: 510, y: HORIZON, reach: 224 };
-// Apple warns against hairlines under glass, so each part is grown a little:
-// a Gaussian blur of its alpha (sigma), then this ramp back to a hard edge.
-const GROW = { rays: 3, sun: 2, water: 1.5 };
-const GROW_RAMP = [40, 70];
+const { cx, cy: HORIZON } = require('./sunrise-geometry');
+const SUN = { x: cx };
 
 // Icon Composer appearance switches for image layers.
 const LIGHT_ONLY = [{ appearance: 'dark', value: true }, { appearance: 'tinted', value: true }];
@@ -106,27 +91,20 @@ const waterWarmth = (center, edge) => svg(
 
 const verticalPaint = (list, y1, y2) => svg(vertical('paint', list, y1, y2), FULL('url(#paint)'));
 
-// The native layer's alpha in three parts: water below the horizon, the sun
-// within reach of the disc's center, the rays everywhere else.
-async function splitMark(nativeLayer) {
-  const alpha = await sharp(nativeLayer).ensureAlpha().extractChannel(3).raw().toBuffer();
-  const parts = { sun: Buffer.alloc(alpha.length), rays: Buffer.alloc(alpha.length), water: Buffer.alloc(alpha.length) };
-  for (let y = 0; y < CANVAS; y += 1) {
-    for (let x = 0; x < CANVAS; x += 1) {
-      const i = (y * CANVAS) + x;
-      if (alpha[i] < 4) continue;
-      const part = y >= WATER_TOP ? 'water' : Math.hypot(x - SUN.x, y - SUN.y) <= SUN.reach ? 'sun' : 'rays';
-      parts[part][i] = alpha[i];
-    }
+// Paint the exact authored layers. Keeping each alpha intact also keeps the
+// bottom reflection as sharp as the top one at Home Screen sizes.
+async function classicParts() {
+  const dir = path.join(ROOT, 'build/app-icons/Icon.icon');
+  const doc = JSON.parse(fs.readFileSync(path.join(dir, 'icon.json')));
+  const parts = {};
+  for (const group of doc.groups) {
+    const overlays = group.layers.map(layer => ({ input: path.join(dir, 'Assets', layer['image-name']) }));
+    const image = await sharp({ create: { width: CANVAS, height: CANVAS, channels: 4, background: '#00000000' } })
+      .composite(overlays).png().toBuffer();
+    const name = group.name === 'Horizon and reflections' ? 'water' : group.name.toLowerCase();
+    parts[name] = await sharp(image).extractChannel('alpha').raw().toBuffer();
   }
   return parts;
-}
-
-async function grow(alpha, sigma) {
-  const blurred = await sharp(alpha, { raw: { width: CANVAS, height: CANVAS, channels: 1 } })
-    .blur(sigma).extractChannel(0).raw().toBuffer();
-  const [low, high] = GROW_RAMP;
-  return Buffer.from(blurred.map((v) => (v >= high ? 255 : v <= low ? 0 : Math.round(((v - low) / (high - low)) * 255))));
 }
 
 // An alpha painted with one color (hex) or an SVG paint covering the canvas.
@@ -276,22 +254,11 @@ function macPackage(definition) {
   return { doc: createIconDocument(definition), images };
 }
 
-/**
- * Every file of the six packages, keyed by repository-relative path. The mark
- * is cut from the committed native layer (written earlier in the same
- * brand:build run), never from the in-memory copy: brand:check accepts a
- * native layer one rounding level off on another platform, and the grow ramp
- * would multiply that into stale iPhone layers.
- */
+// The authored iOS primary is retained verbatim. Generate the seven alternates.
 async function iosAppIconFiles() {
-  const split = await splitMark(fs.readFileSync(path.join(ROOT, NATIVE_LAYER)));
-  const parts = {
-    sun: await grow(split.sun, GROW.sun),
-    rays: await grow(split.rays, GROW.rays),
-    water: await grow(split.water, GROW.water),
-  };
+  const parts = await classicParts();
   const packages = {
-    AppIcon: macPackage(APP_ICON_ASSETS.sunrise),
+    Sunrise: macPackage(APP_ICON_ASSETS.sunrise),
     SunriseBronze: await bronzePackage(parts),
     SunriseGold: await goldPackage(parts),
     SunriseDawn: await dawnPackage(parts),
@@ -300,8 +267,7 @@ async function iosAppIconFiles() {
     SunriseAmber: macPackage(APP_ICON_ASSETS['sunrise-amber']),
   };
   const files = {};
-  for (const { nativeName } of IOS_APP_ICONS) {
-    const { doc, images } = packages[nativeName];
+  for (const [nativeName, { doc, images }] of Object.entries(packages)) {
     const dir = `${IOS_APP_ICON_DIR}/${nativeName}.icon`;
     files[`${dir}/icon.json`] = `${JSON.stringify({ ...doc, 'supported-platforms': SHARED_PLATFORMS }, null, 2)}\n`;
     for (const [name, bytes] of Object.entries(images)) files[`${dir}/Assets/${name}`] = bytes;

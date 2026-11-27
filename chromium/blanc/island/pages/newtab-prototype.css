@@ -93,14 +93,14 @@ html[data-store-theme] .start-wallpaper-layer { display:none !important; }
   width: 100%;
   height: 100%;
 }
-.launch-sunrise-reflect img { clip-path: inset(70.4% 0 0 0); }
-.launch-sunrise-horizon img { clip-path: inset(67.1% 0 29.6% 0); }
+.launch-sunrise-reflect img { clip-path: inset(68.4% 0 0 0); }
+.launch-sunrise-horizon img { clip-path: inset(63.45% 0 31.6% 0); }
 .launch-sunrise-rays img {
-  clip-path: inset(0 0 32.9% 0);
-  mask-image: radial-gradient(ellipse 26.9% 26.9% at 49.9% 67.1%, transparent 97%, #000 100%);
+  clip-path: inset(0 0 36.55% 0);
+  mask-image: radial-gradient(ellipse 26.8% 27.3% at 50% 64.0%, transparent 97%, #000 100%);
 }
-.launch-sunrise-disc-clip { clip-path: inset(0 0 32.9% 0); }
-.launch-sunrise-mark .launch-sunrise-disc { clip-path: circle(24.9% at 49.9% 67.1%); }
+.launch-sunrise-disc-clip { clip-path: inset(0 0 36.55% 0); }
+.launch-sunrise-mark .launch-sunrise-disc { clip-path: ellipse(26.1% 27.0% at 50% 64.0%); }
 .launch-sunrise,
 .launch-sunrise-sky,
 .launch-sunrise-mark,
@@ -125,7 +125,7 @@ html[data-store-theme] .start-wallpaper-layer { display:none !important; }
 @keyframes launch-sunrise-horizon { 0% { clip-path: inset(0 46% 0 46%); } 14%, 100% { clip-path: inset(0 0 0 0); } }
 @keyframes launch-sunrise-reflect { 0%, 8% { clip-path: inset(0 50% 0 50%); opacity: 0.4; } 28%, 100% { clip-path: inset(0 0 0 0); opacity: 1; } }
 @keyframes launch-sunrise-disc { 0%, 20% { transform: translateY(26%); } 54%, 100% { transform: none; } }
-@keyframes launch-sunrise-rays { 0%, 44% { clip-path: circle(25.5% at 49.9% 67.1%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 49.9% 67.1%); opacity: 1; } }
+@keyframes launch-sunrise-rays { 0%, 44% { clip-path: circle(25.5% at 50% 64.0%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 50% 64.0%); opacity: 1; } }
 /* Its end is the scene's own: animationend removes it from the page. */
 @keyframes launch-sunrise-out { 0%, 96% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {

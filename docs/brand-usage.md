@@ -21,6 +21,10 @@ limits beside the claims they qualify and keep deeper information easy to find.
 
 ## Current identity: Sunrise only
 
+**Approved November 27, 2026.** Blanc Browser uses the Sunrise geometry from Mac dev build 1520.1 on every platform and release channel. Seven rounded rays form three mirrored pairs around the central ray. Five centered reflections taper below the horizon. Keep the approved tip height and vertical placement when changing the material or palette. The original Sunrise uses brushed gold and dark enamel on ivory. Amber Glass remains the iOS default, and the Chromium Mac beta keeps Sunrise Gold.
+
+The editable Mac original is in `build/app-icons/Icon.icon`. The 4096px transparent gold master and scalable gold vector are pinned in `assets/sunrise-mark.lock.json`. Colorways use `scripts/sunrise-geometry.js` or the authored layer masks. Run `npm run brand:check` to verify generated assets.
+
 **Owner correction, September 12, 2026:** “We are only using Sunrise mark and theme now.” This applies to all new Blanc marketing, social creative, review previews, thumbnails and end cards. The old B letterform is retired; do not use `assets/blanc-mark.svg` or rebuild it into new creative. Its presence in the repository is not permission to use it.
 
 For full-color social artwork, use the original gold Sunrise asset at `site/public/sunrise-hero-mark.png`, preserving its geometry, transparency and gold detail. Use the Sunrise theme: Blanc White `#F8F2E8`, warm surfaces `#F2EADE`, near-black headings, muted brown-gray `#6B6257`, and restrained gold `#805D28`. The approved September 11 general Sunrise creative in `marketing/social/sunrise-milestone-2026-09-11/general-review-v2-1080x1350.png` is a visual reference for the treatment, not content to recycle.
@@ -315,10 +319,10 @@ The word is committed as outlines, not as a font, in `assets/wordmark/`
 (`blanc-word-{display,small}-{ink,white}.svg`); `site/scripts/build-lockup-assets.mjs`
 copies them with WebP exports of the Sunrise into `site/public/lockup/`, and
 its `--check` runs inside `npm run site:build`. The Sunrise exports are rendered
-from the vector `assets/sunrise-mark.svg` (October 15, 2026, replacing the 1024px
-raster, which blurred when the homepage drew it large or a visitor zoomed in).
-It keeps the 1024px canvas of `build/app-icons/Icon.icon/Assets/sunrise-mark.png`,
-so the same placement percentages fit every size; `test/unit/brand-assets.test.js`
+from the textured `assets/sunrise-mark-4096.png` master. The SVG download embeds
+the brushed gold inside the approved contours. Both use the Icon Composer canvas.
+The lockup CSS accounts for the mark’s visible bounds and keeps the type, gap
+and optical alignment consistent at both sizes. `test/unit/brand-assets.test.js`
 pins them. Ink on Blanc White, white (`#F8F2E8`) on warm ink. Do not stretch,
 re-space, recolour, outline or set the word in another face.
 
@@ -371,7 +375,7 @@ appears without the icon, and it is never recoloured, re-spaced or stacked.
 **Owner direction, October 17, 2026:** every email Blanc sends is branded and
 carries the full lockup. `renderEmail()` in
 `cloudflare/newsletter-worker/src/email.js` is the one layout: the Display
-lockup (`site/public/press/blanc-lockup-ink-480.png`, drawn 160 × 47px and
+lockup (`site/public/press/blanc-lockup-ink-480.png`, drawn 160 × 46px and
 linked to blanc.day) on Blanc White `#F8F2E8`, one white card with a
 `#E1D7C9` border, ink `#111111` buttons with Blanc White labels, and a footer
 with the tagline “A little less browser.” in gold `#805D28` above muted

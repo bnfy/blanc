@@ -905,11 +905,12 @@ themselves.
 
 - **Desktop (macOS):** five icons, `sunrise` standard, chosen in Settings →
   General → App icon and stored as the device-local `appIcon` setting.
-- **iOS:** seven icons, the Mac's five plus `sunrise-bronze` (Sunrise Bronze)
-  and `sunrise-dawn` (Sunrise Dawn). `sunrise` is the primary icon (it was
-  `sunrise-gold` until 2026-11-11; a phone that had chosen Sunrise as an
-  alternate still reads as Sunrise). They're chosen in Settings → Appearance →
-  App icon and switched with `setAlternateIconName`. iOS remembers the choice,
+- **iOS:** Sunrise Amber Glass (`sunrise-amber-glass`) is the default. The seven
+  alternates include the Mac's five icons, Sunrise Bronze and Sunrise Dawn.
+  Installations using the primary icon adopt the new artwork on update. iOS
+  keeps existing alternate selections, including the original `Sunrise` name.
+  Users choose an icon in Settings → Appearance → App icon. The picker calls
+  `setAlternateIconName` to apply it. iOS remembers the choice,
   so there's no `appIcon` value in iPhone settings. The iPhone's Sunrise Gold
   is drawn for the phone: the same cream glass Sunrise on gold, plus a
   reflection under the water and separate glass pieces. Sunrise Bronze is
@@ -918,12 +919,11 @@ themselves.
 - **Android:** not built.
 
 **Parity contract:** shared ids keep the same names and labels, no platform
-reuses a retired id, and every icon is free. `sunrise-dawn` and
-`sunrise-bronze` stay out of the shared settings schema until the Mac offers
-them.
+reuses a retired id, and every icon is free. The iOS-only identifiers
+`sunrise-amber-glass`, `sunrise-dawn` and `sunrise-bronze` stay in the iOS catalog.
 
-**Status:** iPhone 1.0 shipped with Sunrise Gold standard; Sunrise standard
-and Sunrise Bronze are implemented for 1.0.2, unreleased. Spec:
+**Status:** iPhone 1.1 shipped with Sunrise as the primary icon. Sunrise Amber
+Glass is the default for the next iOS release. Spec:
 `docs/superpowers/specs/2026-10-29-ios-liquid-glass-app-icons-design.md`.
 
 ---

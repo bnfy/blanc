@@ -91,5 +91,10 @@
         "from": "blanc/island/whats-new.js"
       }
     ]
-  }
+  },
+  "brandFiles": [
+    "icon-sunrise-dark.png",
+    "icon-sunrise.png",
+    "sunrise-mark.png"
+  ]
 }

@@ -1,20 +1,18 @@
 {
-  "note": "Blanc Beta's icon catalog: shipping's five macOS colorways (src/main/app-icon-assets.js, build/app-icons) compiled by actool into one Assets.car. Sunrise Gold is the app icon, under the BlancDK name the Info.plist carries (owner, 2026-11-14: the beta's default for now). All five reach the Dock as dock/<stack>-light.png and -dark.png (Sunrise Gold too since 2026-11-15: an app updated in place can keep the old version's bundle icon in the Dock; only Clear and Tinted take the bundle icon), Icon Composer's own renders (render-dock-icons.mjs), swapped when the appearance changes as shipping swaps its flat images: AppKit draws a named stack handed to the Dock once, in Light, so beta.4's named stacks never turned Dark. Spectrum and Amber take their muted Dark rim from bnfy/blanc#1528, merged.",
-  "shipping": "a54d27a75ca9d5f2c54f8ac523ce8b12f8bec7c0",
-  "shippingRef": "main (bnfy/blanc#1528, squash-merged; inputs identical to eb988fd74)",
+  "note": "Compiled from this checkout’s Mac Icon Composer packages. BlancDK is the beta’s Sunrise Gold default.",
   "colorway": "sunrise-gold",
   "actool": "27.2",
   "minimumDeploymentTarget": "13.0",
   "iconJson": {
-    "Icon": "bdfb4191b2f059a97806333183c4e935351b9b6b2d6e4947989b70551153e42a",
+    "Icon": "d3c9e7a31f10ac15d34cbdbee9c7b91302f00b2317504db4f59aecbc54988b89",
     "SunriseDark": "d427ad36e976d070f5c01ca45cc91e0779cd723f5e4e0daea850a358dc77b4dc",
     "BlancDK": "5ae35ee65292285c68b46171af26a6449f9297eba2db60858c8928444243b324",
     "SunriseSpectrum": "b24f1675fc2c84c85bfa0761b852215387957fda422843781c83e6c17b474477",
     "SunriseAmber": "bc81b1ac0edfc5542c5301ee61e5e506d873bf76c471afb9d4f8db6960e6a039"
   },
   "outputs": {
-    "Assets.car": "5393ea4b6ef67e77048c0a9d27fd874282069b5b0188e3ab17a83aad5b3ac6f6",
-    "app.icns": "443a0af49b1cda70233ce0b3ca00fb2a50df4d14af97fde641dda1cf99532a5b"
+    "Assets.car": "3548bfa8d218d58b271e97a3190460b2c579d979fb9c5f42b6c5179fc786488b",
+    "app.icns": "399da13220bc45af3a69c010bc1ad27faa345e9729564c77005936821e9f512a"
   },
   "stacks": {
     "sunrise": "Icon",
@@ -24,15 +22,15 @@
     "sunrise-amber": "SunriseAmber"
   },
   "dock": {
-    "Icon-light.png": "765cdaa898e81aa29a73e021c964188ffc5190f88c86bf99a606d80ab3199098",
-    "Icon-dark.png": "7ccfd0e38d4ed9a6f7b53c69716cc0c11a3107e78da0758ca2cf6f7661f26bc6",
-    "SunriseDark-light.png": "ff72f0e2bbef4f4f7369fc5e989ae0a3c6c6cc94afb6564fc1db6a28aa8c4395",
-    "SunriseDark-dark.png": "7ccfd0e38d4ed9a6f7b53c69716cc0c11a3107e78da0758ca2cf6f7661f26bc6",
-    "BlancDK-light.png": "98e97af97d6040312c5837cd1cbaffef48c827c73aaa1fa28b95aeb38eebda59",
-    "BlancDK-dark.png": "8846e7e45fb322d777e092cfb7d99ac71f1065ab947c42889d69ca68a4992f0d",
-    "SunriseSpectrum-light.png": "12a86703b287e5efac6ebc13d8d3e85e198da5c7152c9271fdce7386e761f4dd",
-    "SunriseSpectrum-dark.png": "a284d31f6644c9d21816fd8b197cd4afeffdd09eb99b223453324c2b02fa85e1",
-    "SunriseAmber-light.png": "b1306acb63f63de5307a346c18907d310d8c125953c6282fb60a17b3d462a60e",
-    "SunriseAmber-dark.png": "fc060b5398497e0790613af556c29b31ef183085017aa2b4ddb147b5e2ddc629"
+    "Icon-light.png": "eb914099c3230ddd5193f3608a170eb8d53ea81501fed9f28f8e344be1ef1bd4",
+    "Icon-dark.png": "5a9e61da2a031a02095722c1e10d3ac9c9a0a29a493af06782ff68eb178be691",
+    "SunriseDark-light.png": "c2bf9ff9051b472878e38c6bfc7cf317793b8c60f082204c6100cd7a6e08d744",
+    "SunriseDark-dark.png": "b33da07b2bd66120cd7c447f6e86a3105c90d5d7a5beb906628ad6a0b57dab81",
+    "BlancDK-light.png": "3e947946e8deb768d294aac32b02e6f53d3b4d00a2e36bafff3b4511c0bec994",
+    "BlancDK-dark.png": "b7e7eb5308b907bd7a7c637e7b8e61f5d74454600dac36096a4878147f7453bf",
+    "SunriseSpectrum-light.png": "9ec910300dad5605dc292c897869a48e24b2a041663d9ba2af0ff3aebc2e06ce",
+    "SunriseSpectrum-dark.png": "12663a00f6e12a18a82c6e4f2e3f5d8cc26a89be497eca659e58c6be3eddd307",
+    "SunriseAmber-light.png": "7a69bebe79f6830873515161cd11c425502ff6efe0dae76a28a2de608d6d41ea",
+    "SunriseAmber-dark.png": "f3b59622cb05783b82168cf7d0dc62fc3814cae38ce411be1a0c5f1c8c24827b"
   }
 }

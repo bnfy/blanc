@@ -183,21 +183,21 @@
 }
 /* One mark, cut into its parts: reflection, horizon, rays and disc. */
 .sun-reflect img {
-  clip-path: inset(67.2% 0 0 0);
+  clip-path: inset(64.6% 0 0 0);
 }
 .sun-horizon img {
-  clip-path: inset(64.2% 0 32.8% 0);
+  clip-path: inset(61.1% 0 35.4% 0);
 }
 .sun-rays img {
-  clip-path: inset(0 0 35.8% 0);
-  -webkit-mask-image: radial-gradient(ellipse 22.2% 22.2% at 49.9% 64.2%, transparent 97%, #000 100%);
-  mask-image: radial-gradient(ellipse 22.2% 22.2% at 49.9% 64.2%, transparent 97%, #000 100%);
+  clip-path: inset(0 0 38.9% 0);
+  -webkit-mask-image: radial-gradient(ellipse 22.1% 22.5% at 50% 61.52%, transparent 97%, #000 100%);
+  mask-image: radial-gradient(ellipse 22.1% 22.5% at 50% 61.52%, transparent 97%, #000 100%);
 }
 .sun-disc-clip {
-  clip-path: inset(0 0 35.8% 0);
+  clip-path: inset(0 0 38.9% 0);
 }
 .sun-mark .sun-disc {
-  clip-path: circle(20.6% at 49.9% 64.2%);
+  clip-path: ellipse(21.8% 22.1% at 50% 61.52%);
 }
 .sun-copy {
   position: relative;
@@ -2249,7 +2249,7 @@ details[open] .faq-sign::after {
 @keyframes sun-horizon { 0% { clip-path: inset(0 46% 0 46%); } 14%, 100% { clip-path: inset(0 0 0 0); } }
 @keyframes sun-reflect { 0%, 8% { clip-path: inset(0 50% 0 50%); opacity: 0.4; } 28%, 100% { clip-path: inset(0 0 0 0); opacity: 1; } }
 @keyframes sun-disc { 0%, 20% { transform: translateY(22%); } 54%, 100% { transform: none; } }
-@keyframes sun-rays { 0%, 44% { clip-path: circle(21% at 49.9% 64.2%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 49.9% 64.2%); opacity: 1; } }
+@keyframes sun-rays { 0%, 44% { clip-path: circle(21% at 50% 61.52%); opacity: 0; } 48% { opacity: 1; } 70%, 100% { clip-path: circle(75% at 50% 61.52%); opacity: 1; } }
 @keyframes sun-copy { 0%, 72% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: none; } }
 @keyframes pin-a { 0%, 26% { opacity: 1; transform: none; } 36%, 100% { opacity: 0; transform: scale(0.96); } }
 @keyframes pin-b { 0%, 26% { opacity: 0; transform: scale(1.04); } 36%, 60% { opacity: 1; transform: none; } 70%, 100% { opacity: 0; transform: scale(0.96); } }
