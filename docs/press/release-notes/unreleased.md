@@ -3,31 +3,7 @@
 v1.52.0 is the current public release ([notes](v1.52.0.md)). Changes merged
 since then are below as they're recorded.
 
-## Added
-
-- **Move a mini window to a Space.** A Spaces button now sits beside Open in
-  Blanc in a mini window. Pick one of your Spaces, or New space…, and the mini
-  window's tabs move there; the mini window closes and that Space comes
-  forward. If a page can't move (a private tab, or one playing sound or using
-  the camera), nothing moves and Blanc says why (#1734).
-
-## Fixed
-
-- **Favorites opens with ⌥⌘B on the Mac again.** Since 1.39, ⌥⌘B also
-  turned Auto-hide the Island on or off, and Auto-hide always won, so Show
-  Favorites never opened from the keyboard. Auto-hide the Island is now ⇧⌘B on
-  the Mac; Windows and Linux keep Ctrl+Alt+B. Close Window in the File menu is
-  now ⇧⌘W, since ⌘W already closes the tab.
-- **Ctrl+Y redoes on Windows and Linux.** It used to open History, even
-  while typing in a text field or a web app, so it never redid anything.
-  Ctrl+Y now reaches the page and Edit → Redo, as in Chrome; History is
-  Ctrl+H.
-- **Open local HTML files on Linux.** Choosing Blanc under a file manager's
-  **Open With** for an `.html` file now opens it in the static preview
-  window, as on Windows and the Mac. Before, Blanc only came to the front
-  with nothing opened (#1630).
-
-## Still open from 1.52
+## Still open for 1.53
 
 - **Move a mini window to a Space** (#1734) by hand in a packaged build, with
   a real mouse: the Island's Spaces button, the move-mode menu, and File →
@@ -39,6 +15,8 @@ since then are below as they're recorded.
   Blanc is running. CI opens a file in the static preview from the packaged
   AppImage's command line, as a `file:///` URI at launch and as a path handed
   to a running Blanc.
+
+## Still open from 1.52
 
 - **Download peek with Auto-hide on**, by hand in a packaged build on macOS
   and Windows: a real click on a download link shows the hidden Island in both
