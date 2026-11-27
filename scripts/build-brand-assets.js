@@ -579,6 +579,26 @@ async function buildSiteAssets(sunrise) {
       .toBuffer());
   }
 
+  // These older signature URLs are still embedded in email. Keep their
+  // light edging so the ink remains legible on dark message backgrounds.
+  const signatureMark = await silhouettePng(sunrise.inkMotif, 344, ink);
+  const edgedSignature = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="48" height="48" viewBox="0 0 48 48">
+    <defs><filter id="edge" x="0" y="0" width="48" height="48" filterUnits="userSpaceOnUse">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="0.65" result="outline"/>
+      <feFlood flood-color="white"/><feComposite in2="outline" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter></defs>
+    <image x="2.5" y="2.5" width="43" height="43" filter="url(#edge)" xlink:href="${pngDataUri(signatureMark)}"/>
+  </svg>`;
+  await emit('site/public/blanc-email-signature.png', await raster(edgedSignature, 96));
+  await emit('site/public/blanc-email-signature-48.png', await raster(edgedSignature, 48));
+
+  // The Arc welcome page shows the light macOS Spectrum tile edge to edge.
+  const spectrumDock = path.join(ROOT, 'chromium/blanc/branding/beta/dock/SunriseSpectrum-light.png');
+  const spectrumTile = await sharp(spectrumDock).extract({ left: 100, top: 100, width: 824, height: 824 })
+    .resize(520, 520).webp({ quality: 95, alphaQuality: 100, effort: 6 }).toBuffer();
+  await emit('site/public/arc/sunrise-spectrum-icon.webp', spectrumTile);
+
   // Favicons carry the rays-only crop (the app's own ≤16px rule); the 180px
   // touch icon has room for the full mark.
   const favicon = tileSvg(pngDataUri(await silhouettePng(sunrise.inkFaviconMotif, 256, ink)));
