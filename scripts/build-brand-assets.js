@@ -275,7 +275,8 @@ const sha256 = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex'
 
 async function sunriseMaster() {
   const master = await fs.readFile(path.join(ROOT, SUNRISE_MASTER));
-  const svg = Buffer.from(goldVector(master));
+  const material = await fs.readFile(path.join(ROOT, 'assets/sunrise-gold-material.svg'), 'utf8');
+  const svg = Buffer.from(goldVector(material));
   await emit(SUNRISE_SVG, svg);
   const lock = JSON.parse(await fs.readFile(path.join(ROOT, SUNRISE_LOCK), 'utf8'));
   if (lock.svg.sha256 !== sha256(svg) || lock.master.sha256 !== sha256(master)) {
