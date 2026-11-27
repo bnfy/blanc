@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="edge">
+      <stop offset="0" stop-color="#fffdf6"/>
+      <stop offset=".22" stop-color="#fff6e4"/>
+      <stop offset=".7" stop-color="#f6e4c4"/>
+      <stop offset="1" stop-color="#d0a16a"/>
+    </linearGradient>
+  </defs>
+  <g transform="scale(1.0940170940170941) translate(468 607)">
+    <g transform="rotate(-72)">
+      <rect x="-17" y="-393.6536" width="34" height="178.016" rx="17" fill="#c49455"/>
+      <rect x="-15.7" y="-392.3536" width="31.4" height="175.416" rx="15.7" fill="url(#edge)"/>
+      <rect x="-13" y="-389.6536" width="26" height="170.016" rx="13" fill="#fff8ed"/>
+    </g>
+    <g transform="rotate(-48)">
+      <rect x="-17" y="-418.2516" width="34" height="200.2074" rx="17" fill="#c49455"/>
+      <rect x="-15.7" y="-416.9516" width="31.4" height="197.6074" rx="15.7" fill="url(#edge)"/>
+      <rect x="-13" y="-414.2516" width="26" height="192.2074" rx="13" fill="#fff8ed"/>
+    </g>
+    <g transform="rotate(-24)">
+      <rect x="-17" y="-445.3682" width="34" height="224.5776" rx="17" fill="#c49455"/>
+      <rect x="-15.7" y="-444.0682" width="31.4" height="221.9776" rx="15.7" fill="url(#edge)"/>
+      <rect x="-13" y="-441.3682" width="26" height="216.5776" rx="13" fill="#fff8ed"/>
+    </g>
+    <g transform="rotate(0)">
+      <rect x="-17" y="-457" width="34" height="235" rx="17" fill="#c49455"/>
+      <rect x="-15.7" y="-455.7" width="31.4" height="232.4" rx="15.7" fill="url(#edge)"/>
+      <rect x="-13" y="-453" width="26" height="227" rx="13" fill="#fff8ed"/>
+    </g>
+    <g transform="rotate(24)">
+      <rect x="-17" y="-445.3682" width="34" height="224.5776" rx="17" fill="#c49455"/>
+      <rect x="-15.7" y="-444.0682" width="31.4" height="221.9776" rx="15.7" fill="url(#edge)"/>
+      <rect x="-13" y="-441.3682" width="26" height="216.5776" rx="13" fill="#fff8ed"/>
+    </g>
+    <g transform="rotate(48)">
+      <rect x="-17" y="-418.2516" width="34" height="200.2074" rx="17" fill="#c49455"/>
+      <rect x="-15.7" y="-416.9516" width="31.4" height="197.6074" rx="15.7" fill="url(#edge)"/>
+      <rect x="-13" y="-414.2516" width="26" height="192.2074" rx="13" fill="#fff8ed"/>
+    </g>
+    <g transform="rotate(72)">
+      <rect x="-17" y="-393.6536" width="34" height="178.016" rx="17" fill="#c49455"/>
+      <rect x="-15.7" y="-392.3536" width="31.4" height="175.416" rx="15.7" fill="url(#edge)"/>
+      <rect x="-13" y="-389.6536" width="26" height="170.016" rx="13" fill="#fff8ed"/>
+    </g>
+  </g>
+</svg>

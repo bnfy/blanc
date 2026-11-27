@@ -1,6 +1,11 @@
 {
   "icons": {
     "AppIcon": {
+      "package": "fde92caf1922fb128c864da609c4cc8a66bb673fa32904a063d61b03481e342b",
+      "light": "39913585900b736ea279b4f879d8bfb517f56efc7175d412fbc42e71e679562d",
+      "dark": "627604ec2c0aac33d5c052a14ce107afd5c50222de257c14a295c0df5331df92"
+    },
+    "Sunrise": {
       "package": "6c4d9f4bfb1c604c289108b846221ff8015ec77ac10ab86b4c2fd5c7d0b2d1bd",
       "light": "b67e79451349c1a359f32ebea662a790773a31291af0e2ee1fafc372f00b27b9",
       "dark": "8a3c4fd5a0b762b7364ca6402dbdb2572b3a7bb69ec7ff5ef8744e4302ae0d0d"
