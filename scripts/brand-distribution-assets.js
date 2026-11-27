@@ -52,10 +52,15 @@ async function distributionAssets(emit, master, classicTile) {
   }
   const appIcon = `${host}/Assets.xcassets/AppIcon.appiconset`;
   const catalog = JSON.parse(await fs.readFile(path.join(__dirname, '..', appIcon, 'Contents.json')));
-  const dockIcon = path.join(__dirname, '../src/renderer/pages/icon-sunrise.png');
+  // The Safari converter supplies a white system plate with a 60% inset
+  // square. Replace its Browser tile at each native size.
   for (const image of catalog.images) {
     const size = parseInt(image.size, 10) * parseInt(image.scale, 10);
-    await emit(`${appIcon}/${image.filename}`, await resize(dockIcon, size));
+    const file = `${appIcon}/${image.filename}`;
+    const inset = Math.round(size * 0.2);
+    const tile = await resize(classicTile, size - inset * 2);
+    const hostIcon = await sharp(path.join(root, file)).composite([{ input: tile, left: inset, top: inset }]).png().toBuffer();
+    await emit(file, hostIcon);
   }
 }
 

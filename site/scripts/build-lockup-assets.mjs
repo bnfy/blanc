@@ -5,15 +5,9 @@
  *
  *   - The Sunrise mark, rendered from the master assets/sunrise-mark-4096.png as
  *     WebP: 2048 px for the homepage sunrise, sharp on Retina screens and when
- *     zoomed, and 256 px for lockups. The SVG sits on the same 1024 canvas as
- *     the macOS icon's raster artwork (build/app-icons/Icon.icon/Assets/
- *     sunrise-mark.png), so one set of lockup percentages and the hero's clip
- *     paths fit every file. librsvg renders the master slightly differently on
- *     each platform, so --check never re-renders it: writing records the
- *     SVG's sha256 and each export's in site/scripts/lockup-mark.lock.json,
- *     and --check requires the master and the committed exports to match it.
- *     Changing the master therefore means running this script and committing
- *     the new exports and lock together.
+ *     zoomed, and 256 px for lockups. The exports share the Icon Composer
+ *     canvas and the homepage animation's clipping coordinates. The lock
+ *     records the master and output digests so any platform can check them.
  *   - The outlined "Blanc" wordmark in Blubird Regular Display (large sizes)
  *     and Blubird Regular Text (about 32 px tall and under), copied unchanged
  *     from assets/wordmark/. They are outlines drawn from the licensed font,
@@ -41,7 +35,7 @@ const markSha = sha256(fs.readFileSync(MARK));
 
 const outputs = new Map();
 // Mark exports: rendered when writing; in --check, the expected sha256 from
-// the lock (and the lock must name the current SVG).
+// the lock (and the lock must name the current master).
 const expectedMark = new Map();
 const problems = [];
 if (check) {

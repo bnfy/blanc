@@ -1,16 +1,8 @@
 'use strict';
 
-// Sunrise Spectrum and Sunrise Amber, the glass colorways: the Sunrise as an
-// outlined ring sun, seven rays and six stepped water lines, on the shipped
-// artwork's own geometry. Where the ring passes behind a water line, the line
-// takes on the ring's color, the way Arc's icon lets its strokes overlap. The
-// shipped Sunrise artwork stays the source of every other surface. Each
-// colorway yields:
-//   - four Icon Composer layers on the full-bleed 1024 canvas: the sun (the
-//     ring above the horizon), the rays and the water in color, and the white
-//     rim drawn behind them with its drop shadow (a muted warm one in Dark);
-//   - flat Dock fallbacks for Light and Dark on the 824px visible tile, with
-//     the glass approximated (glow, rim, colors).
+// Spectrum and Amber retain their glass colors, rim and reflected arc. The
+// sun, rays and water follow the same contours as the brushed-gold original.
+// Generate each native layer and the light/dark flat Dock equivalents.
 
 const { cx: CX, cy: HORIZON, rx, ry, rayWidth: RAY_WIDTH, rays: RAYS, water: WATER } = require('./sunrise-geometry');
 const RING_CUT = WATER[0].y;
