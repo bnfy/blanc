@@ -11,15 +11,16 @@ const packageDir = (icon) => path.join(ROOT, IOS_APP_ICON_DIR, `${icon.nativeNam
 const iconDocument = (icon) => JSON.parse(fs.readFileSync(path.join(packageDir(icon), 'icon.json'), 'utf8'));
 const byName = (name) => IOS_APP_ICONS.find((icon) => icon.nativeName === name);
 
-const IPHONE_ONLY = ['sunrise-bronze', 'sunrise-dawn'];
+const IPHONE_ONLY = ['sunrise-amber-glass', 'sunrise-bronze', 'sunrise-dawn'];
 
-test('the iPhone catalog is Sunrise (the standard icon) first, then Bronze, Gold, Dawn and the Mac icons', () => {
+test('Sunrise Amber Glass is the primary iOS icon and Sunrise is a named alternate', () => {
   assert.deepEqual(IOS_APP_ICONS.map((icon) => icon.id), [
-    'sunrise', 'sunrise-bronze', 'sunrise-gold', 'sunrise-dawn', 'sunrise-dark', 'sunrise-spectrum', 'sunrise-amber',
+    'sunrise-amber-glass', 'sunrise', 'sunrise-bronze', 'sunrise-gold', 'sunrise-dawn', 'sunrise-dark', 'sunrise-spectrum', 'sunrise-amber',
   ]);
   assert.deepEqual(IOS_APP_ICONS.map((icon) => icon.nativeName), [
-    'AppIcon', 'SunriseBronze', 'SunriseGold', 'SunriseDawn', 'SunriseDark', 'SunriseSpectrum', 'SunriseAmber',
+    'AppIcon', 'Sunrise', 'SunriseBronze', 'SunriseGold', 'SunriseDawn', 'SunriseDark', 'SunriseSpectrum', 'SunriseAmber',
   ]);
+  assert.equal(byName('AppIcon').label, 'Sunrise Amber Glass');
   assert.equal(byName('SunriseBronze').label, 'Sunrise Bronze');
   assert.equal(byName('SunriseDawn').label, 'Sunrise Dawn');
   const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'settings-schema/schema.json'), 'utf8'));
@@ -35,7 +36,8 @@ test('the iPhone catalog is Sunrise (the standard icon) first, then Bronze, Gold
 test('every package exists and names only images it contains', () => {
   for (const icon of IOS_APP_ICONS) {
     const doc = iconDocument(icon);
-    assert.deepEqual(doc['supported-platforms'], SHARED_PLATFORMS, icon.nativeName);
+    const platforms = icon.nativeName === 'AppIcon' ? { squares: ['iOS'] } : SHARED_PLATFORMS;
+    assert.deepEqual(doc['supported-platforms'], platforms, icon.nativeName);
     assert.ok(doc.groups.length >= 1 && doc.groups.length <= 4, `${icon.nativeName} has 1–4 groups`);
     const named = doc.groups.flatMap((group) => group.layers.map((layer) => layer['image-name'])).sort();
     const present = fs.readdirSync(path.join(packageDir(icon), 'Assets')).filter((name) => !name.startsWith('.')).sort();
@@ -106,7 +108,7 @@ test('the previews lock matches every package', () => {
 test('reused packages match their Mac layers byte for byte', () => {
   const same = (packaged, source) => assert.deepEqual(
     fs.readFileSync(packaged), fs.readFileSync(path.join(ROOT, source)), path.relative(ROOT, packaged));
-  for (const name of ['AppIcon', 'SunriseDark']) {
+  for (const name of ['Sunrise', 'SunriseDark']) {
     same(path.join(packageDir(byName(name)), 'Assets/sunrise-mark.png'), 'build/app-icons/Icon.icon/Assets/sunrise-mark.png');
   }
   for (const name of ['SunriseSpectrum', 'SunriseAmber']) {
@@ -130,13 +132,15 @@ test('the Swift catalog and Xcode settings match the brand catalog', () => {
   assert.equal(count('ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;'), 2);
 });
 
-test('the iPhone icons are cut from the committed native layer, not an in-memory copy', () => {
-  // brand:check tolerates one level of platform rounding in the native layer;
-  // the grow ramp would multiply that into a stale iPhone package on Linux.
+test('the brand build generates only the catalog alternates from the committed native layer', async () => {
   const { iosAppIconFiles } = require('../../scripts/ios-app-icons');
+  const files = await iosAppIconFiles();
+  const packages = Object.keys(files).filter((file) => file.endsWith('/icon.json')).sort();
+  const alternates = IOS_APP_ICONS.slice(1).map(({ nativeName }) => `${IOS_APP_ICON_DIR}/${nativeName}.icon/icon.json`).sort();
+  assert.deepEqual(packages, alternates);
   assert.equal(iosAppIconFiles.length, 0, 'iosAppIconFiles takes no layer argument');
   assert.match(fs.readFileSync(path.join(ROOT, 'scripts/ios-app-icons.js'), 'utf8'),
-    /build\/app-icons\/Icon\.icon\/Assets\/sunrise-mark\.png/);
+    /classicParts\(\)/);
   assert.match(fs.readFileSync(path.join(ROOT, 'scripts/build-brand-assets.js'), 'utf8'), /iosAppIconFiles\(\)/);
 });
 

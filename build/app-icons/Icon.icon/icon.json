@@ -1,37 +1,133 @@
 {
-  "fill" : {
-    "automatic-gradient" : "extended-srgb:0.96863,0.94118,0.89804,1.00000"
+  "fill": {
+    "solid": "extended-srgb:0.968627,0.941176,0.898039,1.000000"
   },
-  "fill-specializations" : [
+  "fill-specializations": [
     {
-      "appearance" : "dark",
-      "value" : {
-        "automatic-gradient" : "extended-srgb:0.10980,0.10196,0.08627,1.00000"
+      "appearance": "dark",
+      "value": {
+        "solid": "extended-srgb:0.109804,0.101961,0.086275,1.000000"
       }
     }
   ],
-  "groups" : [
+  "groups": [
     {
-      "layers" : [
+      "name": "Horizon and reflections",
+      "layers": [
         {
-          "glass" : false,
-          "image-name" : "sunrise-mark.png",
-          "name" : "Sunrise"
+          "name": "Horizon",
+          "image-name": "Sunrise Horizon.png",
+          "glass": false
+        },
+        {
+          "name": "Reflection 1",
+          "image-name": "Sunrise Reflection 1.png",
+          "glass": false
+        },
+        {
+          "name": "Reflection 2",
+          "image-name": "Sunrise Reflection 2.png",
+          "glass": false
+        },
+        {
+          "name": "Reflection 3",
+          "image-name": "Sunrise Reflection 3.png",
+          "glass": false
+        },
+        {
+          "name": "Reflection 4",
+          "image-name": "Sunrise Reflection 4.png",
+          "glass": false
+        },
+        {
+          "name": "Reflection 5",
+          "image-name": "Sunrise Reflection 5.png",
+          "glass": false
         }
       ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.25
+      "lighting": "individual",
+      "specular": false,
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
       },
-      "translucency" : {
-        "enabled" : false,
-        "value" : 0.5
+      "translucency": {
+        "enabled": false,
+        "value": 0.5
+      }
+    },
+    {
+      "name": "Rays",
+      "layers": [
+        {
+          "name": "Ray 1",
+          "image-name": "Sunrise Ray 1.png",
+          "glass": false
+        },
+        {
+          "name": "Ray 2",
+          "image-name": "Sunrise Ray 2.png",
+          "glass": false
+        },
+        {
+          "name": "Ray 3",
+          "image-name": "Sunrise Ray 3.png",
+          "glass": false
+        },
+        {
+          "name": "Ray 4",
+          "image-name": "Sunrise Ray 4.png",
+          "glass": false
+        },
+        {
+          "name": "Ray 5",
+          "image-name": "Sunrise Ray 5.png",
+          "glass": false
+        },
+        {
+          "name": "Ray 6",
+          "image-name": "Sunrise Ray 6.png",
+          "glass": false
+        },
+        {
+          "name": "Ray 7",
+          "image-name": "Sunrise Ray 7.png",
+          "glass": false
+        }
+      ],
+      "lighting": "individual",
+      "specular": false,
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0.5
+      }
+    },
+    {
+      "name": "Sun",
+      "layers": [
+        {
+          "name": "Sun",
+          "image-name": "Sunrise Sun.png",
+          "glass": false
+        }
+      ],
+      "lighting": "individual",
+      "specular": false,
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0.5
       }
     }
   ],
-  "supported-platforms" : {
-    "squares" : [
-      "macOS"
-    ]
+  "supported-platforms": {
+    "squares": "shared"
   }
 }

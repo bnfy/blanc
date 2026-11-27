@@ -134,8 +134,8 @@ test('the media kit offers the Blanc logo in ink and white, rendered from the fo
   const page = read('site/src/pages/media.astro');
   const license = read('ASSET-LICENSE.md');
   for (const color of ['ink', 'white']) {
-    assert.deepEqual(pngSize(`site/public/press/blanc-lockup-${color}.png`), { width: 3000, height: 888 }, color);
-    assert.deepEqual(pngSize(`site/public/press/blanc-lockup-${color}-480.png`), { width: 480, height: 142 }, `${color} email PNG`);
+    assert.deepEqual(pngSize(`site/public/press/blanc-lockup-${color}.png`), { width: 3000, height: 864 }, color);
+    assert.deepEqual(pngSize(`site/public/press/blanc-lockup-${color}-480.png`), { width: 480, height: 138 }, `${color} email PNG`);
     assert.match(page, new RegExp(`href="/press/blanc-lockup-${color}\\.svg" download`), `${color} SVG download link`);
     assert.match(page, new RegExp(`href="/press/blanc-lockup-${color}\\.png" download`), `${color} PNG download link`);
   }

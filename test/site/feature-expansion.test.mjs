@@ -98,7 +98,7 @@ test('feature hub reaches all sixteen guides and Media kit downloads are real PN
     assert.equal(await page.locator('#small-details-title').innerText(), 'Smaller details that matter.');
     await page.goto(`${baseURL}/media`);
     // The media kit downloads are native 2x captures of one release, the Blanc
-    // logo in ink and white (each as SVG and a 3000 x 888 PNG), the Blanc Mail
+    // logo in ink and white (each as SVG and a 3000 x 864 PNG), the Blanc Mail
     // logo in ink and white (each as SVG and a 3000 x 580 PNG), the Sunrise
     // mark in full color and in black, and the 1024px Blanc Mail app icon in
     // its light and dark appearances.
@@ -115,7 +115,7 @@ test('feature hub reaches all sixteen guides and Media kit downloads are real PN
       }
       assert.equal(bytes.subarray(1, 4).toString(), 'PNG', href);
       const size = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)].join('x');
-      assert.ok(['2560x1600', '3000x888', '3000x580', '4096x4096', '1024x1024'].includes(size), `${href}: ${size}`);
+      assert.ok(['2560x1600', '3000x864', '3000x580', '4096x4096', '1024x1024'].includes(size), `${href}: ${size}`);
     }
     // After the checksums, the kit links the current fact sheet ahead of the
     // dated 1.0 announcement.

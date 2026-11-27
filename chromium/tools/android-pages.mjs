@@ -52,9 +52,15 @@ const shipped = (commit, file) =>
 
 // Every file the tool writes, as [target, bytes, where it came from].
 export function wanted() {
-  const {commit, files, start} = pinned();
+  const {commit, files, start, brandFiles} = pinned();
   const out = [];
-  for (const file of files) out.push([path.join(PAGES_DIR, file), () => shipped(commit, file), commit.slice(0, 9)]);
+  for (const file of files) {
+    if (brandFiles.includes(file)) {
+      out.push([path.join(PAGES_DIR, file), () => fs.readFileSync(path.join(chromium, '../src/renderer/pages', file)), 'shared Browser artwork']);
+    } else {
+      out.push([path.join(PAGES_DIR, file), () => shipped(commit, file), commit.slice(0, 9)]);
+    }
+  }
   for (const file of start.files)
     out.push([path.join(START_DIR, file), () => fs.readFileSync(path.join(chromium, start.from, file)), start.from]);
   for (const {file, from} of start.alongside || [])

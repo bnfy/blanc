@@ -42,7 +42,7 @@ module.exports = {
     preserveColor: true,
     layerName: 'Sunrise',
   },
-  // Sunrise Spectrum and Sunrise Amber: the Sunrise redrawn as a ring sun,
+  // Sunrise Spectrum and Sunrise Amber: the refined Sunrise disc,
   // seven rays and six water lines, each part a colored glass layer over a
   // white rim, with a near-black tile in Dark. Spectrum is coral over blue on
   // the graded gray Arc's icon sits on in the Dock; Amber is gold over bronze

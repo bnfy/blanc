@@ -2,6 +2,14 @@
 
 Date: 2026-10-29. Status: approved 2026-10-29; standard icon changed to Sunrise Gold the same day. iPhone only.
 
+## November 26, 2026 update
+
+The owner chose Sunrise Amber Glass as the primary icon for the next iOS
+release. The approved ray spacing and reflection shapes carry a brighter
+pearl-white mark on amber. The authored `AppIcon.icon` is the source for
+the primary artwork. The brand build generates the seven alternates,
+including the previous primary under its original `Sunrise` name.
+
 ## Amendment, 2026-11-11: Sunrise standard, Sunrise Bronze added
 
 - **Sunrise is the standard icon** (owner): the primary `AppIcon.icon` is now the Mac's Sunrise package, unchanged, and Sunrise Gold becomes the alternate `SunriseGold`. A phone on the old standard icon shows Sunrise after the update. A phone that had chosen Sunrise as an alternate (`Sunrise`) also shows Sunrise: iOS reports a name this build doesn't know, which reads as the primary. Choosing Sunrise clears that name. A phone that had chosen another alternate keeps it.

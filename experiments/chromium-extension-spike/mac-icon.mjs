@@ -47,9 +47,11 @@ export function prepareMacIcon(chromium) {
   document.fill = { 'automatic-gradient': `extended-srgb:${channels.join(',')},1.00000` };
   delete document['fill-specializations'];
   const json = JSON.stringify(document, null, 2) + '\n';
-  const mark = fs.readFileSync(path.join(source, 'Assets', definition.imageName));
+  const layers = document.groups.flatMap(group => group.layers).map(layer => layer['image-name']);
+  const images = layers.map(name => [name, fs.readFileSync(path.join(source, 'Assets', name))]);
   const toolVersion = run(['actool', '--version']).trim();
-  const fingerprint = digest(JSON.stringify({ version: 2, iconName, json, image: digest(mark), toolVersion }));
+  const fingerprint = digest(JSON.stringify({ version: 3, iconName, json,
+    images: images.map(([name, bytes]) => [name, digest(bytes)]), toolVersion }));
   const cache = path.join(here, 'generated/mac-icon');
   const manifest = path.join(cache, 'manifest.json');
   let saved = {};
@@ -72,7 +74,7 @@ export function prepareMacIcon(chromium) {
       fs.mkdirSync(path.join(icon, 'Assets'), { recursive: true });
       fs.mkdirSync(output);
       fs.writeFileSync(path.join(icon, 'icon.json'), json);
-      fs.writeFileSync(path.join(icon, 'Assets', definition.imageName), mark);
+      for (const [name, bytes] of images) fs.writeFileSync(path.join(icon, 'Assets', name), bytes);
       run(['actool', icon, '--compile', output, '--output-format', 'human-readable-text',
         '--notices', '--warnings', '--output-partial-info-plist', path.join(output, 'info.plist'),
         '--app-icon', iconName, '--include-all-app-icons', '--enable-on-demand-resources', 'NO',
