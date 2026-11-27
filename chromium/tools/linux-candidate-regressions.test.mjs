@@ -165,7 +165,7 @@ test('the Linux Spaces color and deletion steps wait for the editor before the n
   const {WINDOW_LAYOUT_STEPS} = await import('../tests/fork-steps/window-layout.mjs?linux');
   const actions = [];
   const page = {click: s => actions.push(s), waitForSelector: s => actions.push(s),
-    fill: (s, hex) => actions.push([s, hex])};
+    fill: (s, hex) => actions.push([s, hex]), evaluate: async () => {}};
   const world = {frame: () => page, call: () => ({items: [{id: 'w', name: 'Work'}]})};
   const editor = ['[data-focus-key="edit:w"]', '#workspaceSwitcher[data-view="edit"]:not(.morphing)'];
   await WINDOW_LAYOUT_STEPS.get('I give {string} the custom color {string}').call(world, 'Work', '#F5E663');

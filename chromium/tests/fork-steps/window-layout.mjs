@@ -23,18 +23,43 @@ export async function waitForLinuxGlanceResize(w,width,height) {
   return area?.width===width && area.y+islandY+area.height===height;
  }, 'Glance layout after resize');
 }
-// Opening the editor changes the popup height and moves its scroll area.
-async function openLinuxSpaceEditor(name) {
+// Opening the editor changes the popup height and moves its scroll area, so
+// the next click waits for the editor to settle. The menu also rebuilds its
+// rows whenever its data changes, and a rebuild between press and release
+// sends no click. Windows nights (20261124 to 20261127) clicked a row's edit
+// button and saw no editor (F41-named-workspaces:133, :152), so record the
+// rebuilds and the clicks' targets and report them if the editor never opens.
+export async function openSpaceEditor(name) {
  const page=this.frame('overlay');
  const {items}=await this.call('workspaceAction','list');
  const space=items.find(s=>s.name===name);
  assert.ok(space,'Space to edit: '+name);
- await page.click(`[data-focus-key="edit:${space.id}"]`);
- await page.waitForSelector('#workspaceSwitcher[data-view="edit"]:not(.morphing)');
+ await page.evaluate(()=>{
+  const d=window.__blancSpaceEditEvidence={rebuilds:0,events:[]};
+  const menu=document.getElementById('workspaceSwitcher');
+  d.observer=new MutationObserver(records=>{for(const r of records)for(const n of r.removedNodes)
+   if(n.nodeType===1&&(n.matches('[data-focus-key^="edit:"]')||n.querySelector('[data-focus-key^="edit:"]')))d.rebuilds++;});
+  d.observer.observe(menu,{childList:true,subtree:true});
+  d.record=e=>d.events.push(e.type+':'+(e.target.closest?.('[data-focus-key]')?.dataset.focusKey??e.target.nodeName)+(e.target.isConnected?'':' (removed)'));
+  for(const type of ['pointerdown','pointerup','click'])document.addEventListener(type,d.record,true);
+ });
+ try {
+  await page.click(`[data-focus-key="edit:${space.id}"]`);
+  try {await page.waitForSelector('#workspaceSwitcher[data-view="edit"]:not(.morphing)');}
+  catch(error){
+   const evidence=await page.evaluate(()=>{const d=window.__blancSpaceEditEvidence,m=document.getElementById('workspaceSwitcher');
+    return {rebuilds:d.rebuilds,events:d.events,view:m?.dataset.view,hidden:m?.hidden,classes:m?.className,
+     focus:document.activeElement?.dataset?.focusKey??document.activeElement?.nodeName,mode:document.body.dataset.mode};});
+   throw Error('The Space editor did not open: '+JSON.stringify(evidence)+'; '+error.message);
+  }
+ } finally {
+  await page.evaluate(()=>{const d=window.__blancSpaceEditEvidence;if(!d)return;d.observer.disconnect();
+   for(const type of ['pointerdown','pointerup','click'])document.removeEventListener(type,d.record,true);delete window.__blancSpaceEditEvidence;});
+ }
  return page;
 }
 export async function openLinuxSpacePicker(name) {
- const page=await openLinuxSpaceEditor.call(this,name);
+ const page=await openSpaceEditor.call(this,name);
  await page.click('[data-focus-key="color:custom"]');
  await page.waitForSelector('.space-picker-hex');
 }
@@ -83,19 +108,24 @@ export async function moveWithinIslandUntilOpen() {
 // step (the first Windows nightly's island-and-commands:115).
 export function windowLayoutSteps(platform=process.platform) {
  return new Map([
- ...(platform!=='darwin'?[['I move the pointer off the panel',moveOffSettledPanel]]:[]),
- ...(platform==='win32'?[['I move within the Island every 50 milliseconds',moveWithinIslandUntilOpen]]:[]),
- ...(platform==='linux'?[
+ ...(platform!=='darwin'?[['I move the pointer off the panel',moveOffSettledPanel],
  ['I open the color picker for {string}',openLinuxSpacePicker],
+ ['I edit {string} to the color {string} and the symbol {string}',async function(name,color,symbol){
+  const page=await openSpaceEditor.call(this,name);
+  await page.click(`[data-focus-key="color:${color}"]`);
+  await page.click(`[data-focus-key="symbol:${symbol}"]`);
+ }],
  ['I give {string} the custom color {string}',async function(name,hex){
   await openLinuxSpacePicker.call(this,name);
   await this.frame('overlay').fill('.space-picker-hex',hex);
  }],
  ['I delete {string} from its editor',async function(name){
-  const page=await openLinuxSpaceEditor.call(this,name);
+  const page=await openSpaceEditor.call(this,name);
   await page.click('[data-focus-key="delete"]');
   await page.waitForSelector('[data-focus-key="undo"]');
- }],
+ }]]:[]),
+ ...(platform==='win32'?[['I move within the Island every 50 milliseconds',moveWithinIslandUntilOpen]]:[]),
+ ...(platform==='linux'?[
  ["the window's page is {int} by {int}",async function(width,height){
   await resize.call(this,width,height);
   await waitForLinuxGlanceResize(this,width,height);

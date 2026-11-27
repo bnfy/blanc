@@ -14,6 +14,24 @@ export const supportedHooks=new Set(Object.keys(adapters));
 export function missingAdapters(definition){
  return [...new Set([...definition.run.toString().matchAll(/(?:this|world)\.call\(\s*['"]([^'"]+)['"]/g)].map(m=>m[1]).filter(name=>!supportedHooks.has(name)))];
 }
+// A web page's first request after a launch is held until the blocker has
+// started (blocker_proxy.cc, up to 35 s), and a relaunch with no awake web
+// tab doesn't start it. On a slow runner that alone outlasts a state wait
+// (Windows nights 20261124 to 20261127: interface-language:43 and
+// F41-named-workspaces:435). A wait that began before the blocker was ready
+// and timed out with a web page still loading waits for the blocker, then
+// once more for the state; any other timeout fails as it did.
+export async function waitForStateThroughBlocker({read,health,blockerReady,predicate,timeout,waitFor}){
+ const before=await health();
+ try{return await waitFor(read,predicate,'shipping state assertion',timeout);}
+ catch(error){
+  if(before==='ready'||before==='unavailable')throw error;
+  const state=await read().catch(()=>null);
+  if(!state?.tabs?.some(t=>(t.loading||t.isLoading)&&/^https?:\/\//.test(t.url)))throw error;
+  await blockerReady();
+  return waitFor(read,predicate,'shipping state assertion',timeout);
+ }
+}
 export function createWorld(fixture){
  const app=createAppShim(fixture);
  const world={fixture,app,shippingContext:shippingCore.context,named:new Map(),waitFor,
@@ -31,7 +49,11 @@ export function createWorld(fixture){
    const overlayMode=await fixture.host.eval(`(()=>{const f=document.querySelector('#overlay');return !f||f.hidden?null:f.dataset.mode||null})()`);
    return observedState({...shippingState(await this.snapshot()),overlayMode});
   },
-  async waitForState(predicate,options={}){return waitFor(()=>this.state(),predicate,'shipping state assertion',options.timeout||5000);},
+  async waitForState(predicate,options={}){
+   return waitForStateThroughBlocker({read:()=>this.state(),health:async()=>(await fixture.snapshot().catch(()=>null))?.blockerHealth,
+    blockerReady:()=>phase('blockerReadiness',()=>waitFor(fixture.snapshot,s=>s.blockerHealth==='ready','blocker',45000)),
+    predicate,timeout:options.timeout||5000,waitFor});
+  },
   // The Island facade is the fork's browserAPI: a method it does not
   // implement rejects with the product's own refusal, which is a failure.
   async api(method,args=[]){
