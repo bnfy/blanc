@@ -97,7 +97,7 @@ is public, so they are never committed: they live in the git-ignored
 refuses to deploy a build without them (`scripts/blubird-fonts.mjs check
 --dist`). The lockup's word is committed as outlines (`assets/wordmark/`), and
 `scripts/build-lockup-assets.mjs` copies it beside WebP exports of the Sunrise,
-rendered from the vector `assets/sunrise-mark.svg` (2048px for the homepage,
+rendered from the textured master `assets/sunrise-mark-4096.png` (2048px for the homepage,
 256px for lockups), into `public/lockup/`; `site:build` runs its `--check`. Construction and
 licence: *Blanc lockup* in `docs/brand-usage.md`.
 

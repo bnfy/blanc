@@ -146,6 +146,41 @@ function run(command, args) {
   });
 }
 
+async function writeMacIconPackages(workDir, names = {}) {
+  const root = path.join(__dirname, '..');
+  const sourceIcon = path.join(root, 'build/app-icons/Icon.icon');
+  const defaultIcon = path.join(workDir, 'Icon.icon');
+  await fs.cp(sourceIcon, defaultIcon, { recursive: true });
+  const iconPaths = [defaultIcon];
+
+  for (const definition of Object.values(APP_ICON_ASSETS)) {
+    if (definition.nativeName === 'Icon') continue; // committed default source
+    const iconDir = path.join(workDir, `${names[definition.nativeName] ?? definition.nativeName}.icon`);
+    const assetsDir = path.join(iconDir, 'Assets');
+    await fs.mkdir(assetsDir, { recursive: true });
+    const imageDir = definition.imageDir
+      ? path.join(root, definition.imageDir)
+      : path.join(sourceIcon, 'Assets');
+    const images = [
+      definition.imageName ?? 'sunrise-mark.png',
+      ...(definition.extraLayers ?? []).map((extra) => extra.imageName),
+      definition.rimImageName,
+      definition.darkRimImageName,
+      definition.tileImageName,
+      definition.darkTileImageName,
+    ].filter(Boolean);
+    for (const imageName of images) {
+      await fs.copyFile(path.join(imageDir, imageName), path.join(assetsDir, imageName));
+    }
+    await fs.writeFile(
+      path.join(iconDir, 'icon.json'),
+      `${JSON.stringify(createIconDocument(definition), null, 2)}\n`,
+    );
+    iconPaths.push(iconDir);
+  }
+  return iconPaths;
+}
+
 module.exports = async function afterPackAppIcons(context) {
   const macAppPath = path.join(
     context.appOutDir,
@@ -167,40 +202,12 @@ module.exports = async function afterPackAppIcons(context) {
   // HTML documents. Fail here rather than ship a bundle that cannot be default.
   verifyPackagedBrowserRole(macAppPath);
 
-  const root = path.join(__dirname, '..');
-  const sourceIcon = path.join(root, 'build/app-icons/Icon.icon');
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'blanc-app-icons-'));
   const outputDir = path.join(workDir, 'compiled');
 
   try {
     await fs.mkdir(outputDir);
-    const iconPaths = [sourceIcon];
-
-    for (const definition of Object.values(APP_ICON_ASSETS)) {
-      if (definition.nativeName === 'Icon') continue; // committed default source
-      const iconDir = path.join(workDir, `${definition.nativeName}.icon`);
-      const assetsDir = path.join(iconDir, 'Assets');
-      await fs.mkdir(assetsDir, { recursive: true });
-      const imageDir = definition.imageDir
-        ? path.join(root, definition.imageDir)
-        : path.join(sourceIcon, 'Assets');
-      const images = [
-        definition.imageName ?? 'sunrise-mark.png',
-        ...(definition.extraLayers ?? []).map((extra) => extra.imageName),
-        definition.rimImageName,
-        definition.darkRimImageName,
-        definition.tileImageName,
-        definition.darkTileImageName,
-      ].filter(Boolean);
-      for (const imageName of images) {
-        await fs.copyFile(path.join(imageDir, imageName), path.join(assetsDir, imageName));
-      }
-      await fs.writeFile(
-        path.join(iconDir, 'icon.json'),
-        `${JSON.stringify(createIconDocument(definition), null, 2)}\n`,
-      );
-      iconPaths.push(iconDir);
-    }
+    const iconPaths = await writeMacIconPackages(workDir);
 
     await run('/usr/bin/xcrun', [
       'actool',
@@ -228,3 +235,4 @@ module.exports = async function afterPackAppIcons(context) {
 
 module.exports.createIconDocument = createIconDocument;
 module.exports.iconComposerColor = iconComposerColor;
+module.exports.writeMacIconPackages = writeMacIconPackages;

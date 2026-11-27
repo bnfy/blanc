@@ -3,16 +3,16 @@
  * Builds the Blanc lockup assets the website uses (header, footer and the
  * homepage sunrise) into site/public/lockup/.
  *
- *   - The Sunrise mark, rendered from the vector assets/sunrise-mark.svg as
+ *   - The Sunrise mark, rendered from the master assets/sunrise-mark-4096.png as
  *     WebP: 2048 px for the homepage sunrise, sharp on Retina screens and when
  *     zoomed, and 256 px for lockups. The SVG sits on the same 1024 canvas as
  *     the macOS icon's raster artwork (build/app-icons/Icon.icon/Assets/
  *     sunrise-mark.png), so one set of lockup percentages and the hero's clip
- *     paths fit every file. librsvg renders the SVG slightly differently on
+ *     paths fit every file. librsvg renders the master slightly differently on
  *     each platform, so --check never re-renders it: writing records the
  *     SVG's sha256 and each export's in site/scripts/lockup-mark.lock.json,
- *     and --check requires the SVG and the committed exports to match it.
- *     Changing the SVG therefore means running this script and committing
+ *     and --check requires the master and the committed exports to match it.
+ *     Changing the master therefore means running this script and committing
  *     the new exports and lock together.
  *   - The outlined "Blanc" wordmark in Blubird Regular Display (large sizes)
  *     and Blubird Regular Text (about 32 px tall and under), copied unchanged
@@ -29,7 +29,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const MARK = path.join(ROOT, 'assets/sunrise-mark.svg');
+const MARK = path.join(ROOT, 'assets/sunrise-mark-4096.png');
 const WORDS = path.join(ROOT, 'assets/wordmark');
 const OUT = path.join(ROOT, 'site/public/lockup');
 const check = process.argv.includes('--check');
@@ -51,16 +51,16 @@ if (check) {
   } catch {
     problems.push('site/scripts/lockup-mark.lock.json is missing or unreadable');
   }
-  if (lock && lock.source?.sha256 !== markSha) problems.push('assets/sunrise-mark.svg changed since its exports were rendered');
+  if (lock && lock.source?.sha256 !== markSha) problems.push('assets/sunrise-mark-4096.png changed since its exports were rendered');
   for (const size of MARK_SIZES) {
     const name = `sunrise-mark-${size}.webp`;
     expectedMark.set(name, lock?.exports?.[name] ?? '');
   }
 } else {
-  const lock = { source: { file: 'assets/sunrise-mark.svg', sha256: markSha }, exports: {} };
+  const lock = { source: { file: 'assets/sunrise-mark-4096.png', sha256: markSha }, exports: {} };
   for (const size of MARK_SIZES) {
     const name = `sunrise-mark-${size}.webp`;
-    const bytes = await sharp(MARK, { density: (72 * size) / 1024 })
+    const bytes = await sharp(MARK)
       .resize(size, size)
       .webp({ quality: 95, alphaQuality: 100, effort: 6 })
       .toBuffer();

@@ -33,20 +33,11 @@ const IOS_APP_ICONS = Object.freeze([
 ].map(([id, nativeName, label = SCHEMA_LABELS.get(id)]) => Object.freeze({ id, nativeName, label })));
 
 const SHARED_PLATFORMS = { circles: ['watchOS'], squares: 'shared' };
-const NATIVE_LAYER = 'build/app-icons/Icon.icon/Assets/sunrise-mark.png';
 const CANVAS = 1024;
 const PNG = { compressionLevel: 9, adaptiveFiltering: true };
 
-// Measured on the native layer: the horizon (the disc's base), the disc's
-// center, and how far from it the sun's region reaches (radius 212 plus a
-// margin short of the nearest ray).
-const HORIZON = 654;
-const WATER_TOP = 655;
-const SUN = { x: 510, y: HORIZON, reach: 224 };
-// Apple warns against hairlines under glass, so each part is grown a little:
-// a Gaussian blur of its alpha (sigma), then this ramp back to a hard edge.
-const GROW = { rays: 3, sun: 2, water: 1.5 };
-const GROW_RAMP = [40, 70];
+const { cx, cy: HORIZON } = require('./sunrise-geometry');
+const SUN = { x: cx };
 
 // Icon Composer appearance switches for image layers.
 const LIGHT_ONLY = [{ appearance: 'dark', value: true }, { appearance: 'tinted', value: true }];
@@ -101,27 +92,20 @@ const waterWarmth = (center, edge) => svg(
 
 const verticalPaint = (list, y1, y2) => svg(vertical('paint', list, y1, y2), FULL('url(#paint)'));
 
-// The native layer's alpha in three parts: water below the horizon, the sun
-// within reach of the disc's center, the rays everywhere else.
-async function splitMark(nativeLayer) {
-  const alpha = await sharp(nativeLayer).ensureAlpha().extractChannel(3).raw().toBuffer();
-  const parts = { sun: Buffer.alloc(alpha.length), rays: Buffer.alloc(alpha.length), water: Buffer.alloc(alpha.length) };
-  for (let y = 0; y < CANVAS; y += 1) {
-    for (let x = 0; x < CANVAS; x += 1) {
-      const i = (y * CANVAS) + x;
-      if (alpha[i] < 4) continue;
-      const part = y >= WATER_TOP ? 'water' : Math.hypot(x - SUN.x, y - SUN.y) <= SUN.reach ? 'sun' : 'rays';
-      parts[part][i] = alpha[i];
-    }
+// Paint the exact authored layers. Keeping each alpha intact also keeps the
+// bottom reflection as sharp as the top one at Home Screen sizes.
+async function classicParts() {
+  const dir = path.join(ROOT, 'build/app-icons/Icon.icon');
+  const doc = JSON.parse(fs.readFileSync(path.join(dir, 'icon.json')));
+  const parts = {};
+  for (const group of doc.groups) {
+    const overlays = group.layers.map(layer => ({ input: path.join(dir, 'Assets', layer['image-name']) }));
+    const image = await sharp({ create: { width: CANVAS, height: CANVAS, channels: 4, background: '#00000000' } })
+      .composite(overlays).png().toBuffer();
+    const name = group.name === 'Horizon and reflections' ? 'water' : group.name.toLowerCase();
+    parts[name] = await sharp(image).extractChannel('alpha').raw().toBuffer();
   }
   return parts;
-}
-
-async function grow(alpha, sigma) {
-  const blurred = await sharp(alpha, { raw: { width: CANVAS, height: CANVAS, channels: 1 } })
-    .blur(sigma).extractChannel(0).raw().toBuffer();
-  const [low, high] = GROW_RAMP;
-  return Buffer.from(blurred.map((v) => (v >= high ? 255 : v <= low ? 0 : Math.round(((v - low) / (high - low)) * 255))));
 }
 
 // An alpha painted with one color (hex) or an SVG paint covering the canvas.
@@ -271,20 +255,9 @@ function macPackage(definition) {
   return { doc: createIconDocument(definition), images };
 }
 
-/**
- * Every file of the generated alternates, keyed by repository-relative path. The mark
- * is cut from the committed native layer (written earlier in the same
- * brand:build run), never from the in-memory copy: brand:check accepts a
- * native layer one rounding level off on another platform, and the grow ramp
- * would multiply that into stale iPhone layers.
- */
+// The authored iOS primary is retained verbatim. Generate the seven alternates.
 async function iosAppIconFiles() {
-  const split = await splitMark(fs.readFileSync(path.join(ROOT, NATIVE_LAYER)));
-  const parts = {
-    sun: await grow(split.sun, GROW.sun),
-    rays: await grow(split.rays, GROW.rays),
-    water: await grow(split.water, GROW.water),
-  };
+  const parts = await classicParts();
   const packages = {
     Sunrise: macPackage(APP_ICON_ASSETS.sunrise),
     SunriseBronze: await bronzePackage(parts),

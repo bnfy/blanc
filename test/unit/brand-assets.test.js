@@ -218,16 +218,16 @@ test('the website favicon carries the Sunrise silhouette on the white tile', () 
 
 test('logo.png keeps the press-kit geometry with the square Sunrise mark', async () => {
   const mark = await boundsOf(path.join(ROOT, 'site/public/logo.png'), isInk);
-  assert.ok(mark.height >= 805 && mark.height <= 830, `mark height is ${mark.height}px (80% of 1024, soft edges)`);
+  assert.ok(mark.height >= 756 && mark.height <= 764, `mark height is ${mark.height}px (approved aspect ratio at the 824px width)`);
   assert.ok(mark.width >= 780, `Sunrise is near-square; the B was ~697px wide, got ${mark.width}px`);
 });
 
 test('the launch cards carry the square Sunrise mark at the old placements', async () => {
   const v2 = await regionBounds('site/public/press/blanc-1.0-launch-card-v2.png', { left: 121, top: 110, width: 62, height: 72 }, isInk);
-  assert.ok(v2.height >= 60 && v2.height <= 64, `v2 mark height ${v2.height}px`);
+  assert.ok(v2.height >= 56 && v2.height <= 58, `v2 mark height ${v2.height}px`);
   assert.ok(v2.width >= 58, `v2 mark is near-square, got ${v2.width}px wide`);
   const v3 = await regionBounds('site/public/press/blanc-1.0-launch-card-v3.png', { left: 111, top: 93, width: 36, height: 43 }, isInk);
-  assert.ok(v3.height >= 34 && v3.height <= 38, `v3 mark height ${v3.height}px`);
+  assert.ok(v3.height >= 32 && v3.height <= 34, `v3 mark height ${v3.height}px`);
   assert.ok(v3.width >= 33, `v3 mark is near-square, got ${v3.width}px wide`);
 });
 
@@ -241,8 +241,8 @@ test('the site lockups keep the Sunrise square and place it by the lockup constr
   // the B, 0.3x the B height away. The mark file keeps its 1024 canvas, so its
   // box overhangs the lockup by the same share at every size.
   const placements = {
-    small: ['90px', '22px', ['-3.588%', '-13.802%', '31.404%'], ['30.117%', '3.623%', '69.883%']],
-    display: ['155px', '40px', ['-3.784%', '-13.802%', '33.116%'], ['31.932%', '4.735%', '68.068%']],
+    small: ['90px', '22px', ['-5.579%', '-17.320%', '33.105%'], ['30.117%', '3.623%', '69.883%']],
+    display: ['155px', '40px', ['-5.884%', '-17.316%', '34.910%'], ['31.932%', '4.735%', '68.068%']],
   };
   for (const [size, [width, height, mark, word]] of Object.entries(placements)) {
     assert.match(css, new RegExp(`\\.site-lockup--${size} \\{\\s*width: ${width};\\s*height: ${height};`), `${size} lockup box`);
