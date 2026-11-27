@@ -36,11 +36,6 @@ async function distributionAssets(emit, master, classicTile) {
     await emit(file, source.replace(data, () => 'data:image/png;base64,' + images[index++].toString('base64')));
   }
 
-  const linux = 'chromium/blanc/branding/linux';
-  for (const size of [16, 24, 32, 48, 64, 128, 256]) {
-    await emit(`${linux}/product_logo_${size}.png`, await resize(master, size));
-  }
-
   const base = 'extensions/blanc-tab-import';
   const safari = `${base}/safari/Blanc Tab Importer`;
   const host = `${safari}/Blanc Tab Importer`;
