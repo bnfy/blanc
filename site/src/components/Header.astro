@@ -29,23 +29,41 @@ const hrefFor = (href) =>
 {showReserveBanner && <MailReserveBanner />}
 <header class="site-header revamp-header" data-overlay-tone={overlayTone}>
   <nav class="site-nav revamp-nav" aria-label="Primary navigation">
-    <a class="site-brand" href="/" aria-label="Blanc Browser home"
-      ><span class="site-lockup site-lockup--small" aria-hidden="true"
-        ><img
-          class="site-lockup-mark"
-          src="/lockup/sunrise-mark-256.webp"
-          width="256"
-          height="256"
-          alt=""
-        /><img
-          class="site-lockup-word"
-          src="/lockup/blanc-word-small-ink.svg"
-          width="2466"
-          height="762"
-          alt=""
-        /></span
-      ></a
-    >
+    <div class="site-brand-group">
+      <a class="site-brand" href="/" aria-label="Blanc Browser home">
+        <span class="site-lockup site-lockup--small" aria-hidden="true">
+          <img
+            class="site-lockup-mark"
+            src="/lockup/sunrise-mark-256.webp"
+            width="256"
+            height="256"
+            alt=""
+          />
+          <img
+            class="site-lockup-word"
+            src="/lockup/blanc-word-small-ink.svg"
+            width="2466"
+            height="762"
+            alt=""
+          />
+        </span>
+      </a>
+      {!minimal && (
+        <>
+          <button class="site-pronunciation" type="button" aria-label="Hear how to pronounce Blanc" title="Hear Blanc" hidden>
+            <span class="site-pronunciation-icon" aria-hidden="true">
+              <svg class="site-pronunciation-speaker" viewBox="0 0 20 20">
+                <path d="M3.5 8h3l4-3.5v11l-4-3.5h-3zM13 8a3 3 0 0 1 0 4m2-6a5.5 5.5 0 0 1 0 8" />
+              </svg>
+              <span class="site-pronunciation-wave"><i></i><i></i><i></i></span>
+            </span>
+            <span class="site-pronunciation-caption" aria-hidden="true">blonk</span>
+          </button>
+          <audio id="blanc-pronunciation" src="/audio/we-say-blanc.mp3" preload="none" hidden></audio>
+          <span class="sr-only" id="blanc-pronunciation-status" role="status"></span>
+        </>
+      )}
+    </div>
     {!minimal && (<>
     <div class="site-nav-links" id="site-menu">
       <div class="site-browser-menu" data-browser-menu>
@@ -147,6 +165,51 @@ const hrefFor = (href) =>
   </nav>
 </header>
 {!minimal && <SiteSearch />}
+<script>
+  const trigger = document.querySelector<HTMLButtonElement>(".site-pronunciation");
+  const audio = document.querySelector<HTMLAudioElement>("#blanc-pronunciation");
+  const caption = trigger?.querySelector(".site-pronunciation-caption");
+  const status = document.getElementById("blanc-pronunciation-status");
+
+  if (trigger && audio && caption && status && audio.canPlayType("audio/mpeg")) {
+    const pronunciation = caption.textContent;
+    let resetCaption: number;
+    trigger.hidden = false;
+
+    const settle = () => {
+      if (!trigger.hasAttribute("data-playing")) return;
+      trigger.removeAttribute("data-playing");
+      resetCaption = window.setTimeout(() => trigger.removeAttribute("data-feedback"), 900);
+    };
+    const showFailure = () => {
+      if (!trigger.hasAttribute("data-playing")) return;
+      caption.textContent = "Audio unavailable";
+      status.textContent = "Pronunciation audio unavailable. Try again.";
+      trigger.setAttribute("data-feedback", "");
+      settle();
+    };
+    audio.addEventListener("pause", settle);
+    audio.addEventListener("ended", settle);
+    audio.addEventListener("error", showFailure);
+
+    trigger.addEventListener("click", async () => {
+      if (!audio.paused || trigger.hasAttribute("data-playing")) return;
+      window.clearTimeout(resetCaption);
+      status.textContent = "";
+      caption.textContent = pronunciation;
+      trigger.removeAttribute("data-feedback");
+      trigger.setAttribute("data-playing", "");
+      try {
+        if (audio.error) audio.load();
+        audio.currentTime = 0;
+        await audio.play();
+        trigger.setAttribute("data-feedback", "");
+      } catch {
+        showFailure();
+      }
+    });
+  }
+</script>
 <script is:inline>
   // On the homepage (owner, November 19, 2026) and Privacy & Security (owner,
   // November 23, 2026) the bar starts clear over the first screen and turns

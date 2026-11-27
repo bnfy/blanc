@@ -175,12 +175,135 @@ main .section-kicker {
   align-items: center;
   gap: 22px;
 }
+.site-brand-group {
+  display: flex;
+  align-items: center;
+  flex: none;
+  margin-right: auto;
+}
 .revamp-nav .site-brand {
   display: flex;
   align-items: center;
   flex: none;
   height: var(--site-header-h);
-  margin-right: auto;
+}
+.site-pronunciation {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--overlay-ink-dim, #62574a);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.site-pronunciation[hidden] {
+  display: none;
+}
+.site-pronunciation-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+.site-pronunciation:is(:hover, :focus-visible, [data-playing]) .site-pronunciation-icon {
+  background: #f4e7d0;
+  color: #714a21;
+}
+.site-pronunciation-speaker {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.site-pronunciation-wave {
+  display: none;
+  align-items: center;
+  gap: 2px;
+}
+.site-pronunciation-wave i {
+  width: 2px;
+  height: 8px;
+  border-radius: 1px;
+  background: currentColor;
+}
+.site-pronunciation-wave i:nth-child(2) {
+  height: 14px;
+}
+.site-pronunciation[data-playing] .site-pronunciation-speaker {
+  display: none;
+}
+.site-pronunciation[data-playing] .site-pronunciation-wave {
+  display: flex;
+}
+.site-pronunciation-caption {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 2px);
+  left: 50%;
+  padding: 4px 10px;
+  border: 1px solid #e4d6be;
+  border-radius: 999px;
+  background: #fff9ef;
+  color: #714a21;
+  box-shadow: 0 3px 12px #32200d1a;
+  font: 500 13px/1.3 system-ui, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%);
+}
+.site-pronunciation[data-feedback] .site-pronunciation-caption {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .site-brand-group:has(.site-pronunciation[data-playing]) .site-lockup-mark {
+    animation: pronunciation-hop 480ms ease-out;
+  }
+  .site-pronunciation[data-playing] .site-pronunciation-wave i {
+    animation: pronunciation-wave 340ms ease-in-out infinite alternate;
+  }
+  .site-pronunciation[data-playing] .site-pronunciation-wave i:nth-child(2) {
+    animation-delay: -170ms;
+  }
+  .site-pronunciation[data-playing] .site-pronunciation-wave i:nth-child(3) {
+    animation-delay: -85ms;
+  }
+  .site-pronunciation-caption {
+    transform: translate(-50%, -4px);
+    transition: opacity 140ms ease, transform 140ms ease;
+  }
+  .site-pronunciation[data-feedback] .site-pronunciation-caption {
+    transform: translate(-50%, 0);
+  }
+}
+@keyframes pronunciation-hop {
+  30% { transform: translateY(-3px) rotate(-10deg) scale(1.08); }
+  70% { transform: translateY(1px) rotate(4deg); }
+}
+@keyframes pronunciation-wave {
+  from { transform: scaleY(0.45); }
+  to { transform: scaleY(1); }
+}
+@media (max-width: 359px) {
+  .site-header .site-brand-group .site-lockup--small {
+    width: 80px;
+    height: 19.5px;
+  }
+  .site-brand-group .site-pronunciation {
+    width: 34px;
+  }
+  .site-header.revamp-header .revamp-nav {
+    gap: 5px;
+    padding-inline: 12px;
+  }
 }
 /* The lockup: the Sunrise mark and the outlined Blubird "Blanc", placed by the
    construction in docs/brand-usage.md (mark 1.15x the l, centred on the B). The
@@ -244,7 +367,7 @@ main .section-kicker {
     display: grid;
     grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
   }
-  .revamp-nav .site-brand {
+  .revamp-nav .site-brand-group {
     justify-self: start;
     margin-right: 0;
   }
