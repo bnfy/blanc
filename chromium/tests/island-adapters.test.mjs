@@ -38,27 +38,20 @@ test('a Glance resize waits for the Island snapshot to catch up with the native 
 test('the picker clicks Custom once the list-to-editor transition finishes', async () => {
  const {openLinuxSpacePicker} = await import('./fork-steps/window-layout.mjs');
  const actions=[];
- const page={click:async s=>actions.push(['click',s]),waitForSelector:async s=>actions.push(['wait',s]),evaluate:async()=>actions.push(['evidence'])};
+ const page={click:async s=>actions.push(['click',s]),waitForSelector:async s=>actions.push(['wait',s])};
  await openLinuxSpacePicker.call({frame:()=>page,call:async()=>({items:[{id:'work-id',name:'Work'}]})},'Work');
  assert.deepEqual(actions,[
-   ['evidence'],
    ['click','[data-focus-key="edit:work-id"]'],
    ['wait','#workspaceSwitcher[data-view="edit"]:not(.morphing)'],
-   ['evidence'],
    ['click','[data-focus-key="color:custom"]'],
    ['wait','.space-picker-hex'],
  ]);
 });
 
-test('a Space editor that never opens reports the menu rebuilds and click targets', async () => {
- const {openSpaceEditor} = await import('./fork-steps/window-layout.mjs');
- const evidence={rebuilds:1,events:['pointerdown:edit:work-id','pointerup:edit:work-id (removed)'],view:'list'};
- let reads=0;
- const page={click:async()=>{},waitForSelector:async()=>{throw Error('Timeout waiting for the editor');},
-  evaluate:async()=>{reads++;return reads===2?evidence:undefined;}};
- await assert.rejects(openSpaceEditor.call({frame:()=>page,call:async()=>({items:[{id:'work-id',name:'Work'}]})},'Work'),
-  e=>e.message.startsWith('The Space editor did not open: '+JSON.stringify(evidence))&&e.message.endsWith('Timeout waiting for the editor'));
- assert.equal(reads,3,'the listeners are removed after a failure too');
+test('a failure on a Spaces menu control carries the menu evidence, and others do not', async () => {
+ const {spacesFailure} = await import('./lib/spaces-evidence.mjs');
+ for(const message of ['Timeout waiting for [data-focus-key="color:sky"] to be visible','Timeout waiting for #workspaceName'])assert.equal(spacesFailure(message),true,message);
+ for(const message of ['Timeout waiting for shipping state assertion','Island did not draw'])assert.equal(spacesFailure(message),false,message);
 });
 
 test('the Windows and Linux Space editor steps replace the shipping ones, and macOS keeps them', async () => {

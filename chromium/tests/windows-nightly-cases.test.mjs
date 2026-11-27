@@ -68,8 +68,8 @@ test('Windows moves off a hover-opened panel only after it settles', () => {
   assert.equal(windowLayoutSteps('win32').get('I move the pointer off the panel'), moveOffSettledPanel);
   assert.equal(windowLayoutSteps('linux').get('I move the pointer off the panel'), moveOffSettledPanel);
   assert.equal(windowLayoutSteps('darwin').has('I move the pointer off the panel'), false);
-  // The Space-editor steps wait for the editor and report a click that never
-  // opened it, on Windows too (nights 20261124 to 20261127, F41:133 and :152).
+  // The Space-editor steps wait for the editor to settle on Windows too
+  // (nights 20261124 to 20261127, F41:133 and :152).
   assert.ok(windowLayoutSteps('win32').has('I open the color picker for {string}'));
   assert.ok(windowLayoutSteps('linux').has('I open the color picker for {string}'));
 });
