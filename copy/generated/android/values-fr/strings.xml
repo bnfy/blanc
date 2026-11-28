@@ -2796,6 +2796,9 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="mini_move_to_space_label">Déplacer dans le Space : déplacer les onglets de cette mini-fenêtre dans un Space</string>
     <string name="mini_move_to_space_title">Déplacer les onglets de cette mini-fenêtre dans un Space</string>
     <string name="mini_move_to_space_menu">Déplacer dans le Space</string>
+    <string name="mini_switch_another_window">Autre fenêtre</string>
+    <string name="mini_switch_gone">Cet onglet n\'est plus ouvert.</string>
+    <string name="mini_switch_busy">Blanc n\'a pas pu ouvrir ce Space pour le moment. Réessayez.</string>
     <string name="ws_move_mode_header">Déplacer cette fenêtre vers…</string>
     <string name="ws_error_mini_unmovable">Un onglet privé, ou une page qui joue du son, utilise la caméra ou le micro, partage l\'écran ou affiche une fenêtre pop-up, ne peut pas être déplacé dans un Space. Fermez-le ou arrêtez-le, puis réessayez.</string>
     <string name="mini_open_in_blanc_label">Ouvrir dans Blanc : garder cette mini-fenêtre comme une fenêtre Blanc ordinaire</string>

@@ -110911,6 +110911,132 @@
         }
       }
     },
+    "mini.switch.anotherWindow": {
+      "comment": "Quick Switcher row in a mini window (#1734): where a tab elsewhere is, when its window shows no Space. Shown after the site, e.g. \"example.com · Another window\".",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anderes Fenster"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otra ventana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autre fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un'altra finestra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outra janela"
+          }
+        }
+      }
+    },
+    "mini.switch.gone": {
+      "comment": "Quick Switcher notice in a mini window (#1734): the tab picked closed since the list was built; the panel stays open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That tab isn't open anymore."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Tab ist nicht mehr geöffnet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esa pestaña ya no está abierta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet onglet n'est plus ouvert."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quella scheda non è più aperta."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essa aba não está mais aberta."
+          }
+        }
+      }
+    },
+    "mini.switch.busy": {
+      "comment": "Quick Switcher notice in a mini window (#1734): the picked tab's Space couldn't open now (busy, or its profile unavailable); the row stays for another try.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc couldn't open that Space just now. Try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc konnte diesen Space gerade nicht öffnen. Versuche es erneut."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc no pudo abrir ese Space ahora mismo. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc n'a pas pu ouvrir ce Space pour le moment. Réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc non è riuscito ad aprire quello Space in questo momento. Riprova."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Blanc não conseguiu abrir esse Space agora. Tente de novo."
+          }
+        }
+      }
+    },
     "ws.moveMode.header": {
       "comment": "Heading of the Spaces menu opened from a mini window (#1734): choosing a Space moves the window's tabs there and closes the window.",
       "extractionState": "manual",

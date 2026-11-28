@@ -9825,6 +9825,18 @@
     "message": "In Space verschieben",
     "source": "sha256:71e059404f39cdb4f355481c2a7de11d640eb7f1a25bbf4a4faf4b8582963f5e"
   },
+  "mini.switch.anotherWindow": {
+    "message": "Anderes Fenster",
+    "source": "sha256:5be3fec0e74fdf3b4ba01bd6fc128a96b9f5320d496b73d9b365e41f4a066b2b"
+  },
+  "mini.switch.gone": {
+    "message": "Dieser Tab ist nicht mehr geöffnet.",
+    "source": "sha256:2e7500de9dc2f9f977e368368cec3e436dd07e279b8c50c732be7122f1dd16b7"
+  },
+  "mini.switch.busy": {
+    "message": "Blanc konnte diesen Space gerade nicht öffnen. Versuche es erneut.",
+    "source": "sha256:acea9de724a6f8159baa3be7775fe3e2daa6bd8d8f45c1fbf2a712782247852a"
+  },
   "ws.moveMode.header": {
     "message": "Dieses Fenster verschieben nach …",
     "source": "sha256:81fd38d4a6df0d472f68c974fa785f2e1f1259218d0f87bbad426045d124cb81"

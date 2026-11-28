@@ -2713,6 +2713,9 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="mini_move_to_space_label">In Space verschieben – die Tabs dieses Mini-Fensters in einen Space verschieben</string>
     <string name="mini_move_to_space_title">Die Tabs dieses Mini-Fensters in einen Space verschieben</string>
     <string name="mini_move_to_space_menu">In Space verschieben</string>
+    <string name="mini_switch_another_window">Anderes Fenster</string>
+    <string name="mini_switch_gone">Dieser Tab ist nicht mehr geöffnet.</string>
+    <string name="mini_switch_busy">Blanc konnte diesen Space gerade nicht öffnen. Versuche es erneut.</string>
     <string name="ws_move_mode_header">Dieses Fenster verschieben nach …</string>
     <string name="ws_error_mini_unmovable">Ein privater Tab oder eine Seite, die Ton abspielt, Kamera oder Mikrofon nutzt, den Bildschirm teilt oder ein Pop-up zeigt, kann nicht in einen Space verschoben werden. Schließe oder beende sie und versuche es erneut.</string>
     <string name="mini_open_in_blanc_label">In Blanc öffnen – dieses Mini-Fenster als normales Blanc-Fenster behalten</string>

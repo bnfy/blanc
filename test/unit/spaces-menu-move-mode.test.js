@@ -99,9 +99,6 @@ test('turning move mode off brings the ordinary menu back', () => {
 test('the overlay turns move mode on in a mini window and opens New space… from the File menu', () => {
   const overlay = fs.readFileSync(path.join(__dirname, '../../src/renderer/overlay.js'), 'utf8');
   assert.equal(overlay.match(/workspaceUI\.setMoveMode\(payload\.miniWindow === true, \{ tabCount: movingTabCount\(payload\) \}\);/g)?.length, 2);
-  assert.match(overlay, /const spaceResults = state\.miniWindow !== true;/, 'no Space results in a mini window');
-  assert.match(overlay, /for \(const w of spaceResults \? wsWorkspaces : \[\]\)/);
-  assert.match(overlay, /for \(const profile of spaceResults \? wsOtherProfiles : \[\]\)/);
   assert.match(overlay, /purpose\?\.miniNewSpace\) \{[\s\S]*?workspaceUI\.begin\('new', null, \{ start: 'mini', thisProfile: true,/);
 });
 
