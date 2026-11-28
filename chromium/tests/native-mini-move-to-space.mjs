@@ -29,18 +29,24 @@ const snap=r=>nativeCall(r.cdp,'snapshot');
 // A window's Island documents: the strip (the pill) and the overlay (menus).
 const inFrame=(r,frame,source)=>r.cdp.eval(`(()=>{const doc=document.querySelector(${jsLiteral(frame)})?.contentDocument;if(!doc)return null;${source}})()`);
 const spaceId=async name=>(await w.call('workspaceAction','list')).items.find(item=>item.name===name)?.id;
+// Adapter ids ('window-2', ...) follow window order, so one can pass to
+// another window when a window closes; native window ids never do.
+const nativeWindow=async r=>(await snap(r)).nativeWindowId;
+const byNativeWindow=async native=>{for(const r of await runtimes(w))if(await nativeWindow(r)===native)return r;return null;};
 async function savedSpace(name,{keepOpen=false}={}){
  const other=await w.call('openNewWindow');
  await w.call('openTabInWindow',other,f.base+'/space-'+name.toLowerCase());
  assert.equal((await w.call('workspaceActionInWindow',other,'save',name)).ok,true,`${name} saved`);
+ const native=await nativeWindow(await runtimeOf(other));
  if(!keepOpen)await w.call('closeWindowRuntime',other);
- return {window:other,id:await spaceId(name)};
+ return {native,id:await spaceId(name)};
 }
 async function miniWithPage(slug){
  const id=await w.call('openMiniWindow');
  const url=f.base+'/'+slug;
  const tabId=await w.call('openTabInWindow',id,url);
- return {id,url,tabId,r:await runtimeOf(id)};
+ const r=await runtimeOf(id);
+ return {id,url,tabId,r,native:await nativeWindow(r)};
 }
 // The Island's Spaces button beside Open in Blanc, then the menu in move mode.
 async function openMoveMenu(mini){
@@ -51,7 +57,7 @@ async function openMoveMenu(mini){
  assert.equal(heading,'Move this window to…');
 }
 const chooseRow=(mini,name)=>inFrame(mini.r,'#overlay',`const row=[...doc.querySelectorAll('.ws-row-main')].find(n=>n.querySelector('.ws-row-name')?.textContent===${jsLiteral(name)});if(row)row.click();return !!row;`);
-const gone=id=>w.waitFor(async()=>!(await runtimes(w)).some(r=>r.id===id),Boolean,'the mini window to close');
+const gone=mini=>w.waitFor(async()=>!(await byNativeWindow(mini.native)),Boolean,'the mini window to close');
 // The live window showing a Space, with its snapshot.
 async function shownWindow(space){
  return w.waitFor(async()=>{for(const r of await runtimes(w)){const s=await snap(r);if(s.spaceName===space)return {r,s};}return null;},Boolean,'a window showing the Space');
@@ -67,7 +73,7 @@ try{
  await w.waitFor(async()=>(await snap(six.r)).groups?.some(g=>g.name==='Research'),Boolean,'the Research group in the mini window');
  await openMoveMenu(six);
  assert.equal(await chooseRow(six,'Reading'),true);
- await gone(six.id);
+ await gone(six);
  {
   const {s}=await shownWindow(reading.id);
   const tab=s.tabs.find(t=>t.url===six.url);
@@ -85,7 +91,7 @@ try{
  assert.equal(await chooseRow(seven,'Elsewhere'),true);
  const reason=await w.waitFor(()=>inFrame(seven.r,'#overlay',`return doc.querySelector('#workspaceSwitcher .ws-error')?.textContent??'';`),text=>/can't move to a space/.test(text||''),'the refusal\'s reason');
  assert.match(reason,/private tab/);
- assert.ok((await runtimes(w)).some(r=>r.id===seven.id),'the mini window stays');
+ assert.ok(await byNativeWindow(seven.native),'the mini window stays');
  assert.ok((await snap(seven.r)).tabs.some(t=>t.url===seven.url),'its page stays');
  assert.ok(elsewhere.id,'Elsewhere was offered');
  passed('F61-7 refusal');
@@ -96,7 +102,7 @@ try{
  assert.match(editor.text,/With these tabs/);
  assert.equal(editor.profile,false);assert.equal(editor.start,false);
  await inFrame(seven.r,'#overlay',`const input=doc.getElementById('workspaceName');input.value='Later';input.dispatchEvent(new Event('input',{bubbles:true}));doc.getElementById('workspaceEditor').requestSubmit();return true;`);
- await gone(seven.id);
+ await gone(seven);
  {
   const id=await w.waitFor(()=>spaceId('Later'),Boolean,'Later listed');
   const {s}=await shownWindow(id);
@@ -111,8 +117,8 @@ try{
  const before=(await runtimes(w)).length;
  await openMoveMenu(eight);
  assert.equal(await chooseRow(eight,'Shown'),true);
- await gone(eight.id);
- const after=await w.waitFor(async()=>{const r=await runtimeOf(shown.window);const s=r&&await snap(r);return s?.tabs.at(-1)?.url===eight.url?s:null;},Boolean,'Shown\'s window with the page');
+ await gone(eight);
+ const after=await w.waitFor(async()=>{const r=await byNativeWindow(shown.native);const s=r&&await snap(r);return s?.tabs.at(-1)?.url===eight.url?s:null;},Boolean,'Shown\'s window with the page');
  assert.equal(after.spaceName,shown.id);
  assert.equal((await runtimes(w)).length,before-1,'only the mini window went away');
  passed('F61-8');
