@@ -5373,7 +5373,7 @@
     "note": "Settings → Sync, off state: the primary button. Turns Sync on with no name or passphrase."
   },
   "settings.sync.off.haveCode": {
-    "message": "Already sync on another device?",
+    "message": "Already syncing on another device?",
     "note": "Settings → Sync, off state: the question above the Add with a code card."
   },
   "settings.sync.off.addWithCode": {
@@ -5453,7 +5453,7 @@
     "note": "Settings → Sync → Connect your iPhone: shown while the pairing code is being made."
   },
   "settings.sync.sheet.alreadySync": {
-    "message": "Already sync on another computer?",
+    "message": "Already syncing on another computer?",
     "note": "Settings → Sync → Connect your iPhone with Sync off: the guard against starting a second sync by accident."
   },
   "settings.sync.sheet.addThisFirst": {

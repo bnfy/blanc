@@ -5225,7 +5225,7 @@
   },
   "settings.sync.off.haveCode": {
     "message": "Sincronizzi già su un altro dispositivo?",
-    "source": "sha256:3426075d57dc0745205927e7c7f5dce5649626744542b1c676692c362c56b517"
+    "source": "sha256:22e120522b446020ca273c7295dfae0411faff7102e28a07fee6ea10ea2c7c45"
   },
   "settings.sync.off.addWithCode": {
     "message": "Aggiungi questo dispositivo con un codice",
@@ -5305,7 +5305,7 @@
   },
   "settings.sync.sheet.alreadySync": {
     "message": "Sincronizzi già su un altro computer?",
-    "source": "sha256:505577a9919cf0dd4610cc2decf0e3d12ad0199ffa9cfaa3fd8524867fe9f99a"
+    "source": "sha256:96903e800d2b76cae038a9620df21dc41b339be834ecf8683c74345d4ad1bac2"
   },
   "settings.sync.sheet.addThisFirst": {
     "message": "Aggiungi prima questo Mac con un codice",

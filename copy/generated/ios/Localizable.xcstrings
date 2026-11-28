@@ -57722,7 +57722,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Already sync on another device?"
+            "value": "Already syncing on another device?"
           }
         },
         "de": {
@@ -58562,7 +58562,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Already sync on another computer?"
+            "value": "Already syncing on another computer?"
           }
         },
         "de": {
