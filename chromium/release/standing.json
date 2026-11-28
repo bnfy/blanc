@@ -59,10 +59,10 @@
         "chromium/release/stage-sparkle.py"
       ],
       "lastPass": {
-        "version": "2.0.0-beta.10",
-        "sourceCommit": "17c26d0133657566df179ddbdd2c34907955dae6",
-        "evidence": "evidence/foundation/beta10/sparkle-N-to-N+1.json",
-        "sha256": "0d72639990c60bbfa64fd7e0d49eb1ca28b3038e26dfc25a9b287160ee33a6da"
+        "version": "2.0.0-beta.11",
+        "sourceCommit": "afd08df8d8cc4566ba384a1b3399154571f6839a",
+        "evidence": "evidence/foundation/beta11/sparkle-N-to-N+1.json",
+        "sha256": "bb1bb98fd2018d525f4d0aa6e404fb4548c627973ddad234bdcf605d20e55e7a"
       }
     },
     "desktop-sync": {
@@ -74,10 +74,10 @@
         "chromium/patches/*sync*"
       ],
       "lastPass": {
-        "version": "2.0.0-beta.10",
-        "sourceCommit": "17c26d0133657566df179ddbdd2c34907955dae6",
-        "evidence": "evidence/foundation/beta10/desktop-sync.json",
-        "sha256": "6cf720b205f5a05529f20e2e8bc62c05a2c05a412914602b76adde1a56a1ab37"
+        "version": "2.0.0-beta.11",
+        "sourceCommit": "afd08df8d8cc4566ba384a1b3399154571f6839a",
+        "evidence": "evidence/foundation/beta11/desktop-sync.json",
+        "sha256": "18fd5303e54f6a9a329f9a9903fd4af476039c1e36ae154f8ecc7f715774a927"
       }
     },
     "no-drm-handoff": {
@@ -90,10 +90,10 @@
         "chromium/patches/*protected-media*"
       ],
       "lastPass": {
-        "version": "2.0.0-beta.10",
-        "sourceCommit": "17c26d0133657566df179ddbdd2c34907955dae6",
-        "evidence": "evidence/foundation/beta10/no-drm-handoff.json",
-        "sha256": "ed803bad56815f978a12adf01e2477745fdfd4dcc12ab471c7458b825a72d59f"
+        "version": "2.0.0-beta.11",
+        "sourceCommit": "afd08df8d8cc4566ba384a1b3399154571f6839a",
+        "evidence": "evidence/foundation/beta11/no-drm-handoff.json",
+        "sha256": "95ad110ef1056e600a4b17f9dc3d61f3577ca9df4cf2dbb5b6566c3a06de0af4"
       }
     }
   },

@@ -7,8 +7,10 @@
 #include "base/functional/bind.h"
 #include "base/strings/string_util.h"
 #include "base/strings/string_number_conversions.h"
+#include "base/memory/weak_ptr.h"
 #include "base/task/sequenced_task_runner.h"
 #include "blanc/browser/ui/browser_api/external_handoff.h"
+#include "blanc/browser/ui/browser_api/typed_https_fallback.h"
 #include "blanc/browser/ui/modules/selected_shipping.h"
 #include "blanc/buildflags.h"
 #include "base/no_destructor.h"
@@ -16,9 +18,12 @@
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
+#include "components/security_interstitials/content/stateful_ssl_host_state_delegate.h"
 #include "components/sessions/content/session_tab_helper.h"
+#include "content/public/browser/browser_context.h"
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/navigation_handle.h"
+#include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "ui/base/page_transition_types.h"
@@ -26,24 +31,44 @@
 namespace blanc::browser_api {
 namespace {
 
-// Follows one load to its end, then deletes itself.
+// Follows one load to its end, then deletes itself. With `fallback_from` set,
+// an HTTPS load of that address which fails to connect or fails TLS is tried
+// once over HTTP instead (typed_https_fallback.h), and the HTTP load is the
+// one followed.
 class LoadWatcher : public content::WebContentsObserver {
  public:
-  LoadWatcher(content::WebContents* tab, int64_t navigation_id,
+  LoadWatcher(content::WebContents* tab, int64_t navigation_id, GURL fallback_from,
               base::OnceCallback<void(std::optional<bool>)> done)
-      : content::WebContentsObserver(tab), navigation_id_(navigation_id), done_(std::move(done)) {}
+      : content::WebContentsObserver(tab),
+        navigation_id_(navigation_id),
+        fallback_from_(std::move(fallback_from)),
+        done_(std::move(done)) {}
 
   void DidStartNavigation(content::NavigationHandle* handle) override {
-    // A later main-frame load after ours committed supersedes it.
-    if (committed_ && handle->IsInPrimaryMainFrame() && !handle->IsSameDocument() &&
-        handle->GetNavigationId() != navigation_id_) {
+    // A later main-frame load after ours committed supersedes it, as does one
+    // that starts while the HTTP attempt waits to begin.
+    if ((committed_ || fallback_pending_) && handle->IsInPrimaryMainFrame() &&
+        !handle->IsSameDocument() && handle->GetNavigationId() != navigation_id_) {
       Finish(false);
     }
   }
   void DidFinishNavigation(content::NavigationHandle* handle) override {
     if (handle->GetNavigationId() != navigation_id_) return;
-    if (!handle->HasCommitted() || handle->IsErrorPage()) Finish(false);
-    else committed_ = true;
+    if (!handle->HasCommitted() || handle->IsErrorPage()) {
+      // Only the address asked for, never one a redirect reached.
+      if (fallback_from_.is_valid() && IsHttpFallbackError(handle->GetNetErrorCode()) &&
+          handle->GetURL() == fallback_from_) {
+        // Started after this callback returns: a navigation begun from inside
+        // another's DidFinishNavigation re-enters the controller.
+        fallback_pending_ = true;
+        base::SequencedTaskRunner::GetCurrentDefault()->PostTask(
+            FROM_HERE, base::BindOnce(&LoadWatcher::StartHttpFallback, weak_factory_.GetWeakPtr()));
+        return;
+      }
+      Finish(false);
+    } else {
+      committed_ = true;
+    }
   }
   void DidStopLoading() override {
     if (committed_) Finish(true);
@@ -51,15 +76,43 @@ class LoadWatcher : public content::WebContentsObserver {
   void WebContentsDestroyed() override { Finish(false); }
 
  private:
+  void StartHttpFallback() {
+    if (!done_ || !fallback_pending_ || !web_contents()) return;
+    fallback_pending_ = false;
+    GURL::Replacements http;
+    http.SetSchemeStr("http");
+    const GURL url = fallback_from_.ReplaceComponents(http);
+    fallback_from_ = GURL();
+    content::WebContents* tab = web_contents();
+    // Chromium's HTTPS-Upgrades would turn this http:// load back into the
+    // https:// one that just failed. Allow HTTP for the host, as Chrome does
+    // itself when its own upgrade of a site fails; the exception lasts a week
+    // from the last visit and stays in memory for a private profile.
+    if (auto* state = static_cast<StatefulSSLHostStateDelegate*>(
+            tab->GetBrowserContext()->GetSSLHostStateDelegate())) {
+      state->AllowHttpForHost(url.GetHost(), tab->GetPrimaryMainFrame()->GetStoragePartition());
+    }
+    content::NavigationController::LoadURLParams params(url);
+    params.transition_type = ui::PAGE_TRANSITION_TYPED;
+    auto handle = tab->GetController().LoadURLWithParams(params);
+    if (!handle) {
+      Finish(false);
+      return;
+    }
+    navigation_id_ = handle->GetNavigationId();
+  }
   void Finish(bool finished) {
     if (!done_) return;
     Observe(nullptr);
     std::move(done_).Run(finished);
     base::SequencedTaskRunner::GetCurrentDefault()->DeleteSoon(FROM_HERE, this);
   }
-  const int64_t navigation_id_;
+  int64_t navigation_id_;
+  GURL fallback_from_;
   bool committed_ = false;
+  bool fallback_pending_ = false;
   base::OnceCallback<void(std::optional<bool>)> done_;
+  base::WeakPtrFactory<LoadWatcher> weak_factory_{this};
 };
 
 // Whether acting on a quiet (discarded) tab woke it, or nothing otherwise.
@@ -94,7 +147,7 @@ content::WebContents* Navigation::Tab(const std::string& id) {
 }
 
 void Navigation::Load(content::WebContents* tab, const GURL& url,
-                      base::OnceCallback<void(std::optional<bool>)> done) {
+                      base::OnceCallback<void(std::optional<bool>)> done, bool http_fallback) {
   // Only web addresses load from typed input; anything else loads nothing.
   if (!url.SchemeIsHTTPOrHTTPS()) {
     std::move(done).Run(std::nullopt);
@@ -107,7 +160,11 @@ void Navigation::Load(content::WebContents* tab, const GURL& url,
     std::move(done).Run(std::nullopt);
     return;
   }
-  new LoadWatcher(tab, handle->GetNavigationId(), std::move(done));
+  // An address from the address bar may drop back to HTTP once
+  // (typed_https_fallback.h); a search never does.
+  const bool may_fall_back = http_fallback && url.SchemeIs("https") &&
+      MayFallBackToHttp(url.host(), url.has_port(), url.has_username() || url.has_password());
+  new LoadWatcher(tab, handle->GetNavigationId(), may_fall_back ? url : GURL(), std::move(done));
 }
 
 void Navigation::Navigate(const std::string& id, const std::string& url, NavigateCallback callback) {
@@ -136,7 +193,7 @@ void Navigation::Navigate(const std::string& id, const std::string& url, Navigat
     std::move(callback).Run(std::nullopt);
     return;
   }
-  Load(tab, GURL(url), std::move(callback));
+  Load(tab, GURL(url), std::move(callback), /*http_fallback=*/true);
 }
 
 void Navigation::Search(const std::string& id, const std::string& query,

@@ -1083,7 +1083,13 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_reuse_new_tab_label">Ir para uma nova aba não usada</string>
     <string name="settings_general_reuse_new_tab_hint">Nova aba vai para uma nova aba desta janela que você ainda não usou, em vez de abrir outra. Nova aba privada faz o mesmo com as abas privadas.</string>
     <string name="settings_general_ask_where_to_save_label">Perguntar onde salvar cada arquivo</string>
-    <string name="settings_general_ask_where_to_save_hint">Quando está desativado, os downloads vão direto para a sua pasta Downloads, e um arquivo com o mesmo nome recebe um número.</string>
+    <string name="settings_general_ask_where_to_save_hint">Quando está desativado, os downloads vão direto para a pasta acima, e um arquivo com o mesmo nome recebe um número.</string>
+    <string name="settings_general_download_folder_label">Salvar arquivos em</string>
+    <string name="settings_general_download_folder_change">Alterar…</string>
+    <string name="settings_general_download_folder_reset">Usar Downloads</string>
+    <string name="settings_general_download_folder_choose_title">Escolha onde salvar os downloads</string>
+    <string name="settings_general_download_folder_missing">Não é possível encontrar %1$s agora, então os downloads perguntam onde salvar até que ela volte ou você escolha outra pasta.</string>
+    <string name="settings_general_download_folder_unwritable">O Blanc não consegue salvar em %1$s, então os downloads perguntam onde salvar até que consiga ou você escolha outra pasta.</string>
     <string name="settings_general_tab_switch_order_recent">Na ordem em que você as usou</string>
     <string name="settings_general_tab_switch_order_list">Na ordem da lista de abas</string>
     <string name="settings_general_tab_archive_label">Arquivar abas inativas</string>
@@ -2790,6 +2796,9 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="mini_move_to_space_label">Mover para o Space: mover as abas desta minijanela para um Space</string>
     <string name="mini_move_to_space_title">Mover as abas desta minijanela para um Space</string>
     <string name="mini_move_to_space_menu">Mover para o Space</string>
+    <string name="mini_switch_another_window">Outra janela</string>
+    <string name="mini_switch_gone">Essa aba não está mais aberta.</string>
+    <string name="mini_switch_busy">O Blanc não conseguiu abrir esse Space agora. Tente de novo.</string>
     <string name="ws_move_mode_header">Mover esta janela para…</string>
     <string name="ws_error_mini_unmovable">Uma aba privada, ou uma página que está tocando som, usando a câmera ou o microfone, compartilhando a tela ou mostrando um pop-up, não pode ir para um Space. Feche ou pare essa página e tente de novo.</string>
     <string name="mini_open_in_blanc_label">Abrir no Blanc: manter esta minijanela como uma janela comum do Blanc</string>
@@ -2801,6 +2810,8 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Espaço</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Espaço</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Shift+Espaço</string>
+    <string name="settings_general_mini_window_links_label">Abrir links de outros apps em uma minijanela</string>
+    <string name="settings_general_mini_window_links_hint">Links que correspondem a uma regra continuam indo para onde a regra manda.</string>
     <string name="shared_spaces_switch_android">Manter Spaces e grupos sincronizados neste telefone</string>
     <string name="shared_spaces_switch_line_android">As abas dos seus Spaces compartilhados são sincronizadas a partir deste telefone.</string>
     <string name="shared_spaces_save_this_phone">Salvar Este telefone como Space</string>

@@ -63,12 +63,14 @@ test('the hero leads with one action, a quiet waitlist link and the real app bef
       assert.ok(action.y + action.height <= 844, 'the primary action is on the first screen');
       // The real app, captioned as a preview with sample mail.
       const shot = hero.locator('.mail-shot');
-      assert.equal(await shot.locator('figcaption').innerText(), 'Preview build · sample mail');
-      const img = shot.locator('img');
-      assert.equal(await img.getAttribute('loading'), 'eager');
-      assert.equal(await img.getAttribute('fetchpriority'), 'high');
-      assert.ok((await img.getAttribute('alt')).length > 40, 'the window is described');
-      if (width === 1440) assert.ok((await img.boundingBox()).y < 844, 'the window starts on the first screen');
+      assert.deepEqual(await shot.locator('figcaption').allTextContents(), ['Preview builds']);
+      assert.equal(await shot.locator('img').count(), 2);
+      const mac = shot.getByRole('img', { name: /Blanc Mail on Mac in dark mode/ });
+      assert.equal(await mac.getAttribute('fetchpriority'), 'high');
+      assert.match(await mac.evaluate(async el => {
+        await el.decode();
+        return new URL(el.currentSrc).pathname;
+      }), /\/mail\/screens\/hero-dark(?:-1100)?\.webp$/);
       assert.equal(await page.locator('.offer-paths, .offer-jump').count(), 0);
       assert.equal(await page.locator('.offer-hero + section').getAttribute('id'), 'pricing');
       assert.ok((await page.locator('#pricing').boundingBox()).y >= action.y + action.height);
@@ -185,12 +187,45 @@ test('mailbox features and the reservation action are visible before opening a d
       assert.equal(await page.locator('#address-features + a[href="/mail/reserve"]').count(), open ? 1 : 0);
       assert.equal(await page.locator('.address-preview').getAttribute('open'), null);
       assert.equal(await page.locator('#pricing + section').getAttribute('id'), 'address');
-      // The hero's window is the page's one screenshot.
-      assert.equal(await page.locator('main .mail-shot').count(), 1);
-      assert.equal(await page.locator('.offer-hero .mail-shot').count(), 1);
       assert.equal(await page.locator('#design, #island').count(), 0);
       assert.equal(await page.getByRole('heading', { name: 'Inside Blanc Mail' }).count(), 0);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    } finally { await context.close(); }
+  }
+});
+
+test('the iPhone preview tilts over the Mac on desktop and stacks upright on phones', async () => {
+  for (const [width, density, assetWidth] of [[320, 2, 640], [390, 3, 1170], [601, 1, 640], [1440, 1, 640]]) {
+    const { page, context } = await openPage('/mail#iphone', width, { deviceScaleFactor: density });
+    try {
+      const hero = page.locator('.offer-hero');
+      const shot = hero.getByRole('figure', { name: 'Preview builds' });
+      const img = shot.getByRole('img', { name: /sample inbox on iPhone in dark mode/ });
+      assert.equal(await img.getAttribute('loading'), 'eager');
+      const filename = assetWidth === 640 ? 'iphone-inbox-640.webp' : 'iphone-inbox.webp';
+      assert.equal(await img.evaluate(async el => {
+        await el.decode();
+        return new URL(el.currentSrc).pathname;
+      }), `/mail/screens/${filename}`);
+      const box = await img.boundingBox();
+      assert.ok(box.x >= 0 && box.x + box.width <= width);
+      const { aspect, angle } = await img.evaluate(el => {
+        const { transform } = getComputedStyle(el.parentElement);
+        const matrix = new DOMMatrixReadOnly(transform === 'none' ? undefined : transform);
+        return { aspect: el.offsetHeight / el.offsetWidth, angle: Math.atan2(matrix.b, matrix.a) * 180 / Math.PI };
+      });
+      assert.ok(Math.abs(aspect - 2532 / 1170) < 0.01);
+      const mac = await shot.getByRole('img', { name: /Blanc Mail on Mac in dark mode/ }).boundingBox();
+      if (width <= 600) {
+        assert.equal(angle, 0);
+        assert.ok(box.y >= mac.y + mac.height);
+        assert.ok(Math.abs(box.x + box.width / 2 - width / 2) < 1);
+      } else {
+        assert.ok(angle > 0 && angle < 5);
+        const overlap = mac.x + mac.width - box.x;
+        assert.ok(overlap > 0 && overlap < box.width / 3);
+        assert.ok(box.y < mac.y + mac.height && box.y + box.height > mac.y);
+      }
     } finally { await context.close(); }
   }
 });
@@ -240,29 +275,42 @@ test('visitors see one plan, the address add-on and the Patron upgrade without o
     const plan = page.locator('.offer-plan');
     assert.equal(await plan.count(), 1);
     assert.equal(await plan.locator('h3').innerText(), 'Blanc Mail');
-    assert.deepEqual(await plan.locator('.offer-prices p').allTextContents(), ['$49.99 / year', 'or $4.99 / month']);
-    assert.match(await plan.innerText(), /existing email accounts/);
+    assert.match(await plan.innerText(), /Use your existing Gmail accounts in the Mac app/);
+    const prices = plan.locator('.offer-prices');
+    assert.deepEqual(await prices.locator('dt').allTextContents(), ['Annual', 'Monthly']);
+    assert.deepEqual(await prices.locator('dd p').allTextContents(), ['$49.99 / year', '$4.99 / month']);
+    assert.equal(await plan.locator('.offer-prices + .plan-trial').innerText(), '14-day trial on your Mac. No payment card needed.');
     const addOn = plan.locator('.plan-addon');
     assert.equal(await addOn.locator('h4').innerText(), 'Add a Blanc address');
-    assert.match(await addOn.innerText(), /\$20 more a year, \$69\.99 in all.*15 GB.*Annual billing only/s);
-    const upgrade = page.locator('#pricing .plan-upgrade');
-    assert.match(await upgrade.innerText(), /Browser Patrons can upgrade to Blanc Bundle for \$79\.99 a year or \$7\.99 a month/);
+    assert.equal(await addOn.locator('h4 + p').innerText(), '$69.99/year total for Blanc Mail + Address');
+    assert.match(await addOn.innerText(), /\$20 more than annual Blanc Mail\. Includes 15 GB for mail and attachments\. Annual billing only\./);
+    const upgrade = page.locator('#pricing .offer-plan + .plan-upgrade');
+    assert.match(await upgrade.innerText(), /Browser Patrons can upgrade to Blanc Bundle for \$79\.99\/year or \$7\.99\/month\. It adds Blanc Mail, a Blanc address and Nodding Off/);
     assert.equal(await upgrade.getByRole('link', { name: 'Nodding Off' }).getAttribute('href'), 'https://noddingoffapp.com/');
     assert.equal(await page.locator('main a[href*="polar.sh"]').count(), 0);
     assert.doesNotMatch(await page.locator('#pricing').innerText(), /recommended|most popular/i);
   } finally { await context.close(); }
 });
 
-test('the plan card fits from narrow phones to wide screens', async () => {
+test('the plan card fits and its billing choices group at wider widths', async () => {
   const { page, context } = await openPage('/mail#pricing');
   try {
-    for (const width of [320, 390, 639, 640, 768, 884, 901, 1440]) {
+    for (const width of [320, 390, 519, 520, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       const card = await page.locator('.offer-plan').evaluate(el => {
         const { left, right } = el.getBoundingClientRect();
         return { left, right, fits: el.scrollWidth <= el.clientWidth };
       });
       assert.ok(card.fits && card.left >= 0 && card.right <= width, `content fits at ${width}px`);
+      const [annual, monthly] = await Promise.all((await page.locator('.offer-prices > div').all()).map(option => option.boundingBox()));
+      if (width < 520) {
+        assert.equal(annual.x, monthly.x);
+        assert.ok(annual.y < monthly.y);
+      } else {
+        assert.equal(annual.y, monthly.y);
+        assert.ok(annual.x < monthly.x);
+        assert.ok(Math.abs(annual.width - monthly.width) < 1);
+      }
     }
   } finally { await context.close(); }
 });

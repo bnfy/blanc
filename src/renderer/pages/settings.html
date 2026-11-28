@@ -315,10 +315,19 @@
               <label class="toggle"><input id="reuseNewTab" type="checkbox" aria-label="Switch to an unused new tab" aria-describedby="reuseNewTabHint" data-i18n-aria-label="settings.general.reuseNewTab.label"/><span class="track"></span></label>
             </div>
 
+            <div class="setting" id="downloadFolderSetting">
+              <div class="label">
+                <span id="downloadFolderLabel" data-i18n="settings.general.downloadFolder.label">Save files to</span>
+                <span class="hint download-folder-path" id="downloadFolderHint" role="status"></span>
+              </div>
+              <button id="downloadFolderReset" type="button" hidden data-i18n="settings.general.downloadFolder.reset">Use Downloads</button>
+              <button id="downloadFolderChoose" type="button" aria-describedby="downloadFolderLabel downloadFolderHint" data-i18n="settings.general.downloadFolder.change">Change…</button>
+            </div>
+
             <div class="setting" id="askWhereToSaveSetting">
               <div class="label">
                 <span data-i18n="settings.general.askWhereToSave.label">Ask where to save each file</span>
-                <span class="hint" id="askWhereToSaveHint" data-i18n="settings.general.askWhereToSave.hint">When this is off, downloads go straight to your Downloads folder, and a file with the same name gets a number added.</span>
+                <span class="hint" id="askWhereToSaveHint" data-i18n="settings.general.askWhereToSave.hint">When this is off, downloads go straight to the folder above, and a file with the same name gets a number added.</span>
               </div>
               <label class="toggle"><input id="askWhereToSave" type="checkbox" aria-label="Ask where to save each file" aria-describedby="askWhereToSaveHint" data-i18n-aria-label="settings.general.askWhereToSave.label"/><span class="track"></span></label>
             </div>
@@ -340,6 +349,14 @@
                 <span class="hint" id="hardwareVideoDecodingHint" data-i18n="settings.general.hardwareVideoDecoding.hint">If videos flicker, turn this off. Quit and reopen Blanc to apply the change.</span>
               </div>
               <label class="toggle"><input id="hardwareVideoDecoding" type="checkbox" aria-describedby="hardwareVideoDecodingHint"/><span class="track"></span></label>
+            </div>
+
+            <div class="setting" id="miniWindowForLinksSetting">
+              <div class="label">
+                <span data-i18n="settings.general.miniWindowLinks.label">Open links from other apps in a mini window</span>
+                <span class="hint" id="miniWindowForLinksHint" data-i18n="settings.general.miniWindowLinks.hint">Links that match a rule still go where the rule says.</span>
+              </div>
+              <label class="toggle"><input id="miniWindowForLinks" type="checkbox" aria-label="Open links from other apps in a mini window" aria-describedby="miniWindowForLinksHint" data-i18n-aria-label="settings.general.miniWindowLinks.label"/><span class="track"></span></label>
             </div>
 
             <div class="setting" id="tabSleepSetting">
@@ -447,7 +464,7 @@
                   </div>
                   <p class="section-hint" id="syncTurnOnStatus" role="status"></p>
                 </div>
-                <p class="sync-paths-label" data-i18n="settings.sync.off.haveCode">Already sync on another device?</p>
+                <p class="sync-paths-label" data-i18n="settings.sync.off.haveCode">Already syncing on another device?</p>
                 <button id="syncPathCode" class="sync-path" type="button">
                   <svg class="sync-path-icon" viewBox="0 0 48 48" aria-hidden="true">
                     <rect x="5" y="10" width="25" height="19" rx="2"></rect>
@@ -708,7 +725,7 @@
                 <button id="syncPairingStartCancel" type="button" class="quiet" data-i18n="settings.sync.pairing.cancel">Cancel</button>
               </div>
               <p class="sync-pairing-already" id="syncPairingAlready">
-                <span data-i18n="settings.sync.sheet.alreadySync">Already sync on another computer?</span>
+                <span data-i18n="settings.sync.sheet.alreadySync">Already syncing on another computer?</span>
                 <button id="syncPairingAddThisFirst" type="button" class="link-button" data-i18n-ignore=""></button>
               </p>
             </div>

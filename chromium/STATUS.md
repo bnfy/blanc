@@ -20,6 +20,48 @@ and its incremental rebuilds, and one GN regeneration on the Mac Studio
 hardware stays pending.
 
 ## Current work
+- **2026-11-28 — Mini window: Move to Space (#1734, shipping bnfy/blanc#1763).**
+  A mini window's Island has shipping's Spaces button beside Open in Blanc,
+  and its Spaces menu has shipping's move mode: this profile's Spaces and
+  New space…, which file every tab into the Space, close the mini window and
+  bring the Space forward (or open it in a new window at an ordinary
+  window's size, `NewSpaceWindow`'s bounds, since Chromium's window sizer
+  copied the mini window's 760 × 600). The menu files and their five strings
+  come from `blanc/spaces-menu.json`, now at #1763's merge (870c400de), with
+  one edit of their own (`MENU_EDITS`: the editor's tab count, as this
+  payload has no `tabOrder`); the button and its styles are anchored edits on
+  the v1.49.1 renderer (`tools/island-renderer.mjs`). The move is the host's
+  (`moveMiniWindowToSpace` in `island/host.js`) on the native batch move it
+  already had: one `spaceMoveTabs` per run of tabs, each run keeping its
+  group, after `batchTabsMenuState`'s `canPlace` says every page can go (all
+  or nothing; a private tab, sound, capture or a pop-up refuses with its
+  reason); a later run waits out another window's Space write. Only the
+  menu's move mode (`move: true`) moves; switching by name stays refused.
+  Two differences from shipping: every start page stays behind and closes
+  with the window, used or not (a Space record here holds only web pages;
+  a grouped one leaves its group first), and pinned tabs arrive unpinned, as
+  with every fork Move to Space (the native batch move). No patch changes.
+  Evidence on the Mac Studio's BlancPrototype (159.0.8154.33, rebuilt
+  incrementally with this change, candidate `macos-d823ed3fcd374089`):
+  `tests/native-mini-move-to-space.mjs` passes 5 of 5 with the Island files
+  from disk and compiled in (F61-6 to F61-8 through the real button, menu and
+  editor, a start page in the moved group, the editor's count, the Space
+  window's size, and the refusal of a move by name); the earlier candidate's
+  compiled-in files, without the button, fail it (the positive control).
+  `tests/native-mini-windows.mjs` passes 4 of 4.
+  `tests/native-spaces-across-profiles.mjs` could not run there this time:
+  it stops at its first "window in front" wait over SSH with unchanged files
+  too, so it is unverified, not failed. Not checked by hand; Windows and
+  Linux carry it in their next nightly. Also fixed: `tools/assets.mjs --out`
+  threw on an undefined `spec`.
+- **2026-11-27 — Windows video decoding.** Settings → System now exposes the choice
+  previously available under `chrome://flags/#disable-accelerated-video-decode` in
+  public Beta 159.0.8154.910. Both controls use the same Local State flag. The
+  three-launch test in `tests/windows-video-decoding.cjs` passed on Windows 11 with
+  private candidate `windows-x64-d346a0468749e3bf`. It checked both directions,
+  the effective startup switch and the independent graphics acceleration setting.
+  Including 0118, the desktop lane has 116 incremental patches covering 228 paths
+  and 754 hunks (262 paths and 943 hunks with the foundation baseline).
 - **2026-11-24 to 25 — Desktop lane on Chromium 159.0.8154.33 (plan `docs/superpowers/plans/2026-11-22-desktop-fork-chromium-159.md`, branch `chromium/rebase-159`, not merged).**
   Tasks 1–5 and 6: every desktop patch applies to the 159 Beta (`ab2e5d8ad16c`), the Mac Studio and
   the Linux server checkouts moved (owner approved 2026-11-24), and all eight desktop outputs build;
@@ -3936,6 +3978,30 @@ disabled by default in Blanc builds. Seen in the owner's VM with a fresh profile
 whose Local State says .903: the signed .904 showed the toast; with `chrome.dll`
 `213bab3c…` placed over it, no toast in two captures 4 s apart.
 
+**Sixth Windows beta public (2026-11-28):** Blanc Beta 159.0.8154.913, GitHub
+pre-release `chromium-beta-windows-159.0.8154.913` at `d77142ae9` (never latest;
+v1.53.0 stayed latest), published 15:51 UTC through `windows-beta-prep.mjs` and
+`windows-release.mjs`, all ten stages: night `20261128-0400` passed 635 suite
+cases with none rerun, the first clean night after the flake fixes (suite
+46129489292, beta install 46129485029, capture 46129487010), signing run
+46160207457 (owner-approved), owner-signed package `926e0386…`, staging gate
+46161452889, Sigstore-signed `SHA256SUMS`, verify-public 46162064035. Candidate
+`windows-x64-5de179e4080bc14b`. Its changes: the hardware video decoding switch
+in Settings → System (0118), the Settings polish (0117, 0119) and the refined
+Sunrise icon (#1773). blanc.day offers 159.0.8154.913.
+
+**Fifth Windows beta public, the first on Chromium 159 (2026-11-25):** Blanc Beta
+159.0.8154.910, GitHub pre-release `chromium-beta-windows-159.0.8154.910` at
+`afd08df8d` (never latest; v1.52.0 stayed latest), published 22:28 UTC through
+`windows-beta-prep.mjs` and `windows-release.mjs`, all ten stages: night
+`20261125-1417` passed 635 suite cases, with `F41:141` and `glance:538` passing on
+the rerun (suite 45686214807, rerun 45708657162, beta install 45686203201, capture
+45686208579), signing run 45710806198 (owner-approved), owner-signed package
+`6d1cbaa8…`, staging gate 45712323080, Sigstore-signed `SHA256SUMS`, verify-public
+45713571364. Candidate `windows-x64-738046910fd57976`. Its changes: Chromium
+159.0.8154.33 and the Spaces menu keeping its place as it closes (F41-27).
+blanc.day offers 159.0.8154.910.
+
 **Fourth Windows beta public, the first from a nightly (2026-11-23):** Blanc Beta
 158.0.8127.907, GitHub pre-release `chromium-beta-windows-158.0.8127.907` at
 `ed21560a7` (never latest; v1.52.0 stayed latest), published 13:20 UTC through
@@ -4155,6 +4221,14 @@ or release host appeared in the update proof's network logs.
 
 Open: DEP-11 metadata before the 158.0.8127.37 update; the 158.0.8127.37 Linux betas after the
 build server moves to .37; the ship note to the release-notes list (owner).
+
+**Blanc Beta for Linux 159.0.8154.912 is public (November 26, 2026)**, the first Linux beta on
+Chromium 159 (159.0.8154.33), published at 14:18 UTC from `afd08df8d` with 911 as its proof-only
+N-1. Update proof 45761487715 and repository lifecycle 45761910883 passed on all six legs, the
+VM hand check moved 911 to 912 through Restart to update (`chromium/linux/hand-checks-l3.md`), and
+verify-public 45839063871 passed on all six legs (its first run, 45837770153, failed only removing
+a smoke profile still being written, fixed in `2f6c07ece`). Production pkg.blanc.day is on
+generation 912; latest stayed v1.52.0. Ledger: `chromium/release/linux-ledger.json`.
 
 ## Android
 Betas and stable on Play, once production exists: `docs/android/channels.md` (nightly, weekly beta, four-weekly stable, security releases).

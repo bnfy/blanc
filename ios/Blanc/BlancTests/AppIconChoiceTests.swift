@@ -5,13 +5,15 @@ import UIKit
 final class AppIconChoiceTests: XCTestCase {
     func testCatalogOrderMatchesBrandBuild() {
         XCTAssertEqual(AppIconChoice.allCases.map(\.rawValue),
-                       ["sunrise", "sunrise-bronze", "sunrise-gold", "sunrise-dawn", "sunrise-dark",
+                       ["sunrise-amber-glass", "sunrise", "sunrise-bronze", "sunrise-gold", "sunrise-dawn", "sunrise-dark",
                         "sunrise-spectrum", "sunrise-amber"])
     }
 
-    func testSunriseIsPrimary() {
-        XCTAssertNil(AppIconChoice.sunrise.alternateIconName)
-        XCTAssertEqual(AppIconChoice.current(alternateIconName: nil), .sunrise)
+    func testSunriseAmberGlassIsPrimary() {
+        XCTAssertNil(AppIconChoice.sunriseAmberGlass.alternateIconName)
+        XCTAssertEqual(AppIconChoice.sunriseAmberGlass.label, "Sunrise Amber Glass")
+        XCTAssertEqual(AppIconChoice.sunrise.alternateIconName, "Sunrise")
+        XCTAssertEqual(AppIconChoice.current(alternateIconName: nil), .sunriseAmberGlass)
         XCTAssertEqual(AppIconChoice.sunrise.label, "Sunrise")
         XCTAssertEqual(AppIconChoice.sunriseGold.alternateIconName, "SunriseGold")
         XCTAssertEqual(AppIconChoice.sunriseBronze.alternateIconName, "SunriseBronze")
@@ -20,7 +22,7 @@ final class AppIconChoiceTests: XCTestCase {
     }
 
     func testAlternateNamesRoundTrip() {
-        for choice in AppIconChoice.allCases where choice != .sunrise {
+        for choice in AppIconChoice.allCases where choice != .sunriseAmberGlass {
             XCTAssertNotNil(choice.alternateIconName, choice.rawValue)
             XCTAssertEqual(AppIconChoice.current(alternateIconName: choice.alternateIconName), choice)
             if ![.sunriseDawn, .sunriseBronze].contains(choice) {
@@ -29,10 +31,9 @@ final class AppIconChoiceTests: XCTestCase {
         }
     }
 
-    func testUnknownNameIsSunrise() {
-        XCTAssertEqual(AppIconChoice.current(alternateIconName: "Ember"), .sunrise)
-        // Until 1.0.2 Sunrise was an alternate under this name; it is the
-        // primary now, so a phone that had chosen it still reads as Sunrise.
+    func testUnknownNameFallsBackToPrimary() {
+        XCTAssertEqual(AppIconChoice.current(alternateIconName: "Ember"), .sunriseAmberGlass)
+        // Older installations can still report the original Sunrise alternate.
         XCTAssertEqual(AppIconChoice.current(alternateIconName: "Sunrise"), .sunrise)
     }
 
@@ -58,20 +59,20 @@ final class AppIconChoiceTests: XCTestCase {
     func testChooseSwitches() async {
         let switcher = FakeIconSwitcher()
         let model = AppIconModel(switcher: switcher)
-        XCTAssertEqual(model.current, .sunrise)
+        XCTAssertEqual(model.current, .sunriseAmberGlass)
         await model.choose(.sunriseDawn)
         XCTAssertEqual(switcher.requested, ["SunriseDawn"])
         XCTAssertEqual(model.current, .sunriseDawn)
     }
 
-    func testChooseSunriseClearsName() async {
+    func testChoosePrimaryClearsName() async {
         let switcher = FakeIconSwitcher()
         switcher.alternateIconName = "SunriseAmber"
         let model = AppIconModel(switcher: switcher)
         XCTAssertEqual(model.current, .sunriseAmber)
-        await model.choose(.sunrise)
+        await model.choose(.sunriseAmberGlass)
         XCTAssertEqual(switcher.requested, [nil])
-        XCTAssertEqual(model.current, .sunrise)
+        XCTAssertEqual(model.current, .sunriseAmberGlass)
     }
 
     func testFailedSwitchKeepsCurrent() async {
@@ -84,13 +85,11 @@ final class AppIconChoiceTests: XCTestCase {
     }
 
     func testChoosingPrimaryClearsAStaleName() async {
-        // iOS still reports an icon name an earlier build had (Sunrise),
-        // which this build shows as the primary; choosing it must clear it.
         let switcher = FakeIconSwitcher()
-        switcher.alternateIconName = "Sunrise"
+        switcher.alternateIconName = "Ember"
         let model = AppIconModel(switcher: switcher)
-        XCTAssertEqual(model.current, .sunrise)
-        await model.choose(.sunrise)
+        XCTAssertEqual(model.current, .sunriseAmberGlass)
+        await model.choose(.sunriseAmberGlass)
         XCTAssertEqual(switcher.requested, [nil])
         XCTAssertNil(switcher.alternateIconName)
     }

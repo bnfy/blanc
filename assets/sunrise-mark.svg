@@ -1,27 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- The Blanc Sunrise mark, vector. Reserved identity asset (ASSET-LICENSE.md).
-     Placed on the same 1024 canvas as build/app-icons/Icon.icon/Assets/sunrise-mark.png,
-     so the website's clip percentages for horizon, disc, rays and reflection apply
-     unchanged. site/scripts/build-lockup-assets.mjs renders the website's exports from it. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
-<g transform="translate(89.10 87.87) scale(1.23931)">
-<defs>
- <radialGradient id="rimProfile" cx="340" cy="456" r="170" gradientUnits="userSpaceOnUse"><stop offset=".89" stop-color="#b88831"/><stop offset=".904" stop-color="#d9ac52"/><stop offset=".914" stop-color="#482c08"/><stop offset=".927" stop-color="#6f480e"/><stop offset=".944" stop-color="#c39b4c"/><stop offset=".959" stop-color="#fff0b5"/><stop offset=".97" stop-color="#e5c37b"/><stop offset=".985" stop-color="#ab7c28"/><stop offset="1" stop-color="#65430f"/></radialGradient>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+<radialGradient id="rimProfile" cx="340" cy="456" r="170" gradientUnits="userSpaceOnUse"><stop offset=".89" stop-color="#b88831"/><stop offset=".904" stop-color="#d9ac52"/><stop offset=".914" stop-color="#482c08"/><stop offset=".927" stop-color="#6f480e"/><stop offset=".944" stop-color="#c39b4c"/><stop offset=".959" stop-color="#fff0b5"/><stop offset=".97" stop-color="#e5c37b"/><stop offset=".985" stop-color="#ab7c28"/><stop offset="1" stop-color="#65430f"/></radialGradient>
  <linearGradient id="faceBase" x1="185" y1="355" x2="496" y2="420" gradientUnits="userSpaceOnUse"><stop stop-color="#805012"/><stop offset=".22" stop-color="#ab741e"/><stop offset=".46" stop-color="#d6a64c"/><stop offset=".64" stop-color="#bb8731"/><stop offset="1" stop-color="#8e5b12"/></linearGradient>
- <linearGradient id="rim" x1="340" y1="286" x2="340" y2="459" gradientUnits="userSpaceOnUse"><stop stop-color="#fff1b3"/><stop offset=".027" stop-color="#f3d78d"/><stop offset=".065" stop-color="#b5842e"/><stop offset=".19" stop-color="#d6a54c"/><stop offset=".55" stop-color="#ad731c"/><stop offset="1" stop-color="#9a6418"/></linearGradient>
  <linearGradient id="barGold" x1="0" y1="-12" x2="0" y2="12" gradientUnits="userSpaceOnUse"><stop stop-color="#4e320f"/><stop offset=".12" stop-color="#bf963e"/><stop offset=".24" stop-color="#f8e3a0"/><stop offset=".36" stop-color="#ccab67"/><stop offset=".5" stop-color="#8a662f"/><stop offset=".63" stop-color="#8c6220"/><stop offset=".82" stop-color="#c59436"/><stop offset=".93" stop-color="#8c5914"/><stop offset="1" stop-color="#4e330d"/></linearGradient>
  <linearGradient id="recess" x1="0" y1="-4.2" x2="0" y2="4.2" gradientUnits="userSpaceOnUse"><stop stop-color="#5b472c"/><stop offset=".3" stop-color="#181719"/><stop offset=".8" stop-color="#0d0e11"/><stop offset="1" stop-color="#685025"/></linearGradient>
  <linearGradient id="rayGold" x1="-10" y1="0" x2="10" y2="0" gradientUnits="userSpaceOnUse"><stop stop-color="#71501b"/><stop offset=".15" stop-color="#b38a37"/><stop offset=".3" stop-color="#f8df92"/><stop offset=".45" stop-color="#cda34d"/><stop offset=".65" stop-color="#936018"/><stop offset=".83" stop-color="#a97926"/><stop offset="1" stop-color="#614010"/></linearGradient>
  <linearGradient id="rayLight" x1="0" y1="0" x2="0" y2="250" gradientUnits="userSpaceOnUse"><stop stop-color="#ffefb1" stop-opacity=".25"/><stop offset=".2" stop-color="#e5b44f" stop-opacity=".05"/><stop offset="1" stop-color="#5a350a" stop-opacity=".18"/></linearGradient>
  <clipPath id="faceClip"><path d="M187 456 A153 153 0 0 1 493 456Z"/></clipPath>
-</defs>
-
-<g id="rays">
-<g id="ray-1" transform="translate(340 27) rotate(0.00000)">
-<path d="M0 0V228.000" stroke="#6d4813" stroke-opacity=".35" stroke-width="23" stroke-linecap="round"/>
-<path d="M0 0V228.000" stroke="url(#rayGold)" stroke-width="19.2" stroke-linecap="round"/>
-<path d="M-3.4 1V227.000" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6" stroke-linecap="round"/>
-<path d="M0 0V228.000" stroke="url(#rayLight)" stroke-width="14" stroke-linecap="round"/>
+<!-- Fine horizontal brushing and finer pores catch the light on the metal face. -->
+<filter id="fine-brushing" filterUnits="userSpaceOnUse" x="185" y="300" width="310" height="158" color-interpolation-filters="sRGB">
+  <feTurbulence type="fractalNoise" baseFrequency=".12 .84" numOctaves="2" seed="14" result="brush"/>
+  <feTurbulence type="fractalNoise" baseFrequency=".62 .71" numOctaves="2" seed="21"/>
+  <feComposite in2="brush" operator="arithmetic" k2=".37" k3=".63"/>
+  <feColorMatrix type="matrix" values="0 2.4 0 0 -.45  0 2.55 0 0 -.7  0 2.3 0 0 -.83  0 0 0 0 .12"/>
+</filter>
+<g id="ray-grain">
 <path d="M5.34 77.81v13.76" stroke="#5d390d" stroke-opacity="0.037" stroke-width=".3"/>
 <path d="M6.89 25.13v5.15" stroke="#fff2bd" stroke-opacity="0.033" stroke-width=".3"/>
 <path d="M0.50 154.99v12.56" stroke="#5d390d" stroke-opacity="0.071" stroke-width=".3"/>
@@ -40,151 +33,6 @@
 <path d="M2.68 10.19v10.70" stroke="#fff2bd" stroke-opacity="0.043" stroke-width=".3"/>
 <path d="M6.17 164.89v9.07" stroke="#fff2bd" stroke-opacity="0.063" stroke-width=".3"/>
 <path d="M-2.59 8.89v22.56" stroke="#fff2bd" stroke-opacity="0.097" stroke-width=".3"/>
-</g>
-<g id="ray-2" transform="translate(161 131) rotate(-29.82708)">
-<path d="M0 0V172.905" stroke="#6d4813" stroke-opacity=".35" stroke-width="23" stroke-linecap="round"/>
-<path d="M0 0V172.905" stroke="url(#rayGold)" stroke-width="19.2" stroke-linecap="round"/>
-<path d="M-3.4 1V171.905" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6" stroke-linecap="round"/>
-<path d="M0 0V172.905" stroke="url(#rayLight)" stroke-width="14" stroke-linecap="round"/>
-<path d="M-0.06 22.79v29.23" stroke="#fff2bd" stroke-opacity="0.068" stroke-width=".3"/>
-<path d="M-3.81 76.41v8.28" stroke="#5d390d" stroke-opacity="0.098" stroke-width=".3"/>
-<path d="M5.69 27.78v16.58" stroke="#fff2bd" stroke-opacity="0.070" stroke-width=".3"/>
-<path d="M0.60 11.22v7.80" stroke="#fff2bd" stroke-opacity="0.043" stroke-width=".3"/>
-<path d="M6.61 135.38v14.38" stroke="#fff2bd" stroke-opacity="0.095" stroke-width=".3"/>
-<path d="M6.43 15.61v16.81" stroke="#fff2bd" stroke-opacity="0.030" stroke-width=".3"/>
-<path d="M3.01 127.77v26.09" stroke="#5d390d" stroke-opacity="0.096" stroke-width=".3"/>
-<path d="M-1.19 102.93v18.33" stroke="#5d390d" stroke-opacity="0.029" stroke-width=".3"/>
-<path d="M-0.32 26.37v27.20" stroke="#fff2bd" stroke-opacity="0.053" stroke-width=".3"/>
-<path d="M7.39 140.65v22.74" stroke="#fff2bd" stroke-opacity="0.035" stroke-width=".3"/>
-<path d="M-6.77 90.65v10.17" stroke="#fff2bd" stroke-opacity="0.072" stroke-width=".3"/>
-<path d="M0.98 117.71v15.95" stroke="#5d390d" stroke-opacity="0.084" stroke-width=".3"/>
-<path d="M0.36 12.11v15.73" stroke="#5d390d" stroke-opacity="0.047" stroke-width=".3"/>
-<path d="M-4.59 72.87v13.36" stroke="#fff2bd" stroke-opacity="0.027" stroke-width=".3"/>
-<path d="M1.66 9.80v3.94" stroke="#fff2bd" stroke-opacity="0.032" stroke-width=".3"/>
-<path d="M3.83 15.49v18.47" stroke="#5d390d" stroke-opacity="0.081" stroke-width=".3"/>
-<path d="M-0.83 107.37v8.82" stroke="#5d390d" stroke-opacity="0.041" stroke-width=".3"/>
-<path d="M-4.57 64.91v19.99" stroke="#fff2bd" stroke-opacity="0.065" stroke-width=".3"/>
-</g>
-<g id="ray-3" transform="translate(58 228) rotate(-48.27768)">
-<path d="M0 0V160.776" stroke="#6d4813" stroke-opacity=".35" stroke-width="23" stroke-linecap="round"/>
-<path d="M0 0V160.776" stroke="url(#rayGold)" stroke-width="19.2" stroke-linecap="round"/>
-<path d="M-3.4 1V159.776" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6" stroke-linecap="round"/>
-<path d="M0 0V160.776" stroke="url(#rayLight)" stroke-width="14" stroke-linecap="round"/>
-<path d="M2.75 154.22v6.56" stroke="#fff2bd" stroke-opacity="0.088" stroke-width=".3"/>
-<path d="M-0.87 9.12v7.93" stroke="#fff2bd" stroke-opacity="0.046" stroke-width=".3"/>
-<path d="M1.26 146.75v14.02" stroke="#fff2bd" stroke-opacity="0.049" stroke-width=".3"/>
-<path d="M2.41 56.62v15.87" stroke="#fff2bd" stroke-opacity="0.060" stroke-width=".3"/>
-<path d="M-0.71 19.79v3.06" stroke="#fff2bd" stroke-opacity="0.071" stroke-width=".3"/>
-<path d="M-1.68 34.94v11.99" stroke="#5d390d" stroke-opacity="0.041" stroke-width=".3"/>
-<path d="M-1.59 105.00v20.65" stroke="#fff2bd" stroke-opacity="0.054" stroke-width=".3"/>
-<path d="M2.47 23.07v9.23" stroke="#fff2bd" stroke-opacity="0.057" stroke-width=".3"/>
-<path d="M0.04 97.49v3.48" stroke="#5d390d" stroke-opacity="0.041" stroke-width=".3"/>
-<path d="M-1.72 153.49v7.29" stroke="#5d390d" stroke-opacity="0.078" stroke-width=".3"/>
-<path d="M-1.57 62.15v17.98" stroke="#5d390d" stroke-opacity="0.088" stroke-width=".3"/>
-<path d="M-4.29 81.77v18.69" stroke="#fff2bd" stroke-opacity="0.080" stroke-width=".3"/>
-<path d="M-3.80 94.61v17.59" stroke="#5d390d" stroke-opacity="0.085" stroke-width=".3"/>
-<path d="M-0.58 146.17v14.61" stroke="#fff2bd" stroke-opacity="0.032" stroke-width=".3"/>
-<path d="M2.11 51.28v5.95" stroke="#fff2bd" stroke-opacity="0.036" stroke-width=".3"/>
-<path d="M7.32 21.32v18.89" stroke="#fff2bd" stroke-opacity="0.097" stroke-width=".3"/>
-<path d="M-5.21 37.53v13.48" stroke="#fff2bd" stroke-opacity="0.039" stroke-width=".3"/>
-<path d="M6.20 71.39v22.46" stroke="#5d390d" stroke-opacity="0.081" stroke-width=".3"/>
-</g>
-<g id="ray-4" transform="translate(41 384) rotate(-77.00538)">
-<path d="M0 0V106.733" stroke="#6d4813" stroke-opacity=".35" stroke-width="23" stroke-linecap="round"/>
-<path d="M0 0V106.733" stroke="url(#rayGold)" stroke-width="19.2" stroke-linecap="round"/>
-<path d="M-3.4 1V105.733" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6" stroke-linecap="round"/>
-<path d="M0 0V106.733" stroke="url(#rayLight)" stroke-width="14" stroke-linecap="round"/>
-<path d="M-5.20 48.79v5.75" stroke="#5d390d" stroke-opacity="0.032" stroke-width=".3"/>
-<path d="M1.88 96.93v9.80" stroke="#fff2bd" stroke-opacity="0.025" stroke-width=".3"/>
-<path d="M3.69 89.50v3.91" stroke="#fff2bd" stroke-opacity="0.068" stroke-width=".3"/>
-<path d="M-1.36 94.78v11.95" stroke="#5d390d" stroke-opacity="0.064" stroke-width=".3"/>
-<path d="M5.53 21.42v15.59" stroke="#5d390d" stroke-opacity="0.088" stroke-width=".3"/>
-<path d="M-4.97 14.10v16.30" stroke="#5d390d" stroke-opacity="0.064" stroke-width=".3"/>
-<path d="M6.00 67.56v25.95" stroke="#fff2bd" stroke-opacity="0.029" stroke-width=".3"/>
-<path d="M1.34 22.68v20.81" stroke="#5d390d" stroke-opacity="0.047" stroke-width=".3"/>
-<path d="M-2.51 14.16v26.92" stroke="#fff2bd" stroke-opacity="0.045" stroke-width=".3"/>
-<path d="M1.32 15.61v28.06" stroke="#fff2bd" stroke-opacity="0.032" stroke-width=".3"/>
-<path d="M-3.20 70.45v10.97" stroke="#fff2bd" stroke-opacity="0.032" stroke-width=".3"/>
-<path d="M-3.89 57.76v15.41" stroke="#fff2bd" stroke-opacity="0.097" stroke-width=".3"/>
-<path d="M-6.85 26.67v28.46" stroke="#5d390d" stroke-opacity="0.040" stroke-width=".3"/>
-<path d="M-5.31 4.82v14.51" stroke="#fff2bd" stroke-opacity="0.071" stroke-width=".3"/>
-<path d="M-2.07 44.25v29.98" stroke="#5d390d" stroke-opacity="0.063" stroke-width=".3"/>
-<path d="M-6.64 24.41v25.69" stroke="#fff2bd" stroke-opacity="0.060" stroke-width=".3"/>
-<path d="M-1.38 27.02v20.60" stroke="#5d390d" stroke-opacity="0.027" stroke-width=".3"/>
-<path d="M-3.38 95.66v11.07" stroke="#fff2bd" stroke-opacity="0.099" stroke-width=".3"/>
-</g>
-<g id="ray-5" transform="translate(519 131) rotate(30.39873)">
-<path d="M0 0V173.908" stroke="#6d4813" stroke-opacity=".35" stroke-width="23" stroke-linecap="round"/>
-<path d="M0 0V173.908" stroke="url(#rayGold)" stroke-width="19.2" stroke-linecap="round"/>
-<path d="M-3.4 1V172.908" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6" stroke-linecap="round"/>
-<path d="M0 0V173.908" stroke="url(#rayLight)" stroke-width="14" stroke-linecap="round"/>
-<path d="M-1.46 67.17v14.25" stroke="#5d390d" stroke-opacity="0.049" stroke-width=".3"/>
-<path d="M-3.11 75.41v20.46" stroke="#fff2bd" stroke-opacity="0.036" stroke-width=".3"/>
-<path d="M-1.48 150.80v23.11" stroke="#fff2bd" stroke-opacity="0.037" stroke-width=".3"/>
-<path d="M3.28 22.21v4.44" stroke="#fff2bd" stroke-opacity="0.076" stroke-width=".3"/>
-<path d="M4.46 63.07v17.67" stroke="#5d390d" stroke-opacity="0.052" stroke-width=".3"/>
-<path d="M-3.72 126.98v29.84" stroke="#fff2bd" stroke-opacity="0.069" stroke-width=".3"/>
-<path d="M5.10 40.01v22.43" stroke="#5d390d" stroke-opacity="0.054" stroke-width=".3"/>
-<path d="M6.71 150.80v23.10" stroke="#5d390d" stroke-opacity="0.055" stroke-width=".3"/>
-<path d="M-5.83 63.44v10.42" stroke="#5d390d" stroke-opacity="0.063" stroke-width=".3"/>
-<path d="M-2.67 27.23v7.30" stroke="#5d390d" stroke-opacity="0.068" stroke-width=".3"/>
-<path d="M-2.88 140.07v6.76" stroke="#fff2bd" stroke-opacity="0.076" stroke-width=".3"/>
-<path d="M2.10 6.76v15.16" stroke="#5d390d" stroke-opacity="0.054" stroke-width=".3"/>
-<path d="M-1.48 140.71v23.66" stroke="#fff2bd" stroke-opacity="0.027" stroke-width=".3"/>
-<path d="M-1.95 117.79v22.15" stroke="#5d390d" stroke-opacity="0.027" stroke-width=".3"/>
-<path d="M-1.26 134.66v11.03" stroke="#fff2bd" stroke-opacity="0.064" stroke-width=".3"/>
-<path d="M-2.35 77.25v20.97" stroke="#fff2bd" stroke-opacity="0.042" stroke-width=".3"/>
-<path d="M5.23 156.69v17.22" stroke="#5d390d" stroke-opacity="0.090" stroke-width=".3"/>
-<path d="M-1.96 80.78v9.15" stroke="#5d390d" stroke-opacity="0.070" stroke-width=".3"/>
-</g>
-<g id="ray-6" transform="translate(622 228) rotate(48.74764)">
-<path d="M0 0V162.274" stroke="#6d4813" stroke-opacity=".35" stroke-width="23" stroke-linecap="round"/>
-<path d="M0 0V162.274" stroke="url(#rayGold)" stroke-width="19.2" stroke-linecap="round"/>
-<path d="M-3.4 1V161.274" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6" stroke-linecap="round"/>
-<path d="M0 0V162.274" stroke="url(#rayLight)" stroke-width="14" stroke-linecap="round"/>
-<path d="M-4.46 18.50v29.95" stroke="#fff2bd" stroke-opacity="0.048" stroke-width=".3"/>
-<path d="M4.36 15.92v8.02" stroke="#5d390d" stroke-opacity="0.025" stroke-width=".3"/>
-<path d="M7.15 125.79v10.09" stroke="#fff2bd" stroke-opacity="0.033" stroke-width=".3"/>
-<path d="M0.13 156.31v5.96" stroke="#5d390d" stroke-opacity="0.095" stroke-width=".3"/>
-<path d="M-2.70 23.31v24.63" stroke="#fff2bd" stroke-opacity="0.068" stroke-width=".3"/>
-<path d="M3.17 61.87v27.65" stroke="#5d390d" stroke-opacity="0.050" stroke-width=".3"/>
-<path d="M4.32 120.61v13.85" stroke="#5d390d" stroke-opacity="0.090" stroke-width=".3"/>
-<path d="M6.56 46.12v12.52" stroke="#fff2bd" stroke-opacity="0.061" stroke-width=".3"/>
-<path d="M-6.17 142.74v7.88" stroke="#fff2bd" stroke-opacity="0.030" stroke-width=".3"/>
-<path d="M-4.20 116.71v12.91" stroke="#fff2bd" stroke-opacity="0.050" stroke-width=".3"/>
-<path d="M-4.58 97.22v13.79" stroke="#fff2bd" stroke-opacity="0.097" stroke-width=".3"/>
-<path d="M3.67 150.24v12.04" stroke="#5d390d" stroke-opacity="0.069" stroke-width=".3"/>
-<path d="M-3.46 156.61v5.66" stroke="#5d390d" stroke-opacity="0.048" stroke-width=".3"/>
-<path d="M-2.51 55.37v6.17" stroke="#5d390d" stroke-opacity="0.080" stroke-width=".3"/>
-<path d="M-5.53 138.80v23.47" stroke="#5d390d" stroke-opacity="0.035" stroke-width=".3"/>
-<path d="M0.73 62.60v4.47" stroke="#fff2bd" stroke-opacity="0.053" stroke-width=".3"/>
-<path d="M-1.04 34.67v28.87" stroke="#fff2bd" stroke-opacity="0.029" stroke-width=".3"/>
-<path d="M0.83 48.11v19.67" stroke="#fff2bd" stroke-opacity="0.085" stroke-width=".3"/>
-</g>
-<g id="ray-7" transform="translate(640 384) rotate(77.00538)">
-<path d="M0 0V106.733" stroke="#6d4813" stroke-opacity=".35" stroke-width="23" stroke-linecap="round"/>
-<path d="M0 0V106.733" stroke="url(#rayGold)" stroke-width="19.2" stroke-linecap="round"/>
-<path d="M-3.4 1V105.733" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6" stroke-linecap="round"/>
-<path d="M0 0V106.733" stroke="url(#rayLight)" stroke-width="14" stroke-linecap="round"/>
-<path d="M5.11 39.99v12.03" stroke="#fff2bd" stroke-opacity="0.028" stroke-width=".3"/>
-<path d="M2.76 58.93v23.82" stroke="#5d390d" stroke-opacity="0.046" stroke-width=".3"/>
-<path d="M-6.22 87.39v13.83" stroke="#5d390d" stroke-opacity="0.051" stroke-width=".3"/>
-<path d="M-6.96 92.70v14.03" stroke="#5d390d" stroke-opacity="0.043" stroke-width=".3"/>
-<path d="M5.38 63.35v9.72" stroke="#fff2bd" stroke-opacity="0.074" stroke-width=".3"/>
-<path d="M-0.13 46.33v27.79" stroke="#5d390d" stroke-opacity="0.059" stroke-width=".3"/>
-<path d="M3.52 81.68v25.05" stroke="#5d390d" stroke-opacity="0.078" stroke-width=".3"/>
-<path d="M-4.98 19.77v14.51" stroke="#fff2bd" stroke-opacity="0.081" stroke-width=".3"/>
-<path d="M-4.63 45.30v26.45" stroke="#fff2bd" stroke-opacity="0.034" stroke-width=".3"/>
-<path d="M-0.16 46.27v9.08" stroke="#fff2bd" stroke-opacity="0.070" stroke-width=".3"/>
-<path d="M-0.77 28.50v18.89" stroke="#5d390d" stroke-opacity="0.093" stroke-width=".3"/>
-<path d="M3.35 6.79v28.25" stroke="#fff2bd" stroke-opacity="0.070" stroke-width=".3"/>
-<path d="M1.87 15.84v28.64" stroke="#fff2bd" stroke-opacity="0.029" stroke-width=".3"/>
-<path d="M-0.54 85.15v11.38" stroke="#5d390d" stroke-opacity="0.044" stroke-width=".3"/>
-<path d="M-5.53 87.36v3.82" stroke="#5d390d" stroke-opacity="0.069" stroke-width=".3"/>
-<path d="M6.11 46.82v18.02" stroke="#5d390d" stroke-opacity="0.041" stroke-width=".3"/>
-<path d="M4.10 81.83v7.79" stroke="#5d390d" stroke-opacity="0.090" stroke-width=".3"/>
-<path d="M1.10 25.10v27.88" stroke="#fff2bd" stroke-opacity="0.040" stroke-width=".3"/>
-</g>
 </g>
 <g id="sun-disc">
  <path id="rim-under-shadow" d="M174 457A166 166 0 0 1 506 457" stroke="#604114" stroke-opacity=".35" stroke-width="8"/>
@@ -346,49 +194,113 @@
 <path d="M184 454.5H496" stroke="url(#brush-454)" stroke-width="2.0"/>
 <path d="M184 455.5H496" stroke="url(#brush-455)" stroke-width="2.0"/>
 <path d="M184 456.5H496" stroke="url(#brush-456)" stroke-width="2.0"/>
+<rect x="185" y="300" width="310" height="158" filter="url(#fine-brushing)"/>
 </g></g>
-<g id="horizon-and-reflection">
-<g id="bar-1" transform="translate(0 470)">
-<path d="M33 1H648" stroke="#5b390c" stroke-opacity=".3" stroke-width="26" stroke-linecap="round"/>
-<path d="M33 0H648" stroke="url(#barGold)" stroke-width="23" stroke-linecap="round"/>
-<path d="M32 -7H649" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1" stroke-linecap="round"/>
-<path d="M33 0H648" stroke="url(#recess)" stroke-width="8.4" stroke-linecap="round"/>
-<path d="M33 5.5H648" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7" stroke-linecap="round"/>
-</g>
-<g id="bar-2" transform="translate(0 508)">
-<path d="M95 1H585" stroke="#5b390c" stroke-opacity=".3" stroke-width="26" stroke-linecap="round"/>
-<path d="M95 0H585" stroke="url(#barGold)" stroke-width="23" stroke-linecap="round"/>
-<path d="M94 -7H586" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1" stroke-linecap="round"/>
-<path d="M95 0H585" stroke="url(#recess)" stroke-width="8.4" stroke-linecap="round"/>
-<path d="M95 5.5H585" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7" stroke-linecap="round"/>
-</g>
-<g id="bar-3" transform="translate(0 546)">
-<path d="M148 1H487" stroke="#5b390c" stroke-opacity=".3" stroke-width="26" stroke-linecap="round"/>
-<path d="M148 0H487" stroke="url(#barGold)" stroke-width="23" stroke-linecap="round"/>
-<path d="M147 -7H488" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1" stroke-linecap="round"/>
-<path d="M148 0H487" stroke="url(#recess)" stroke-width="8.4" stroke-linecap="round"/>
-<path d="M148 5.5H487" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7" stroke-linecap="round"/>
-</g>
-<g id="bar-4" transform="translate(0 582)">
-<path d="M221 1H460" stroke="#5b390c" stroke-opacity=".3" stroke-width="26" stroke-linecap="round"/>
-<path d="M221 0H460" stroke="url(#barGold)" stroke-width="23" stroke-linecap="round"/>
-<path d="M220 -7H461" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1" stroke-linecap="round"/>
-<path d="M221 0H460" stroke="url(#recess)" stroke-width="8.4" stroke-linecap="round"/>
-<path d="M221 5.5H460" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7" stroke-linecap="round"/>
-</g>
-<g id="bar-5" transform="translate(0 618)">
-<path d="M288 1H393" stroke="#5b390c" stroke-opacity=".3" stroke-width="26" stroke-linecap="round"/>
-<path d="M288 0H393" stroke="url(#barGold)" stroke-width="23" stroke-linecap="round"/>
-<path d="M287 -7H394" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1" stroke-linecap="round"/>
-<path d="M288 0H393" stroke="url(#recess)" stroke-width="8.4" stroke-linecap="round"/>
-<path d="M288 5.5H393" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7" stroke-linecap="round"/>
-</g>
-<g id="bar-6" transform="translate(0 649)">
-<path d="M325 1H355" stroke="#5b390c" stroke-opacity=".3" stroke-width="26" stroke-linecap="round"/>
-<path d="M325 0H355" stroke="url(#barGold)" stroke-width="23" stroke-linecap="round"/>
-<path d="M324 -7H356" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1" stroke-linecap="round"/>
-<path d="M325 0H355" stroke="url(#recess)" stroke-width="8.4" stroke-linecap="round"/>
-<path d="M325 5.5H355" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7" stroke-linecap="round"/>
-</g>
-</g></g>
+</defs>
+  <g id="rays"><g transform="translate(120.10244 502.59981) rotate(-72) scale(1.61724)" stroke-linecap="round">
+    <path d="M0 0V97.42259" stroke="#785319" stroke-width="23"/>
+    <path d="M0 0V97.42259" stroke="url(#rayGold)" stroke-width="19.2"/>
+    <path d="M-3.4 1V96.42259" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6"/>
+    <path d="M0 0V97.42259" stroke="url(#rayLight)" stroke-width="14"/>
+    <path d="M-8.2 0a8.2 8.2 0 0 1 11.6 -7.45" stroke="#fff0bf" stroke-opacity=".79" stroke-width="1.05"/>
+    <path d="M8.3 97.42259a8.3 8.3 0 0 1 -8.3 8.3" stroke="#d1a452" stroke-opacity=".70" stroke-width=".9"/>
+    <use xlink:href="#ray-grain" transform="scale(1 0.42729)"/>
+  </g>
+    <g transform="translate(185.77718 336.20269) rotate(-48) scale(1.61724)" stroke-linecap="round">
+    <path d="M0 0V112.43442" stroke="#785319" stroke-width="23"/>
+    <path d="M0 0V112.43442" stroke="url(#rayGold)" stroke-width="19.2"/>
+    <path d="M-3.4 1V111.43442" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6"/>
+    <path d="M0 0V112.43442" stroke="url(#rayLight)" stroke-width="14"/>
+    <path d="M-8.2 0a8.2 8.2 0 0 1 11.6 -7.45" stroke="#fff0bf" stroke-opacity=".79" stroke-width="1.05"/>
+    <path d="M8.3 112.43442a8.3 8.3 0 0 1 -8.3 8.3" stroke="#d1a452" stroke-opacity=".70" stroke-width=".9"/>
+    <use xlink:href="#ray-grain" transform="scale(1 0.49313)"/>
+  </g>
+    <g transform="translate(321.38607 201.80915) rotate(-24) scale(1.61724)" stroke-linecap="round">
+    <path d="M0 0V128.92014" stroke="#785319" stroke-width="23"/>
+    <path d="M0 0V128.92014" stroke="url(#rayGold)" stroke-width="19.2"/>
+    <path d="M-3.4 1V127.92014" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6"/>
+    <path d="M0 0V128.92014" stroke="url(#rayLight)" stroke-width="14"/>
+    <path d="M-8.2 0a8.2 8.2 0 0 1 11.6 -7.45" stroke="#fff0bf" stroke-opacity=".79" stroke-width="1.05"/>
+    <path d="M8.3 128.92014a8.3 8.3 0 0 1 -8.3 8.3" stroke="#d1a452" stroke-opacity=".70" stroke-width=".9"/>
+    <use xlink:href="#ray-grain" transform="scale(1 0.56544)"/>
+  </g>
+    <g transform="translate(512 148.56752) rotate(0) scale(1.61724)" stroke-linecap="round">
+    <path d="M0 0V135.97059" stroke="#785319" stroke-width="23"/>
+    <path d="M0 0V135.97059" stroke="url(#rayGold)" stroke-width="19.2"/>
+    <path d="M-3.4 1V134.97059" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6"/>
+    <path d="M0 0V135.97059" stroke="url(#rayLight)" stroke-width="14"/>
+    <path d="M-8.2 0a8.2 8.2 0 0 1 11.6 -7.45" stroke="#fff0bf" stroke-opacity=".79" stroke-width="1.05"/>
+    <path d="M8.3 135.97059a8.3 8.3 0 0 1 -8.3 8.3" stroke="#d1a452" stroke-opacity=".70" stroke-width=".9"/>
+    <use xlink:href="#ray-grain" transform="scale(1 0.59636)"/>
+  </g>
+    <g transform="translate(702.61393 201.80915) rotate(24) scale(1.61724)" stroke-linecap="round">
+    <path d="M0 0V128.92014" stroke="#785319" stroke-width="23"/>
+    <path d="M0 0V128.92014" stroke="url(#rayGold)" stroke-width="19.2"/>
+    <path d="M-3.4 1V127.92014" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6"/>
+    <path d="M0 0V128.92014" stroke="url(#rayLight)" stroke-width="14"/>
+    <path d="M-8.2 0a8.2 8.2 0 0 1 11.6 -7.45" stroke="#fff0bf" stroke-opacity=".79" stroke-width="1.05"/>
+    <path d="M8.3 128.92014a8.3 8.3 0 0 1 -8.3 8.3" stroke="#d1a452" stroke-opacity=".70" stroke-width=".9"/>
+    <use xlink:href="#ray-grain" transform="scale(1 0.56544)"/>
+  </g>
+    <g transform="translate(838.22282 336.20269) rotate(48) scale(1.61724)" stroke-linecap="round">
+    <path d="M0 0V112.43442" stroke="#785319" stroke-width="23"/>
+    <path d="M0 0V112.43442" stroke="url(#rayGold)" stroke-width="19.2"/>
+    <path d="M-3.4 1V111.43442" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6"/>
+    <path d="M0 0V112.43442" stroke="url(#rayLight)" stroke-width="14"/>
+    <path d="M-8.2 0a8.2 8.2 0 0 1 11.6 -7.45" stroke="#fff0bf" stroke-opacity=".79" stroke-width="1.05"/>
+    <path d="M8.3 112.43442a8.3 8.3 0 0 1 -8.3 8.3" stroke="#d1a452" stroke-opacity=".70" stroke-width=".9"/>
+    <use xlink:href="#ray-grain" transform="scale(1 0.49313)"/>
+  </g>
+    <g transform="translate(903.89756 502.59981) rotate(72) scale(1.61724)" stroke-linecap="round">
+    <path d="M0 0V97.42259" stroke="#785319" stroke-width="23"/>
+    <path d="M0 0V97.42259" stroke="url(#rayGold)" stroke-width="19.2"/>
+    <path d="M-3.4 1V96.42259" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6"/>
+    <path d="M0 0V97.42259" stroke="url(#rayLight)" stroke-width="14"/>
+    <path d="M-8.2 0a8.2 8.2 0 0 1 11.6 -7.45" stroke="#fff0bf" stroke-opacity=".79" stroke-width="1.05"/>
+    <path d="M8.3 97.42259a8.3 8.3 0 0 1 -8.3 8.3" stroke="#d1a452" stroke-opacity=".70" stroke-width=".9"/>
+    <use xlink:href="#ray-grain" transform="scale(1 0.42729)"/>
+  </g></g>
+  <use id="sun" xlink:href="#sun-disc" transform="translate(512 629.93504) scale(1.27421 1.31926) translate(-340 -456)"/>
+  <g id="horizon-and-reflections"><g transform="translate(130.84444 642.84444) scale(1.31282)" stroke-linecap="round">
+    <path d="M0 0H580.66667" stroke="#644313" stroke-width="26"/>
+    <path d="M0 0H580.66667" stroke="url(#barGold)" stroke-width="23"/>
+    <path d="M-1 -7H581.66667" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1"/>
+    <path d="M0 0H580.66667" stroke="url(#recess)" stroke-width="8.4"/>
+    <path d="M0 5.5H580.66667" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7"/>
+  </g>
+    <g transform="translate(207.64444 691.2) scale(1.09402)" stroke-linecap="round">
+    <path d="M0 0H556.4" stroke="#644313" stroke-width="26"/>
+    <path d="M0 0H556.4" stroke="url(#barGold)" stroke-width="23"/>
+    <path d="M-1 -7H557.4" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1"/>
+    <path d="M0 0H556.4" stroke="url(#recess)" stroke-width="8.4"/>
+    <path d="M0 5.5H556.4" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7"/>
+  </g>
+    <g transform="translate(298.66667 736.71111) scale(1.09402)" stroke-linecap="round">
+    <path d="M0 0H390" stroke="#644313" stroke-width="26"/>
+    <path d="M0 0H390" stroke="url(#barGold)" stroke-width="23"/>
+    <path d="M-1 -7H391" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1"/>
+    <path d="M0 0H390" stroke="url(#recess)" stroke-width="8.4"/>
+    <path d="M0 5.5H390" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7"/>
+  </g>
+    <g transform="translate(361.24444 782.22222) scale(1.09402)" stroke-linecap="round">
+    <path d="M0 0H275.6" stroke="#644313" stroke-width="26"/>
+    <path d="M0 0H275.6" stroke="url(#barGold)" stroke-width="23"/>
+    <path d="M-1 -7H276.6" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1"/>
+    <path d="M0 0H275.6" stroke="url(#recess)" stroke-width="8.4"/>
+    <path d="M0 5.5H275.6" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7"/>
+  </g>
+    <g transform="translate(440.88889 827.73333) scale(1.09402)" stroke-linecap="round">
+    <path d="M0 0H130" stroke="#644313" stroke-width="26"/>
+    <path d="M0 0H130" stroke="url(#barGold)" stroke-width="23"/>
+    <path d="M-1 -7H131" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1"/>
+    <path d="M0 0H130" stroke="url(#recess)" stroke-width="8.4"/>
+    <path d="M0 5.5H130" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7"/>
+  </g>
+    <g transform="translate(492.08889 873.24444) scale(1.09402)" stroke-linecap="round">
+    <path d="M0 0H36.4" stroke="#644313" stroke-width="26"/>
+    <path d="M0 0H36.4" stroke="url(#barGold)" stroke-width="23"/>
+    <path d="M-1 -7H37.4" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1"/>
+    <path d="M0 0H36.4" stroke="url(#recess)" stroke-width="8.4"/>
+    <path d="M0 5.5H36.4" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7"/>
+  </g></g>
 </svg>

@@ -59,7 +59,7 @@ wordBox.h = wordBox.w * wordView[3] / wordView[2];
 const round = (n) => Number(n.toFixed(3));
 const compose = (color, viewBox) => {
   const w = word(color);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox.join(' ')}" width="${viewBox[2]}" height="${viewBox[3]}" role="img" aria-label="Blanc">
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="${viewBox.join(' ')}" width="${viewBox[2]}" height="${viewBox[3]}" role="img" aria-label="Blanc">
 <svg x="${round(mark.x)}" y="${round(mark.y)}" width="${round(mark.size)}" height="${round(mark.size)}" viewBox="0 0 1024 1024" fill="none">${markInner}</svg>
 <svg x="${round(wordBox.x)}" y="${round(wordBox.y)}" width="${round(wordBox.w)}" height="${round(wordBox.h)}" viewBox="${w.viewBox}">${w.path}</svg>
 </svg>\n`;

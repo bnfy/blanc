@@ -460,8 +460,8 @@ From the desktop `DEFAULTS`:
   on a light tile (Arc's graded gray for Spectrum, cream for Amber) that darkens in Dark. Older ids, including the monogram `gold`, are
   retired; any stale or hand-set retired id falls back to `sunrise`.
 - iPhone Settings → Appearance → App icon offers those five plus
-  `sunrise-bronze` (Sunrise Bronze) and `sunrise-dawn` (Sunrise Dawn), both
-  iPhone only; Sunrise is the standard icon, as on the Mac. All seven are
+  `sunrise-amber-glass` (Sunrise Amber Glass, the iOS default),
+  `sunrise-bronze` (Sunrise Bronze) and `sunrise-dawn` (Sunrise Dawn). All eight are
   Icon Composer packages, and iOS itself remembers the choice (D33).
 - Patron is optional support and unlocks nothing: Blanc Spaces (F41) is free
   for everyone, and icon variants were never a Patron benefit. Renderers only
@@ -2018,6 +2018,18 @@ candidate branch (PR 1); not in a public release.
   opens it. An unused start page stays behind. If any page can't go to a
   Space (a private tab, sound, camera or microphone, screen sharing, a pop-up),
   nothing moves and the menu says why.
+- **Switch to tabs and Spaces** (#1734 part 2, `docs/superpowers/specs/2026-11-28-mini-window-switch-design.md`).
+  A mini window's search also finds the profile's tabs in its other windows
+  and in its Spaces set aside (held or saved), each saying where it is, and
+  offers Spaces again. Picking a tab brings its window forward, or opens its
+  Space, with that tab selected; picking a Space goes to it. Nothing moves. An
+  untouched mini window then closes; one holding pages stays. Private tabs,
+  other mini windows and other profiles' tabs are never listed.
+- **Links from other apps** (#1734 part 3, `docs/superpowers/specs/2026-11-28-mini-window-links-design.md`).
+  With Settings → General → Open links from other apps in a mini window on
+  (off by default, device-local), a link from another app that no link rule
+  claims opens in a mini window: the open one of its profile, as a new tab,
+  or a new one with the link as its only tab. Link rules still win.
 - **Mobile.** Not applicable.
 - **Acceptance:** `spec/acceptance/mini-window.feature`.
 

@@ -23,6 +23,10 @@ export function islandFiles(spec=JSON.parse(fs.readFileSync(path.join(root,'blan
   if(!files.has(served))problems.push('missing shipping copy '+served);
   else if(!files.get(served).equals(shipped))problems.push('shipping copy differs '+served);
  }
+ for(const [served,source] of Object.entries(spec.brandFiles)){
+  const brand=fs.readFileSync(path.join(root,'..',source));
+  if(!files.get(served)?.equals(brand))problems.push('brand copy differs '+served);
+ }
  for(const [p,data] of files)if(spec.manifest[p]!==sha(data))problems.push((spec.manifest[p]?'changed ':'unlisted ')+p);
  for(const p of Object.keys(spec.manifest))if(!files.has(p))problems.push('missing '+p);
  for(const p of served())if(!spec.manifest[p])problems.push('served but unlisted '+p);
@@ -31,10 +35,17 @@ export function islandFiles(spec=JSON.parse(fs.readFileSync(path.join(root,'blan
 if(process.argv[1]===fileURLToPath(import.meta.url)){
  const out=process.argv.find(a=>a.startsWith('--out='))?.slice(6);
  if(!out&&!process.argv.includes('--check'))throw Error('Usage: assets.mjs --check | --out=DIR');
- const {files,problems}=islandFiles();
+ const spec=JSON.parse(fs.readFileSync(path.join(root,'blanc/island-assets.json')));
+ const {files,problems}=islandFiles(spec);
  if(problems.length)throw Error('Island assets differ from the manifest:\n'+problems.join('\n'));
  if(out){
   if(fs.existsSync(out))throw Error('Refusing to overwrite '+out);
+  // Brand artwork follows the shared files in this checkout.
+  for(const [served,source] of Object.entries(spec.brandFiles??{})){
+   const brand=fs.readFileSync(path.join(root,'..',source));
+   if(!files.get(served)?.equals(brand))problems.push('brand copy differs '+served);
+  }
+  if(problems.length)throw Error('Island assets differ from the brand files:\n'+problems.join('\n'));
   for(const [p,data] of files){const d=path.join(out,p);fs.mkdirSync(path.dirname(d),{recursive:true});fs.writeFileSync(d,data);}
  }
  console.log(`${files.size} island assets match the manifest`+(out?`; assembled in ${out}`:''));

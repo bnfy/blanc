@@ -1,27 +1,194 @@
 {
   "fill": {
-    "automatic-gradient": "extended-srgb:0.96863,0.94118,0.89804,1.00000"
+    "automatic-gradient": "extended-srgb:0.69804,0.48235,0.21176,1.00000"
   },
-  "fill-specializations": [
-    {
-      "appearance": "dark",
-      "value": {
-        "automatic-gradient": "extended-srgb:0.10980,0.10196,0.08627,1.00000"
-      }
-    }
-  ],
   "groups": [
     {
+      "name": "Water",
       "layers": [
         {
+          "name": "Horizon",
+          "image-name": "Horizon.svg",
           "glass": false,
-          "image-name": "sunrise-mark.png",
-          "name": "Sunrise"
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
         }
       ],
+      "lighting": "individual",
+      "specular": false,
       "shadow": {
         "kind": "neutral",
-        "opacity": 0.25
+        "opacity": 0
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0.12
+      }
+    },
+    {
+      "name": "Rays and reflections",
+      "layers": [
+        {
+          "name": "Reflection 1",
+          "image-name": "Reflection 1.svg",
+          "glass": false,
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
+        },
+        {
+          "name": "Reflection 2",
+          "image-name": "Reflection 2.svg",
+          "glass": false,
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
+        },
+        {
+          "name": "Reflection 3",
+          "image-name": "Reflection 3.svg",
+          "glass": false,
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
+        },
+        {
+          "name": "Reflection 4",
+          "image-name": "Reflection 4.svg",
+          "glass": false,
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
+        },
+        {
+          "name": "Reflection 5",
+          "image-name": "Reflection 5.svg",
+          "glass": false,
+          "opacity": 1,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
+        },
+        {
+          "name": "Seven rays",
+          "image-name": "Rays.svg",
+          "glass": false,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
+        }
+      ],
+      "lighting": "individual",
+      "specular": false,
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0.5
+      }
+    },
+    {
+      "name": "Pearl",
+      "layers": [
+        {
+          "name": "Rising sun",
+          "image-name": "Sun.svg",
+          "glass": true,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
+        }
+      ],
+      "lighting": "individual",
+      "specular": true,
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.07
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.23
+      }
+    },
+    {
+      "name": "Amber and light",
+      "layers": [
+        {
+          "name": "Ray shadows",
+          "image-name": "Ray shadows.png",
+          "glass": false,
+          "hidden-specializations": [
+            {
+              "appearance": "tinted",
+              "value": true
+            }
+          ],
+          "opacity": 0.58,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              -34.13333333333333
+            ]
+          }
+        },
+        {
+          "name": "Amber",
+          "image-name": "Amber.png",
+          "glass": false,
+          "hidden-specializations": [
+            {
+              "appearance": "tinted",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "lighting": "individual",
+      "specular": false,
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
       },
       "translucency": {
         "enabled": false,
@@ -30,9 +197,8 @@
     }
   ],
   "supported-platforms": {
-    "circles": [
-      "watchOS"
-    ],
-    "squares": "shared"
+    "squares": [
+      "iOS"
+    ]
   }
 }

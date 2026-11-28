@@ -1654,6 +1654,7 @@ body > .tab-drag-ghost[aria-hidden="true"] {
    the place the Space mark takes in an ordinary one (a mini window holds no
    Space, so the mark and the panel's Spaces button are hidden there). */
 #pillMiniOpen,
+#pillMiniSpaces,
 :root[data-platform="linux"] #pillRestartToUpdate {
   appearance: none;
   display: inline-flex;
@@ -1674,11 +1675,20 @@ body > .tab-drag-ghost[aria-hidden="true"] {
   flex: 0 0 auto;
   transition: background-color 120ms ease, border-color 120ms ease;
 }
-#pillMiniOpen svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+#pillMiniOpen svg,
+#pillMiniSpaces svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 #pillMiniOpen:hover,
-#pillMiniOpen:focus-visible { background: var(--accent-dim); border-color: transparent; }
-#pillMiniOpen:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-#pillMiniOpen[hidden] { display: none; }
+#pillMiniOpen:focus-visible,
+#pillMiniSpaces:enabled:hover,
+#pillMiniSpaces:focus-visible,
+#pillMiniSpaces[aria-expanded="true"] { background: var(--accent-dim); border-color: transparent; }
+#pillMiniOpen:focus-visible,
+#pillMiniSpaces:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+#pillMiniOpen[hidden],
+#pillMiniSpaces[hidden] { display: none; }
+#pillMiniSpaces { padding: 0; width: 22px; justify-content: center; }
+#pillMiniSpaces svg { width: 13px; height: 13px; stroke-width: 1.8; }
+#pillMiniSpaces:disabled { opacity: 0.45; cursor: default; }
 :root[data-mini-window] #pillSpace,
 :root[data-mini-window] #footerWorkspace { display: none !important; }
 

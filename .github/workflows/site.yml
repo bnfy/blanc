@@ -13,21 +13,15 @@ on:
       - 'site/**'
       - 'test/site/**'
       - 'package.json'
+      - 'package-lock.json'
       - 'scripts/generate-site-changelog.mjs'
       - 'scripts/ci-apt-mirror.sh'
       - 'assets/wordmark/**'
       - 'assets/sunrise-mark.svg'
       - '.github/workflows/site.yml'
-  pull_request:
-    paths:
-      - 'site/**'
-      - 'test/site/**'
-      - 'package.json'
-      - 'scripts/generate-site-changelog.mjs'
-      - 'scripts/ci-apt-mirror.sh'
-      - 'assets/wordmark/**'
-      - 'assets/sunrise-mark.svg'
-      - '.github/workflows/site.yml'
+      - '.github/workflows/unit-tests.yml'
+      - 'scripts/ci-website-paths.sh'
+  workflow_call:
 
 # A new push to a pull request cancels that PR's older run. Pushes to main,
 # schedules and manual dispatches each get their own group (run_id), so

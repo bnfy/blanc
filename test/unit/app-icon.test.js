@@ -70,11 +70,12 @@ test('every selectable colorway has a named native icon stack', () => {
       assert.ok(fs.existsSync(path.join(imageDir, image)), `${image} exists in ${imageDir}`);
     }
   }
-  // Colorway layers live outside the default package so it stays unchanged.
-  assert.deepEqual(
-    fs.readdirSync(path.join(root, 'build/app-icons/Icon.icon/Assets')).sort(),
-    ['blanc-mark.svg', 'sunrise-mark.png'],
-  );
+  const classic = path.join(root, 'build/app-icons/Icon.icon');
+  const { groups } = JSON.parse(fs.readFileSync(path.join(classic, 'icon.json')));
+  const named = groups.flatMap(group => group.layers.map(layer => layer['image-name']));
+  assert.deepEqual(groups.map(group => group.layers.length), [6, 7, 1]);
+  for (const file of named) assert.ok(fs.existsSync(path.join(classic, 'Assets', file)), file);
+
 });
 
 test('the Sunrise Gold stack is a glass mark over per-appearance gold tiles', () => {
@@ -185,17 +186,10 @@ test('packaging wires the Icon Composer source and multi-colorway compiler', () 
     path.join(root, 'build/app-icons/Icon.icon/icon.json'),
     'utf8',
   ));
-  assert.equal(source.groups[0].layers[0]['image-name'], 'sunrise-mark.png');
-  assert.equal(source.groups[0].layers[0]['fill-specializations'], undefined);
+  assert.deepEqual(source.groups.map(group => group.name), ['Horizon and reflections', 'Rays', 'Sun']);
+  assert.ok(source.groups.every(group => group.shadow.opacity === 0 && group.specular === false));
   assert.equal(source['fill-specializations'][0].appearance, 'dark');
-  assert.equal(
-    source['fill-specializations'][0].value['automatic-gradient'],
-    'extended-srgb:0.10980,0.10196,0.08627,1.00000',
-  );
-
-  const generated = createIconDocument(APP_ICON_ASSETS.sunrise);
-  assert.deepEqual(generated['fill-specializations'], source['fill-specializations']);
-  assert.equal(generated.groups[0].layers[0]['image-name'], 'sunrise-mark.png');
+  assert.equal(source['fill-specializations'][0].value.solid, 'extended-srgb:0.109804,0.101961,0.086275,1.000000');
 });
 
 test('packaging wires fixed Sunrise icons on Windows and Linux', () => {
@@ -225,7 +219,7 @@ test('Windows ICOs preserve the canonical Sunrise proportions while omitting thr
     path.relative(root, SOURCE_ICON),
     path.join('build/app-icons/Icon.icon/Assets/sunrise-mark.png'),
   );
-  assert.equal(WINDOWS_SOURCE_CROP_HEIGHT, 784);
+  assert.equal(WINDOWS_SOURCE_CROP_HEIGHT, 760);
   assert.equal(WINDOWS_VISIBLE_SCALE, 1);
   const ico = fs.readFileSync(path.join(root, 'build/windows-icons/icon-sunrise.ico'));
   const frameIndex = ICON_SIZES.indexOf(32);
@@ -247,8 +241,8 @@ test('Windows ICOs preserve the canonical Sunrise proportions while omitting thr
   }
   assert.equal(opaqueBounds.minX, 0);
   assert.equal(opaqueBounds.maxX, 31);
-  assert.ok(opaqueBounds.minY <= 2, `top inset is ${opaqueBounds.minY}px`);
-  assert.ok(opaqueBounds.maxY >= 28, `bottom edge is ${opaqueBounds.maxY}px`);
+  assert.ok(opaqueBounds.minY === 4, `top inset is ${opaqueBounds.minY}px`);
+  assert.ok(opaqueBounds.maxY >= 27, `bottom edge is ${opaqueBounds.maxY}px`);
 
   for (const [x, y] of [[0, 0], [31, 0], [0, 31], [31, 31]]) {
     assert.equal(data[((y * info.width) + x) * info.channels + 3], 0, `corner ${x},${y} is transparent`);
@@ -690,7 +684,7 @@ test('the adaptive Sunrise artwork matches the flat icon scale and omits the det
     `Icon Composer artwork sits at ${(composedOffset * 100).toFixed(2)}% of tile width off center `
     + `but the flat icon sits at ${(flatOffset * 100).toFixed(2)}%.`,
   );
-  assert.ok(composed.height > 780 && composed.height < 820, 'artwork stays large within the icon safe area');
+  assert.ok(composed.height >= 755 && composed.height <= 762, 'artwork stays large within the icon safe area');
 
   const { data, info } = await sharp(nativeLayer).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   let lowestRow = -1;
@@ -747,7 +741,7 @@ test('the Sunrise Gold artwork matches the flat icon scale and stays a fixed gol
     assert.ok(near(data.subarray(offset, offset + 3), '#FFF7E6', 4), 'the glass layer is a cream silhouette');
   }
   const native = await markBoundsOf(sharp(markPath), (_r, _g, _b, a) => a > 24);
-  assert.ok(native.height > 780 && native.height < 820, 'artwork stays large within the icon safe area');
+  assert.ok(native.height >= 755 && native.height <= 762, 'artwork stays large within the icon safe area');
 
   const flat = path.join(root, 'src/renderer/pages/icon-sunrise-gold.png');
   const tile = await markBoundsOf(sharp(flat), (_r, _g, _b, a) => a > 250);
@@ -796,14 +790,14 @@ test('the Spectrum and Amber artwork keeps one mark size in the native and flat 
     const nativeHeight = native.maxY - native.minY + 1;
     const nativeWidth = native.maxX - native.minX + 1;
     assert.ok(nativeWidth > 790 && nativeWidth < 840, `${prefix} artwork stays large within the safe area`);
-    assert.ok(nativeHeight > 765 && nativeHeight < 815, `${prefix} artwork spans rays to water`);
-    // The sun is an outlined ring, open in the middle, not a solid disc.
+    assert.ok(nativeHeight >= 755 && nativeHeight <= 762, `${prefix} artwork spans rays to water`);
+    // The refined sun is a continuous disc across the center of the mark.
     const sun = await sharp(layer('sun')).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     const sunBounds = await markBoundsOf(sharp(layer('sun')), (_r, _g, _b, a) => a > 128);
     const row = Math.round(sunBounds.minY + sunBounds.height * 0.7);
     const alphaAt = (x) => sun.data[((row * sun.info.width) + x) * sun.info.channels + 3];
-    assert.ok(alphaAt(512) < 24, `${prefix} sun is open in the middle`);
-    assert.ok(alphaAt(sunBounds.minX + 12) > 200 && alphaAt(sunBounds.maxX - 12) > 200, `${prefix} sun is a ring`);
+    assert.ok(alphaAt(512) > 240, `${prefix} sun fills the middle`);
+    assert.ok(alphaAt(sunBounds.minX + 12) > 200 && alphaAt(sunBounds.maxX - 12) > 200, `${prefix} sun reaches both edges`);
     // Like the Sunrise artwork, the middle ray stands tallest: the topmost
     // pixels are its tip, centered on the canvas.
     const raysBounds = await markBoundsOf(sharp(layer('rays')), visible);

@@ -239,6 +239,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   siteInfoForgetCertificateException: () => ipcRenderer.invoke('chrome:site-info-forget-certificate-exception'),
   sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
   keepMiniWindow: () => ipcRenderer.invoke('chrome:mini-keep'),
+  // Switch to tabs elsewhere from a mini window (#1734 part 2).
+  listMiniSwitchTabs: () => ipcRenderer.invoke('chrome:mini-switch-tabs'),
+  goToMiniSwitchTab: (key) => ipcRenderer.invoke('chrome:mini-switch-go', key),
   inviteFriend: () => ipcRenderer.invoke('chrome:invite-friend'),
   ...(ONE_PASSWORD_AVAILABLE ? {
     fillLoginFromOnePassword: () => ipcRenderer.invoke('chrome:onepassword-fill'),

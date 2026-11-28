@@ -24,6 +24,7 @@ const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-ges
 const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
 const { normalizeLinkRoutes, validateLinkRoutes } = require('./link-routes');
 const { normalizeWidgets, migrateFromLayout } = require('./start-widgets');
+const { normalizeDownloadFolder } = require('./download-folder');
 const {
   isValidSearchTemplate,
   searchUrlFromTemplate,
@@ -272,6 +273,10 @@ const DEFAULTS = {
   askWhereToSave: false,
   // Device-local. Windows reads this once before Chromium starts its GPU process.
   hardwareVideoDecoding: true,
+  // #1780: the folder downloads go to, '' for the system's Downloads folder.
+  // Device-local (a path means nothing on another device), never in
+  // SYNCED_KEYS, written ONLY by setDownloadFolder() (download-folder.js).
+  downloadFolder: '',
   // Palette of the internal pages; device-local, not Profile Synced.
   surfaceStyle: 'sunrise',
   // Floating Glance: the card's remembered size and place, as fractions of
@@ -299,6 +304,9 @@ const DEFAULTS = {
   // default: a global shortcut takes the chord from every other app.
   // Device-local, not Profile Synced (chords differ by platform).
   miniWindowShortcut: 'off',
+  // Links from other apps that no rule claims open in a mini window (#1734
+  // part 3). Device-local, like the shortcut; off by default.
+  miniWindowForLinks: false,
   // The resting Island's size (#1292). Device-local, not Profile Synced.
   islandSize: 'default',
   // Default page zoom in percent. Device-local, not Profile Synced; each
@@ -591,6 +599,7 @@ function getSettings() {
   if (typeof data.reuseNewTab !== 'boolean') data.reuseNewTab = DEFAULTS.reuseNewTab;
   if (typeof data.hardwareVideoDecoding !== 'boolean') data.hardwareVideoDecoding = DEFAULTS.hardwareVideoDecoding;
   if (typeof data.askWhereToSave !== 'boolean') data.askWhereToSave = DEFAULTS.askWhereToSave;
+  data.downloadFolder = normalizeDownloadFolder(data.downloadFolder, null);
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -629,6 +638,7 @@ function getSettings() {
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
   if (!VERTICAL_TABS_TEXT_SIZES.includes(data.verticalTabsTextSize)) data.verticalTabsTextSize = DEFAULTS.verticalTabsTextSize;
   if (!MINI_WINDOW_SHORTCUT_IDS.includes(data.miniWindowShortcut)) data.miniWindowShortcut = DEFAULTS.miniWindowShortcut;
+  if (typeof data.miniWindowForLinks !== 'boolean') data.miniWindowForLinks = DEFAULTS.miniWindowForLinks;
   if (!ISLAND_SIZES.includes(data.islandSize)) data.islandSize = DEFAULTS.islandSize;
   data.pageZoom = normalizePageZoom(data.pageZoom);
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
@@ -713,6 +723,7 @@ function sanitize(partial) {
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (VERTICAL_TABS_TEXT_SIZES.includes(partial.verticalTabsTextSize)) clean.verticalTabsTextSize = partial.verticalTabsTextSize;
   if (MINI_WINDOW_SHORTCUT_IDS.includes(partial.miniWindowShortcut)) clean.miniWindowShortcut = partial.miniWindowShortcut;
+  if (typeof partial.miniWindowForLinks === 'boolean') clean.miniWindowForLinks = partial.miniWindowForLinks;
   if (ISLAND_SIZES.includes(partial.islandSize)) clean.islandSize = partial.islandSize;
   if (DEFAULT_ZOOM_OPTIONS.includes(partial.pageZoom)) clean.pageZoom = partial.pageZoom;
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
@@ -953,6 +964,17 @@ function setLinkRoutes(routes) {
   ensureStore().update((data) => { data.linkRoutes = result.routes; });
   for (const fn of listeners) fn(getSettings());
   return { ok: true, routes: structuredClone(result.routes) };
+}
+
+/** The download folder's private write path (#1780); setSettings()'s
+ * whitelist has no downloadFolder, so a page can't name a path. Main passes a
+ * folder the person picked in a dialog, or '' for the system's Downloads
+ * folder. Returns the stored value. */
+function setDownloadFolder(folder, systemFolder) {
+  const next = normalizeDownloadFolder(folder, systemFolder);
+  ensureStore().update((data) => { data.downloadFolder = next; });
+  for (const fn of listeners) fn(getSettings());
+  return next;
 }
 
 /** The Start Page's widgets, cleaned (start-widgets.js). */
@@ -1203,6 +1225,7 @@ module.exports = {
   setUiLanguage,
   setGlanceFrame,
   setLinkRoutes,
+  setDownloadFolder,
   getNewtabWidgets,
   setNewtabWidgets,
   isPatronActive,

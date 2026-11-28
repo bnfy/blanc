@@ -1,0 +1,70 @@
+diff --git a/chrome/browser/ui/startup/startup_browser_creator_impl.cc b/chrome/browser/ui/startup/startup_browser_creator_impl.cc
+index 423951a..124680c 100644
+--- a/chrome/browser/ui/startup/startup_browser_creator_impl.cc
++++ b/chrome/browser/ui/startup/startup_browser_creator_impl.cc
+@@ -76,6 +76,7 @@
+ #include "url/gurl.h"
+ #include "url/origin.h"
+ #include "blanc/common/island_mode.h"
++#include "blanc/browser/ui/blanc_prototype_ui.h"
+ 
+ #if BUILDFLAG(IS_LINUX)
+ #include "base/nix/xdg_util.h"
+@@ -500,6 +501,23 @@ BrowserWindowInterface* StartupBrowserCreatorImpl::OpenTabsInBrowser(
+   return browser;
+ }
+ 
++#if !BUILDFLAG(IS_MAC)
++namespace {
++// Local HTML files (N15) on Windows and Linux: a file the system asks Blanc to
++// open (Open With, a file manager, a second launch) goes through Blanc's own
++// grant path, as the Mac's app controller hands it over (patch 0066). Left as
++// a Chromium startup tab, Blanc's local file gate refuses it and the tab stays
++// blank. Returns whether every given tab was such a file.
++bool HandOffLocalFiles(StartupTabs& tabs) {
++  const size_t given = tabs.size();
++  std::erase_if(tabs, [](const StartupTab& tab) {
++    return tab.url.SchemeIsFile() && blanc_prototype::OpenExternalLink(tab.url);
++  });
++  return given > 0 && tabs.empty();
++}
++}  // namespace
++#endif
++
+ void StartupBrowserCreatorImpl::DetermineURLsAndLaunch(
+     chrome::startup::IsProcessStartup process_startup,
+     bool restore_tabbed_browser) {
+@@ -548,6 +566,21 @@ void StartupBrowserCreatorImpl::DetermineURLsAndLaunch(
+ 
+   const bool whats_new_enabled =
+       whats_new::ShouldShowForState(local_state, promotions_enabled);
++#if !BUILDFLAG(IS_MAC)
++  // Blanc is already running: when the launch only names local HTML files,
++  // they open as tabs in a Blanc window and no other window opens.
++  if (process_startup == chrome::startup::IsProcessStartup::kNo) {
++    StartupTabs given = StartupTabProviderImpl().GetCommandLineTabs(
++        *command_line_, cur_dir_, profile_);
++    if (!given.empty() &&
++        std::ranges::all_of(given, [](const StartupTab& tab) {
++          return tab.url.SchemeIsFile();
++        }) &&
++        HandOffLocalFiles(given)) {
++      return;
++    }
++  }
++#endif
+ 
+   auto result = DetermineStartupTabs(
+       StartupTabProviderImpl(), process_startup, is_incognito_or_guest,
+@@ -674,6 +707,11 @@ StartupBrowserCreatorImpl::DetermineStartupTabs(
+     bool whats_new_enabled) {
+   StartupTabs tabs =
+       provider.GetCommandLineTabs(*command_line_, cur_dir_, profile_);
++#if !BUILDFLAG(IS_MAC)
++  // A local HTML file opens through Blanc's grant path (N15), whatever else
++  // the launch names; the rest start as usual.
++  HandOffLocalFiles(tabs);
++#endif
+   LaunchResult launch_result =
+       tabs.empty() ? LaunchResult::kNormally : LaunchResult::kWithGivenUrls;
+ 

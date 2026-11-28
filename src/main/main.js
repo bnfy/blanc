@@ -29,6 +29,7 @@ const {
   windowStatePersistenceOptions,
 } = require('./window-state-persistence');
 const miniWindow = require('./mini-window');
+const miniSwitch = require('./mini-switch');
 
 // Electron's default uncaught-exception path raises a native modal dialog,
 // which can leave the acceptance runner reporting green while app.close()
@@ -73,6 +74,7 @@ const { createDarkWebsitesService } = require('./dark-websites-service');
 const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
 const { inputMatchesAccelerator, menuAccelerator } = require('./menu-accelerators');
 const { queueTabNavigation, reloadContents } = require('./tab-navigation');
+const { typedHttpsFallback } = require('./typed-https-fallback');
 const { outageReloadTarget } = require('./ublock-recovery');
 const islandProximity = require('./island-proximity');
 const {
@@ -205,6 +207,7 @@ const siteMutes = createSiteMutes();
 const { shouldSamplePageTint, isPageTintSignal } = require('./page-tint-policy');
 const { createPageTintController } = require('./page-tint-controller');
 const { validFavicon } = require('./bookmark-validate');
+const { resolveDownloadFolder, normalizeDownloadFolder } = require('./download-folder');
 const {
   setupDownloads,
   setDownloadRequesterCheck,
@@ -1649,13 +1652,26 @@ const externalUrlHandoff = createExternalUrlHandoff({
   isReady: () => externalUrlsFlushable,
   isQuitting: () => isQuitting,
   getRuntime: (preferred, destination, placement) => destination
-    ? routedExternalRuntime(destination, preferred, placement) : resolveExternalRuntime(preferred),
-  ensureWindow: (runtime, { background = false } = {}) => createMainWindow(runtime, { ensureStartTab: true, inactive: background }),
+    ? routedExternalRuntime(destination, preferred, placement) : externalFallbackRuntime(preferred, placement),
+  // A mini window made for a link (#1734 part 3) opens without a start tab:
+  // the link is its only tab.
+  ensureWindow: (runtime, { background = false } = {}) => {
+    const fresh = runtime.miniForLink === true;
+    runtime.miniForLink = false;
+    createMainWindow(runtime, { ensureStartTab: !fresh, inactive: background });
+  },
   isWindowReady: (runtime) => runtime.chromeReady && !runtime.closing
     && runtime.window && !runtime.window.isDestroyed(),
   withRuntime: withWindowRuntime,
   routeFor: linkRouteDestination,
-  createTab: (url, { destination, ...options } = {}) => createRoutedTab(url, destination, options),
+  createTab: (url, { destination, ...options } = {}) => {
+    const id = createRoutedTab(url, destination, options);
+    // A link joining a mini window that isn't in front restarts its hour, so
+    // it doesn't close with a tab nobody has seen (#1734 part 3).
+    const runtime = rt();
+    if (runtime.mini && !runtime.window?.isFocused()) armMiniWindowIdle(runtime);
+    return id;
+  },
   activateTab: (id) => setActiveTab(id),
   revealWindow: (window) => bringExternalWindowToFront(app, window),
 });
@@ -6727,6 +6743,12 @@ function navigateTabToAddress(id, rawText, { shared = false } = {}) {
     return;
   }
   rt().tabsWantingAddressBarFocus.delete(id);
+  // An address from the address bar (a bare domain, an https:// address or a
+  // bang) drops back to HTTP once if HTTPS fails to connect or fails TLS
+  // (typed-https-fallback.js; the fork's typed_https_fallback.h agrees). A
+  // Shared Space tab following another device's navigation never does: nobody
+  // typed that address here.
+  tab.typedHttpsFallback = shared ? null : typedHttpsFallback(bang ? bang.url : rawText, target);
   // A quiet tab navigates in one step: restore() and a navigation are mutually
   // exclusive, so this spends the snapshot and loads the target directly.
   if (tab.asleep) {
@@ -12447,10 +12469,17 @@ function registerIpcHandlers() {
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-open', (_e, id, opts) => {
-    // A mini window (#1138) holds no Space and reaches no other profile's:
-    // choosing one of its profile's Spaces moves its tabs there (#1734).
-    // Only the menu's move mode asks (`move`); switching by name stays refused.
-    if (rt().mini) return opts?.move !== true || otherProfileTarget(opts) ? { ok: false, error: 'busy' } : { ...moveMiniWindowToSpace(rt(), id, null, { showError: false }), ...workspacesProjection() };
+    // A mini window (#1138) holds no Space. Its Spaces menu's move mode
+    // (`move`) files its tabs into one of its profile's (#1734); a Space
+    // picked by name (the Quick Switcher, /space) is gone to, any profile's,
+    // and nothing moves (#1734 part 2).
+    if (rt().mini) {
+      if (opts?.move === true) return otherProfileTarget(opts) ? { ok: false, error: 'busy' } : { ...moveMiniWindowToSpace(rt(), id, null, { showError: false }), ...workspacesProjection() };
+      const mini = rt();
+      const { result: went } = openSpaceInProfile({ profileId: otherProfileTarget(opts) ?? mini.profileId, spaceId: id });
+      if (went.ok) { hideOverlay({ refocusContent: false }); closeMiniWindowIfUntouched(mini); }
+      return went.ok ? { ...went, ...workspacesProjection() } : went;
+    }
     // Another profile's Space opens in a window of that profile; this window
     // and its tabs are never touched (spec 2026-11-19 D1).
     const otherProfile = otherProfileTarget(opts);
@@ -12636,6 +12665,14 @@ function registerIpcHandlers() {
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
   // Mini Window (#1138): the Island's Open in Blanc keeps this window.
   chromeHandle('chrome:mini-keep', () => keepMiniWindow(rt()));
+  // Switch to tabs elsewhere (#1734 part 2): never while a private tab is
+  // in front, as the Archive (F52).
+  chromeHandle('chrome:mini-switch-tabs', () => {
+    const runtime = rt();
+    if (!runtime.mini || tabs.get(runtime.activeTabId)?.private) return [];
+    return miniSwitch.miniSwitchRows(miniSwitchInputs(runtime));
+  });
+  chromeHandle('chrome:mini-switch-go', (_e, key) => goToMiniSwitchTab(rt(), key));
   chromeHandle('chrome:invite-friend', () => inviteFriendNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
@@ -14028,13 +14065,41 @@ function miniWindowPlacement() {
 
 /** The profile a mini window opens in: the last ordinary window's. */
 function miniWindowProfileId() {
-  const candidates = windowRuntimes.all().filter((runtime) => !runtime.mini && !runtime.resident && !runtime.closing);
+  // A primary closed to the Dock (macOS) still names the profile.
+  const candidates = windowRuntimes.all().filter((runtime) => !runtime.mini && !runtime.resident && (!runtime.closing || runtime.dockClosed));
   const recent = [focusedRuntime, ...candidates.sort((a, b) =>
     (runtimeFocusSerials.get(b) ?? 0) - (runtimeFocusSerials.get(a) ?? 0))]
     .find((runtime) => runtime && !runtime.mini && candidates.includes(runtime));
   const profileId = recent?.profileId ?? DEFAULT_PROFILE_ID;
   return localProfiles.getLocalProfile(profileId) && !profileDeletions.hasPendingProfileDeletion(profileId)
     ? profileId : DEFAULT_PROFILE_ID;
+}
+
+/** Where a link from another app goes when no rule claims it: a mini window
+ * with the setting on (#1734 part 3), else the ordinary fallback. A new mini
+ * window is made only at the routed step (with a placement), never when the
+ * link is first queued, so a link a rule claims leaves none behind. */
+function externalFallbackRuntime(preferred, placement) {
+  // Local HTML files never go to a mini window (they're not web links).
+  if (placement?.localFile) return resolveExternalRuntime(preferred);
+  if (settings.getSettings().miniWindowForLinks) {
+    // A re-queued link keeps the mini window it started with.
+    if (preferred?.mini && !preferred.closing && windowRuntimes.all().includes(preferred)) return preferred;
+    return miniLinkRuntime({ create: !!placement }) ?? resolveExternalRuntime(preferred);
+  }
+  return resolveExternalRuntime(preferred);
+}
+
+/** The mini window a link joins, or (with `create`) a new mini runtime whose
+ * window the handoff opens without a start tab. */
+function miniLinkRuntime({ create = false } = {}) {
+  const profileId = miniWindowProfileId();
+  const open = miniWindow.miniWindowForLink(windowRuntimes.all(), profileId, (r) => runtimeFocusSerials.get(r) ?? 0);
+  if (open || !create) return open;
+  const runtime = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId });
+  runtime.mini = true;
+  runtime.miniForLink = true;
+  return runtime;
 }
 
 /** Open a mini window: a blank page with the Island's search focused. */
@@ -14150,6 +14215,93 @@ function moveMiniWindowToSpace(runtime, workspaceId, creation = null, { showErro
   runtime.window.close();
   openSpaceInProfile({ profileId, spaceId });
   return result;
+}
+
+/** Switch to tabs elsewhere (#1734 part 2, spec 2026-11-28): the inputs of
+ * miniSwitchRows. Every live runtime of the mini window's profile (a held
+ * Space's set-aside runtime included, named by its Space), and the Space
+ * records no runtime holds. */
+function miniSwitchInputs(runtime) {
+  // A window closed to the Dock (macOS) keeps its tabs and comes back for one.
+  const live = windowRuntimes.all().filter((r) => r.profileId === runtime.profileId && (!r.closing || r.dockClosed));
+  const shown = new Set(live.map((r) => r.workspaceId).filter(Boolean));
+  return {
+    windows: live.map((r) => ({
+      self: r === runtime, mini: r.mini === true, spaceId: r.workspaceId ?? null,
+      place: r.workspaceId ? namedWorkspaces.get(r.workspaceId)?.name ?? null : null,
+      tabs: r.tabOrder.map((id) => tabs.get(id)).filter(Boolean)
+        .map((t) => ({ id: t.id, title: displayTitle(t) || '', url: t.url, favicon: t.favicon, private: !!t.private })),
+    })),
+    saved: namedWorkspaces.list().filter((w) => !shown.has(w.id))
+      .map((w) => ({ id: w.id, name: w.name, urls: w.urls, meta: w.meta })),
+  };
+}
+
+/** After going somewhere from a mini window, it closes if it is untouched:
+ * nothing in it but an unused start page (part 1's test). */
+function closeMiniWindowIfUntouched(runtime) {
+  if (!runtime?.mini || miniWindowMoveCandidates(runtime)) return false;
+  runtime.window.close();
+  return true;
+}
+
+function focusMiniSwitchTarget(target) {
+  if (!target?.window || target.window.isDestroyed()) return;
+  if (target.window.isMinimized()) target.window.restore();
+  target.window.show();
+  target.window.focus();
+}
+
+/** A pick from a mini window's switcher: the key is resolved again here.
+ * A tab in a window on screen brings that window forward with it selected;
+ * one in a Space set aside (held, or saved only) opens the Space with it
+ * selected. Nothing moves or is duplicated; a tab gone since the list was
+ * built answers `gone`. */
+function goToMiniSwitchTab(runtime, key) {
+  const gone = { ok: false, error: 'gone' };
+  const parsed = miniSwitch.parseMiniSwitchKey(key);
+  if (!runtime?.mini || !parsed) return gone;
+  const { profileId } = runtime;
+  // A window on screen; a held Space's runtime, or a window closed to the
+  // Dock (closing, its window gone), opens through the Spaces controller.
+  const live = (r) => !!r && !r.resident && !r.closing && !!r.window && !r.window.isDestroyed();
+  const open = (spaceId) => {
+    const { result, runtime: shown } = openSpaceInProfile({ profileId, spaceId });
+    return result.ok && shown ? shown : null;
+  };
+  let target = null, select = null;
+  if (parsed.kind === 'tab') {
+    const tab = tabs.get(parsed.tabId), owner = windowRuntimes.runtimeForTab(parsed.tabId);
+    if (!tab || !owner) {
+      // Gone since the list was built (closed, or its held Space let go):
+      // its Space, if it had one, is still worth showing.
+      // A Space still on screen only lost the tab: say so rather than show it.
+      if (!parsed.spaceId || !namedWorkspaces.get(parsed.spaceId) || live(workspaceOwner(runtime, parsed.spaceId))) return gone;
+      target = open(parsed.spaceId);
+    } else {
+      if (tab.private || owner === runtime || owner.mini || owner.profileId !== profileId) return gone;
+      if (owner.dockClosed && !owner.workspaceId) { createMainWindow(owner, { ensureStartTab: false }); target = owner; }
+      else if (!live(owner) && !owner.workspaceId) return gone;
+      else target = live(owner) ? owner : open(owner.workspaceId);
+      select = parsed.tabId;
+    }
+  } else {
+    const record = namedWorkspaces.get(parsed.spaceId), url = record?.urls?.[parsed.index];
+    if (!record || !url) return gone;
+    const owner = workspaceOwner(runtime, parsed.spaceId);
+    target = live(owner) ? owner : open(parsed.spaceId);
+    // Restoring can drop or reorder rows: the tab with the address nearest
+    // its saved place.
+    if (target) select = miniSwitch.nearestTabByUrl(target.tabOrder.map((id) => ({ id, url: tabs.get(id)?.url })), url, parsed.index);
+  }
+  if (!target) return { ok: false, error: 'busy' };
+  // The mini window's panel closes without taking focus back from the window
+  // it sent you to (settleElsewhere's rule, F41-86).
+  withWindowRuntime(runtime, () => hideOverlay({ refocusContent: false }));
+  if (select && target.tabOrder.includes(select)) withWindowRuntime(target, () => setActiveTab(select));
+  focusMiniSwitchTarget(target);
+  closeMiniWindowIfUntouched(runtime);
+  return { ok: true };
 }
 
 /** File → Move to Space ▸ in a mini window: the profile's Spaces, then New
@@ -16008,10 +16160,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setDownloadRequesterCheck((wc) => runtimeForPageWebContents(wc)?.resident !== true);
   setDownloadActivityObserver(peekIslandForDownload);
   // #1591: unless the person asked to choose, downloads save straight to the
-  // Downloads folder under a free name.
+  // download folder under a free name: the system's Downloads folder, or the
+  // one chosen in Settings (#1780), where Save As also opens.
   setDownloadSavePolicy({
     askWhereToSave: () => settings.getSettings().askWhereToSave === true,
-    folder: () => app.getPath('downloads'),
+    folder: () => resolveDownloadFolder(settings.getSettings().downloadFolder, app.getPath('downloads')),
+    dialogFolder: () => normalizeDownloadFolder(settings.getSettings().downloadFolder, app.getPath('downloads')),
   });
   setupDownloads(ses, broadcastDownloadsActivity, {
     private: false,

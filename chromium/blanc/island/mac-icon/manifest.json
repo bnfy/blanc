@@ -1,9 +1,9 @@
 {
-  "fingerprint": "92b3426d43cbd0557ee7df6a9e648a2c07379ccd4ce422a00c90ca30ab8cb03c",
+  "fingerprint": "914b2c3a9f52a41718b61806634f811b3c17277373de7655278d9226974fe234",
   "colorway": "sunrise-dark",
-  "toolVersion": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>com.apple.actool.version</key>\n\t<dict>\n\t\t<key>bundle-version</key>\n\t\t<string>25098</string>\n\t\t<key>short-bundle-version</key>\n\t\t<string>27.1</string>\n\t</dict>\n</dict>\n</plist>",
+  "toolVersion": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>com.apple.actool.version</key>\n\t<dict>\n\t\t<key>bundle-version</key>\n\t\t<string>25408</string>\n\t\t<key>short-bundle-version</key>\n\t\t<string>27.2</string>\n\t</dict>\n</dict>\n</plist>",
   "outputs": {
-    "BlancDK.icns": "d34201f7710f10d7943193f4afb3bda378acba1b96381468245f553d7234a8c1",
-    "Assets.car": "66a32d12bed6d48587c6fcb792d25063b5b77f18ae873fd5a2f66e715c8828eb"
+    "BlancDK.icns": "9e1331786b060c8638a790b2da65d028f2e57072e7ac17d1512d2c7df0066c25",
+    "Assets.car": "abed2fcef6d646a2801a4d60464c2b1d22b7f3e83fbad3b4c9caababc49ef920"
   }
 }

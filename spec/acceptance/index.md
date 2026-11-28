@@ -315,6 +315,11 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F61-6 | Moving a mini window to a Space closes it and shows the Space | — | ✅ | ➖ | ➖ |
 | F61-7 | A mini window moves to a new Space, unless a page in it can't move | — | ✅ | ➖ | ➖ |
 | F61-8 | Moving a mini window to a Space already on screen brings that window forward | — | ✅ | ➖ | ➖ |
+| F61-9 | A mini window's search goes to a tab in another window | — | ✅ | ➖ | ➖ |
+| F61-10 | A mini window's search opens a Space set aside at the tab picked | — | ✅ | ➖ | ➖ |
+| F61-11 | Going to a Space by name leaves a mini window that holds a page | — | ✅ | ➖ | ➖ |
+| F61-12 | With the setting on, links from other apps open in a mini window | — | ✅ | ➖ | ➖ |
+| F61-13 | A link rule still wins over the mini window | — | ✅ | ➖ | ➖ |
 | F63-1 | The Favorites menu shows nested folders as submenus | D40 | ✅ | ⬜ | ⬜ |
 | F63-2 | /save files the page into a nested folder by its name or by a path | D40 | ✅ | ⬜ | ⬜ |
 | F63-3 | Editing a favorite changes its name and address, and its Start Page pin follows | D40 | ✅ | ⬜ | ⬜ |

@@ -11,3 +11,4 @@ runbook and `ledger.json`.
 - 2026-11-20 2.0.0-beta.8 (build 8) from `e41e713fa`, candidate `macos-935addb507628d06`, DMG `90dc07574913…`; checks run again: sparkle-N-to-N+1, desktop-sync.
 - 2026-11-20 2.0.0-beta.9 (build 9) from `ca0c9e802`, candidate `macos-8c9ac444fa407371`, DMG `7f8a7abfa928…`; checks run again: none.
 - 2026-11-24 2.0.0-beta.10 (build 10) from `17c26d013`, candidate `macos-4971b73b120d9f77`, DMG `09ad5cab943f…`; checks run again: webauthn, sparkle-N-to-N+1, desktop-sync, no-drm-handoff.
+- 2026-11-25 2.0.0-beta.11 (build 11) from `afd08df8d`, candidate `macos-7d7f65e63b6e63fd`, DMG `91995bea2090…`; checks run again: sparkle-N-to-N+1, desktop-sync, no-drm-handoff.

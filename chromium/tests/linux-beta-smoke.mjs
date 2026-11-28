@@ -157,7 +157,11 @@ async function run(version) {
       try { await exited; } finally { clearTimeout(timer); }
     }
     server.closeAllConnections(); if (server.listening) await new Promise(resolve => server.close(resolve));
-    fs.rmSync(dir, { recursive: true, force: true });
+    // Chromium's helpers can still write to the profile for a moment after the
+    // browser exits (ENOTEMPTY in run 45837770153), so retry, and never let a
+    // leftover temporary folder turn a passing check into a failure.
+    try { fs.rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 }); }
+    catch (e) { console.error('could not remove ' + dir + ': ' + e.message); }
   }
 }
 export async function packageCheck(file, version, installedSha256, references) {

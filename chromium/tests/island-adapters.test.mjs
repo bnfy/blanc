@@ -35,7 +35,7 @@ test('a Glance resize waits for the Island snapshot to catch up with the native 
  assert.equal(reads,2);
 });
 
-test('the Linux picker clicks Custom once the list-to-editor transition finishes', async () => {
+test('the picker clicks Custom once the list-to-editor transition finishes', async () => {
  const {openLinuxSpacePicker} = await import('./fork-steps/window-layout.mjs');
  const actions=[];
  const page={click:async s=>actions.push(['click',s]),waitForSelector:async s=>actions.push(['wait',s])};
@@ -46,4 +46,35 @@ test('the Linux picker clicks Custom once the list-to-editor transition finishes
    ['click','[data-focus-key="color:custom"]'],
    ['wait','.space-picker-hex'],
  ]);
+});
+
+test('a failure on a Spaces menu control carries the menu evidence, and others do not', async () => {
+ const {spacesFailure} = await import('./lib/spaces-evidence.mjs');
+ for(const message of ['Timeout waiting for [data-focus-key="color:sky"] to be visible','Timeout waiting for #workspaceName'])assert.equal(spacesFailure(message),true,message);
+ for(const message of ['Timeout waiting for shipping state assertion','Island did not draw'])assert.equal(spacesFailure(message),false,message);
+});
+
+test('the Windows and Linux Space editor steps replace the shipping ones, and macOS keeps them', async () => {
+ const {windowLayoutSteps} = await import('./fork-steps/window-layout.mjs');
+ const edit='I edit {string} to the color {string} and the symbol {string}';
+ for(const platform of ['win32','linux'])for(const step of [edit,'I delete {string} from its editor','I give {string} the custom color {string}'])
+  assert.ok(windowLayoutSteps(platform).has(step),platform+': '+step);
+ assert.equal(windowLayoutSteps('darwin').has(edit),false);
+});
+
+test('a state wait outlasted by the blocker starting waits for the blocker, then retries', async () => {
+ const {waitForStateThroughBlocker} = await import('./world.mjs');
+ const loading={tabs:[{url:'http://127.0.0.1:1/probe',loading:true}]};
+ const timeout=async()=>{throw Error('Timeout waiting for shipping state assertion');};
+ // Not ready when the wait began, a web page still loading: wait, then retry.
+ let calls=[];
+ const result=await waitForStateThroughBlocker({read:async()=>loading,health:async()=>'idle',blockerReady:async()=>calls.push('blocker'),
+  predicate:()=>true,timeout:5000,waitFor:async(read,predicate,label,ms)=>{calls.push('wait '+ms);if(calls.length===1)return timeout();return 'loaded';}});
+ assert.equal(result,'loaded');assert.deepEqual(calls,['wait 5000','blocker','wait 5000']);
+ // A ready (or failed) blocker, or no web page loading, fails as before.
+ for(const [health,state] of [['ready',loading],['unavailable',loading],['idle',{tabs:[{url:'chrome://newtab/',loading:true}]}],['idle',{tabs:[{url:'http://a/',loading:false}]}]]){
+  let blocker=false;
+  await assert.rejects(waitForStateThroughBlocker({read:async()=>state,health:async()=>health,blockerReady:async()=>{blocker=true;},predicate:()=>true,timeout:5000,waitFor:timeout}),/shipping state assertion/);
+  assert.equal(blocker,false,health+' '+JSON.stringify(state));
+ }
 });
