@@ -880,6 +880,24 @@
     document.getElementById('miniWindowSetting')?.remove();
   }
 
+  // #1734 part 3: links from other apps open in a mini window. Off by default.
+  if (supports('miniWindowForLinks')) {
+    const miniWindowForLinks = document.getElementById('miniWindowForLinks');
+    miniWindowForLinks.checked = settings.miniWindowForLinks === true;
+    miniWindowForLinks.addEventListener('change', async () => {
+      try {
+        const saved = await window.bowserPages.settings.set({ miniWindowForLinks: miniWindowForLinks.checked });
+        miniWindowForLinks.checked = saved.miniWindowForLinks === true;
+      } catch {
+        window.bowserPages.settings.get().then(({ settings: saved }) => {
+          miniWindowForLinks.checked = saved.miniWindowForLinks === true;
+        }, () => {});
+      }
+    });
+  } else {
+    document.getElementById('miniWindowForLinksSetting')?.remove();
+  }
+
   if (supports('tabSleep')) {
     const tabSleep = document.getElementById('tabSleep');
     tabSleep.value = settings.tabSleep ?? '1h';

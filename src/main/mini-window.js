@@ -82,6 +82,19 @@ function miniWindowMoveIds(entries) {
   return entries.filter((entry) => !entry.blank).map((entry) => entry.id);
 }
 
+/** Links from other apps (#1734 part 3): the mini window a link joins, the
+ * most recently focused live one of its profile, or null for a new one.
+ * `focusOrder(runtime)` is main's focus serial. */
+function miniWindowForLink(runtimes, profileId, focusOrder) {
+  let best = null;
+  for (const runtime of runtimes) {
+    if (!runtime?.mini || runtime.closing || runtime.profileId !== profileId) continue;
+    if (!runtime.window || runtime.window.isDestroyed()) continue;
+    if (!best || focusOrder(runtime) > focusOrder(best)) best = runtime;
+  }
+  return best;
+}
+
 module.exports = {
   MINI_WINDOW_SIZE,
   MINI_WINDOW_MIN_SIZE,
@@ -95,4 +108,5 @@ module.exports = {
   ordinaryWindowBounds,
   miniWindowMayExpire,
   miniWindowMoveIds,
+  miniWindowForLink,
 };

@@ -224,3 +224,49 @@ test('a mini window lists tabs elsewhere and goes to them, a tab or a Space by n
   assert.match(preload, /listMiniSwitchTabs: \(\) => ipcRenderer\.invoke\('chrome:mini-switch-tabs'\)/);
   assert.match(preload, /goToMiniSwitchTab: \(key\) => ipcRenderer\.invoke\('chrome:mini-switch-go', key\)/);
 });
+
+test('links from other apps can open in a mini window: off by default and device-local (#1734 part 3)', () => {
+  const settings = read('src/main/settings.js');
+  assert.match(settings, /\n  miniWindowForLinks: false,\n/);
+  assert.match(settings, /if \(typeof data\.miniWindowForLinks !== 'boolean'\) data\.miniWindowForLinks = DEFAULTS\.miniWindowForLinks;/);
+  assert.match(settings, /if \(typeof partial\.miniWindowForLinks === 'boolean'\) clean\.miniWindowForLinks = partial\.miniWindowForLinks;/);
+  assert.doesNotMatch(settings.match(/const SYNCED_KEYS = \[([^\]]*)\]/)[1], /miniWindowForLinks/);
+  assert.ok(JSON.parse(read('settings-schema/schema.json')).internalDefaults.includes('miniWindowForLinks'));
+  const html = read('src/renderer/pages/settings.html');
+  assert.match(html, /<input id="miniWindowForLinks" type="checkbox"[^>]*data-i18n-aria-label="settings\.general\.miniWindowLinks\.label"/);
+  assert.match(html, /data-i18n="settings\.general\.miniWindowLinks\.hint">Links that match a rule still go where the rule says\.</);
+  assert.match(read('src/renderer/pages/settings.js'), /window\.bowserPages\.settings\.set\(\{ miniWindowForLinks: miniWindowForLinks\.checked \}\)/);
+});
+
+test('a link joins the most recently focused live mini window of its profile (#1734 part 3)', () => {
+  const live = { isDestroyed: () => false }, gone = { isDestroyed: () => true };
+  const a = { id: 'a', mini: true, profileId: 'p', window: live }, b = { id: 'b', mini: true, profileId: 'p', window: live };
+  const other = { id: 'o', mini: true, profileId: 'q', window: live }, ordinary = { id: 'n', mini: false, profileId: 'p', window: live };
+  const serial = new Map([[a, 2], [b, 5], [other, 9], [ordinary, 10]]);
+  assert.equal(mini.miniWindowForLink([a, b, other, ordinary], 'p', (r) => serial.get(r)), b);
+  assert.equal(mini.miniWindowForLink([{ ...a, closing: true }, { ...b, window: gone }], 'p', () => 0), null);
+  assert.equal(mini.miniWindowForLink([other], 'p', () => 0), null, 'another profile\'s mini window never takes it');
+});
+
+test('the link handoff falls back to a mini window when the setting is on (#1734 part 3)', () => {
+  const main = read('src/main/main.js');
+  assert.match(main, /getRuntime: \(preferred, destination, placement\) => destination\s*\? routedExternalRuntime\(destination, preferred, placement\) : externalFallbackRuntime\(preferred, placement\),/);
+  const fallback = main.match(/function externalFallbackRuntime\(preferred, placement\) \{[\s\S]*?\n\}/)[0];
+  // Only at the routed step (with a placement) is a new mini window made, so
+  // a link a rule claims never leaves an empty one behind.
+  assert.match(fallback, /if \(settings\.getSettings\(\)\.miniWindowForLinks\) \{[\s\S]*return miniLinkRuntime\(\{ create: !!placement \}\) \?\? resolveExternalRuntime\(preferred\);/);
+  assert.match(fallback, /return resolveExternalRuntime\(preferred\);/);
+  // Local HTML files never go to a mini window (they're not web links).
+  assert.match(fallback, /if \(placement\?\.localFile\) return resolveExternalRuntime\(preferred\);/);
+  // A re-queued link keeps the mini window it started with.
+  assert.match(fallback, /if \(preferred\?\.mini && !preferred\.closing && windowRuntimes\.all\(\)\.includes\(preferred\)\) return preferred;/);
+  assert.match(read('src/main/external-url-handoff.js'), /const placement = \{ background: entry\.background === true, localFile: entry\.localFile === true \};/);
+  // A link added to a mini window that isn't in front restarts its hour.
+  assert.match(main, /createTab: \(url, \{ destination, \.\.\.options \} = \{\}\) => \{\s*const id = createRoutedTab\(url, destination, options\);[\s\S]*?const runtime = rt\(\);\s*if \(runtime\.mini && !runtime\.window\?\.isFocused\(\)\) armMiniWindowIdle\(runtime\);\s*return id;/);
+  // A Dock-closed primary (macOS) still names the profile a mini window opens in.
+  assert.match(main, /const candidates = windowRuntimes\.all\(\)\.filter\(\(runtime\) => !runtime\.mini && !runtime\.resident && \(!runtime\.closing \|\| runtime\.dockClosed\)\);/);
+  const link = main.match(/function miniLinkRuntime\(\{ create = false \} = \{\}\) \{[\s\S]*?\n\}/)[0];
+  assert.match(link, /miniWindow\.miniWindowForLink\(windowRuntimes\.all\(\), profileId, \(r\) => runtimeFocusSerials\.get\(r\) \?\? 0\)/);
+  assert.match(link, /runtime\.mini = true;\s*runtime\.miniForLink = true;/);
+  assert.match(main, /ensureWindow: \(runtime, \{ background = false \} = \{\}\) => \{\s*const fresh = runtime\.miniForLink === true;\s*runtime\.miniForLink = false;\s*createMainWindow\(runtime, \{ ensureStartTab: !fresh, inactive: background \}\);/);
+});

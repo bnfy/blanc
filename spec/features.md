@@ -2025,6 +2025,11 @@ candidate branch (PR 1); not in a public release.
   Space, with that tab selected; picking a Space goes to it. Nothing moves. An
   untouched mini window then closes; one holding pages stays. Private tabs,
   other mini windows and other profiles' tabs are never listed.
+- **Links from other apps** (#1734 part 3, `docs/superpowers/specs/2026-11-28-mini-window-links-design.md`).
+  With Settings → General → Open links from other apps in a mini window on
+  (off by default, device-local), a link from another app that no link rule
+  claims opens in a mini window: the open one of its profile, as a new tab,
+  or a new one with the link as its only tab. Link rules still win.
 - **Mobile.** Not applicable.
 - **Acceptance:** `spec/acceptance/mini-window.feature`.
 

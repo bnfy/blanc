@@ -89,7 +89,7 @@ function createExternalUrlHandoff({
         if (entry.destination === undefined) entry.destination = entry.localFile ? null : (routeFor(entry.url) ?? null);
         // A background routed link never brings a window forward, even one
         // it has to open (openRouted).
-        const placement = { background: entry.background === true };
+        const placement = { background: entry.background === true, localFile: entry.localFile === true };
         const runtime = getRuntime(entry.runtime, entry.destination, placement);
         entry.runtime = runtime;
         ensureWindow(runtime, placement);

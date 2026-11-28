@@ -111499,6 +111499,90 @@
         }
       }
     },
+    "settings.general.miniWindowLinks.label": {
+      "comment": "Settings → General switch (#1734): links from other apps that match no link rule open in a mini window (a small window that isn't saved).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open links from other apps in a mini window"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links aus anderen Apps in einem Mini-Fenster öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir los enlaces de otras apps en una miniventana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir les liens d'autres apps dans une mini-fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri i link di altre app in una minifinestra"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir links de outros apps em uma minijanela"
+          }
+        }
+      }
+    },
+    "settings.general.miniWindowLinks.hint": {
+      "comment": "Hint under that switch: link rules (Settings → Profiles) still win over the mini window.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links that match a rule still go where the rule says."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links, die zu einer Regel passen, gehen weiterhin dorthin, wo die Regel sie hinschickt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los enlaces que coinciden con una regla siguen yendo a donde dice la regla."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les liens qui correspondent à une règle vont toujours là où la règle les envoie."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I link che corrispondono a una regola vanno comunque dove dice la regola."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links que correspondem a uma regra continuam indo para onde a regra manda."
+          }
+        }
+      }
+    },
     "sharedSpaces.switch.android": {
       "comment": "Blanc for Android: the iPhone string with \"this phone\".",
       "extractionState": "manual",

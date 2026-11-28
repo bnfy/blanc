@@ -10179,6 +10179,14 @@
     "message": "Ctrl+Shift+Spacebar",
     "note": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg and Umschalt in German)."
   },
+  "settings.general.miniWindowLinks.label": {
+    "message": "Open links from other apps in a mini window",
+    "note": "Settings → General switch (#1734): links from other apps that match no link rule open in a mini window (a small window that isn't saved)."
+  },
+  "settings.general.miniWindowLinks.hint": {
+    "message": "Links that match a rule still go where the rule says.",
+    "note": "Hint under that switch: link rules (Settings → Profiles) still win over the mini window."
+  },
   "sharedSpaces.switch.android": {
     "message": "Keep Spaces and groups in sync on this phone",
     "note": "Blanc for Android: the iPhone string with \"this phone\"."
