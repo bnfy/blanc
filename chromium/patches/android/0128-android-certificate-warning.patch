@@ -1,0 +1,57 @@
+diff -ruN a/chrome/browser/ssl/chrome_security_blocking_page_factory.cc b/chrome/browser/ssl/chrome_security_blocking_page_factory.cc
+--- a/chrome/browser/ssl/chrome_security_blocking_page_factory.cc
++++ b/chrome/browser/ssl/chrome_security_blocking_page_factory.cc
+@@ -166,7 +166,7 @@
+   page = std::make_unique<SSLBlockingPage>(
+       web_contents, cert_error, ssl_info, request_url, options_mask,
+       time_triggered, support_url, overridable,
+-      /*can_show_enhanced_protection_message=*/true,
++      /*can_show_enhanced_protection_message=*/false /* Blanc, patch 0128 */,
+       std::move(controller_client));
+ 
+   return page;
+@@ -198,7 +198,7 @@
+   auto page = std::make_unique<LocalSelfSignedBlockingPage>(
+       web_contents, cert_error, ssl_info, request_url, options_mask,
+       time_triggered, support_url, overridable,
+-      /*can_show_enhanced_protection_message=*/true,
++      /*can_show_enhanced_protection_message=*/false /* Blanc, patch 0128 */,
+       std::move(controller_client));
+ 
+   return page;
+@@ -213,7 +213,7 @@
+     net::Error cert_error) {
+   auto page = std::make_unique<CaptivePortalBlockingPage>(
+       web_contents, request_url, login_url,
+-      /*can_show_enhanced_protection_message=*/true, ssl_info,
++      /*can_show_enhanced_protection_message=*/false /* Blanc, patch 0128 */, ssl_info,
+       std::make_unique<SSLErrorControllerClient>(
+           web_contents, ssl_info, cert_error, request_url,
+           CreateMetricsHelperAndStartRecording(web_contents, request_url,
+@@ -234,7 +234,7 @@
+     ssl_errors::ClockState clock_state) {
+   auto page = std::make_unique<BadClockBlockingPage>(
+       web_contents, cert_error, ssl_info, request_url, time_triggered,
+-      /*can_show_enhanced_protection_message=*/true, clock_state,
++      /*can_show_enhanced_protection_message=*/false /* Blanc, patch 0128 */, clock_state,
+       std::make_unique<SSLErrorControllerClient>(
+           web_contents, ssl_info, cert_error, request_url,
+           CreateMetricsHelperAndStartRecording(web_contents, request_url,
+@@ -259,7 +259,7 @@
+ 
+   auto page = std::make_unique<MITMSoftwareBlockingPage>(
+       web_contents, cert_error, request_url,
+-      /*can_show_enhanced_protection_message=*/true, ssl_info,
++      /*can_show_enhanced_protection_message=*/false /* Blanc, patch 0128 */, ssl_info,
+       mitm_software_name, IsEnterpriseManaged(profile),
+       std::make_unique<SSLErrorControllerClient>(
+           web_contents, ssl_info, cert_error, request_url,
+@@ -282,7 +282,7 @@
+ 
+   auto page = std::make_unique<BlockedInterceptionBlockingPage>(
+       web_contents, cert_error, request_url,
+-      /*can_show_enhanced_protection_message=*/true, ssl_info,
++      /*can_show_enhanced_protection_message=*/false /* Blanc, patch 0128 */, ssl_info,
+       std::make_unique<SSLErrorControllerClient>(
+           web_contents, ssl_info, cert_error, request_url,
+           CreateMetricsHelperAndStartRecording(web_contents, request_url,

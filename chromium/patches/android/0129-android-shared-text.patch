@@ -1,0 +1,39 @@
+diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/IntentHandler.java b/chrome/android/java/src/org/chromium/chrome/browser/IntentHandler.java
+--- a/chrome/android/java/src/org/chromium/chrome/browser/IntentHandler.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/IntentHandler.java
+@@ -37,6 +37,8 @@
+ import org.chromium.base.IntentUtils;
+ import org.chromium.base.Log;
+ import org.chromium.base.metrics.RecordHistogram;
++import org.chromium.blanc.address.SharedText;
++import org.chromium.blanc.settings.SettingsStore;
+ import org.chromium.build.annotations.Contract;
+ import org.chromium.build.annotations.NullMarked;
+ import org.chromium.build.annotations.Nullable;
+@@ -1386,19 +1388,14 @@
+             return urls;
+         }
+ 
+-        if (TextUtils.isEmpty(text)
+-                || !BrowserStartupController.getInstance().isFullBrowserStarted()) {
+-            return urls;
+-        }
++        if (TextUtils.isEmpty(text)) return urls;
+ 
+-        Profile profile = ProfileManager.getLastUsedRegularProfile();
+-        AutocompleteMatch match = AutocompleteCoordinator.classify(profile, text);
+-        if (match != null && !ExternalIntentUrlChecker.isUnsafeExternalIntentUrl(match.getUrl())) {
+-            urls.add(match.getUrl().getSpec());
+-            return urls;
+-        }
+-
+-        urls.add(TemplateUrlServiceFactory.getForProfile(profile).getUrlForSearchQuery(text));
++        // Blanc (patch 0129, A6 ruling SH1): shared text opens what the Island opens for the same
++        // typed text, searching with the engine in Blanc's Settings, not Chromium's autocomplete
++        // and default engine. It needs no native code, so it works on a cold start too.
++        String url = SharedText.url(
++                text, new SettingsStore(ContextUtils.getAppSharedPreferences()).searchTemplate());
++        if (url != null) urls.add(url);
+         return urls;
+     }
+ 

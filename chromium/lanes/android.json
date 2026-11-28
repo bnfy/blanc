@@ -5,7 +5,7 @@
   "upstream": "ee456dcc432646f3d9941126a2c0730fa223e098",
   "upstreamDir": "upstream-android",
   "sourceMap": "source-map-android.json",
-  "fileCount": 62,
+  "fileCount": 64,
   "note": "A0 takes no shared patches: they wire desktop Blanc into chrome/browser, which Android also compiles. 0102 sets desktop's background-services list (blanc/common/background_services.h) and Android's own from Java, where Chromium reads the command line. Desktop's 0108 (no Google API keys or client IDs from the environment) is deliberately not here: an installed Android app gets its environment from the system, so nobody can set GOOGLE_API_KEY for it (owner, 2026-11-21).",
   "patches": [
     "patches/android/0101-android-identity.patch",
@@ -33,6 +33,9 @@
     "patches/android/0123-android-device-notification-startup.patch",
     "patches/android/0124-android-context-menu.patch",
     "patches/android/0125-android-autofill-platform.patch",
-    "patches/android/0126-android-version-override.patch"
+    "patches/android/0126-android-version-override.patch",
+    "patches/android/0127-android-http-auth-refusal.patch",
+    "patches/android/0128-android-certificate-warning.patch",
+    "patches/android/0129-android-shared-text.patch"
   ]
 }

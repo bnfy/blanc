@@ -11,6 +11,7 @@ import("//third_party/jni_zero/jni_zero.gni")
 android_library("island_java") {
   sources = [
     "java/src/org/chromium/blanc/address/AddressInput.java",
+    "java/src/org/chromium/blanc/address/SharedText.java",
     "java/src/org/chromium/blanc/island/IslandMenu.java",
     "java/src/org/chromium/blanc/island/IslandPosition.java",
     "java/src/org/chromium/blanc/island/IslandStyle.java",
@@ -508,6 +509,7 @@ robolectric_binary("blanc_android_junit_tests") {
   sources = [
     "junit/src/org/chromium/blanc/address/AddressFixtures.java",
     "junit/src/org/chromium/blanc/address/AddressInputTest.java",
+    "junit/src/org/chromium/blanc/address/SharedTextTest.java",
     "junit/src/org/chromium/blanc/firstrun/AppLanguagesTest.java",
     "junit/src/org/chromium/blanc/firstrun/DefaultBrowserTest.java",
     "junit/src/org/chromium/blanc/firstrun/LaunchPingSenderTest.java",
