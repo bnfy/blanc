@@ -70,7 +70,7 @@ test('a mini window moves in runs of tabs, each keeping its group; an unused sta
     [{ ids: ['2'], groupId: 'g' }]);
 });
 
-test('only the menu\'s move mode moves a mini window; switching by name stays refused', () => {
+test('only the menu\'s move mode moves a mini window; switching by name moves nothing', () => {
   // Part 2 (#1734): without move, a Space picked by name is gone to (mini-window-switch.test.mjs).
   assert.match(body('openSpace'), /if \(options\.move === true\) return otherProfileTarget\(options\) \? \{ ok: false, error: 'busy' \} : moveMiniWindowToSpace\(id, null\);/);
   assert.match(body('createBlankSpace'), /if \(snapshot\?\.miniWindow\) return options\.move === true && !otherProfileTarget\(options\) \? moveMiniWindowToSpace\(null, \{ name: rawName, color: options\.color, symbol: options\.symbol \}\) : \{ ok: false, error: 'busy' \};/);

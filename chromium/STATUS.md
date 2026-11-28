@@ -20,6 +20,51 @@ and its incremental rebuilds, and one GN regeneration on the Mac Studio
 hardware stays pending.
 
 ## Current work
+- **2026-11-28 — Mini window: links from other apps open in one (#1734 part 3,
+  shipping bnfy/blanc#1792).** Settings → Appearance has "Open links from
+  other apps in a mini window" under the mini window shortcut, off,
+  device-wide (local state `blanc.mini_window.links`, patch 0121), on the
+  Mac only: Windows and Linux hand web links from other apps to Chromium's
+  startup tabs, not `OpenExternalLink`, so there the switch would do nothing
+  (as link rules don't). With it on, a link no rule claims joins the link
+  profile's most recently used mini window as a new tab, or opens a new one
+  on the link alone with no start page beside it. Last use is a serial
+  bumped when a mini window opens, gains focus or takes a link, so links
+  arriving together share one window before it is active; a closing mini
+  window is never chosen, and a link stripped of a chromium: scheme never
+  opens one. A link received before Chromium's startup window exists waits
+  for it: `openStartupUrls` offers it to `ClaimStartupLink` (its rule, then
+  the mini window), so a mini window never precedes the session's window.
+  The two strings are fork strings until the Settings pin moves past #1792.
+  Evidence on the Mac Studio's BlancPrototype (159.0.8154.33, incremental
+  build, candidate `macos-feea0b0ffd8b05f4`, Island files from disk):
+  `tests/native-mini-links.mjs` passes 5 of 5 through the app controller's
+  own `application:openURLs:` (off by default; F61-12, two links in a row in
+  one new mini window, the last in front; the most recently used of two
+  mini windows; F61-13 with a rule to a Space; `ClaimStartupLink` on and
+  off). Not checked: a cold launch by a link (the hand-off before startup),
+  and anything by hand.
+- **2026-11-28 — Mini window: switch to tabs and Spaces (#1734 part 2,
+  shipping bnfy/blanc#1791).** A mini window's search lists this profile's
+  tabs in its other windows, in Spaces held live and in saved Spaces (never
+  private tabs or start pages), each saying which Space or window holds it,
+  and offers this and other profiles' Spaces by name again. Picking a tab
+  brings its window forward with it selected, or opens its Space with it
+  selected (a held page rebuilt after a crash is found by address and
+  place); picking a Space goes there; nothing moves, and an untouched mini
+  window closes. One pick runs at a time. The panel's changes are
+  `MENU_EDITS` on the pinned overlay.js and its three strings fork strings,
+  until the Spaces menu pin moves past #1791; the list is one native read
+  (`miniSwitchList`). Also fixed: a new mini window opened its search before
+  its panel page listened, so that first panel showed without Favorites,
+  history or tabs elsewhere (about half the native runs). Evidence on the
+  same candidate: `tests/native-mini-switch.mjs` passes 6 of 6, four runs in
+  a row (F61-9 to F61-11, a held Space, a double pick, a private tab);
+  `tests/native-mini-move-to-space.mjs` 5 of 5 seven runs in a row (one
+  earlier run timed out waiting for the window to close after New space… and
+  did not recur), `tests/native-mini-windows.mjs` 4 of 4,
+  `tests/native-link-routing.mjs` 6 of 6 and
+  `tests/native-spaces-across-profiles.mjs` 20 of 20. Not checked by hand.
 - **2026-11-28 — Mini window: Move to Space (#1734, shipping bnfy/blanc#1763).**
   A mini window's Island has shipping's Spaces button beside Open in Blanc,
   and its Spaces menu has shipping's move mode: this profile's Spaces and
@@ -36,7 +81,8 @@ hardware stays pending.
   group, after `batchTabsMenuState`'s `canPlace` says every page can go (all
   or nothing; a private tab, sound, capture or a pop-up refuses with its
   reason); a later run waits out another window's Space write. Only the
-  menu's move mode (`move: true`) moves; switching by name stays refused.
+  menu's move mode (`move: true`) moves; switching by name was refused
+  until part 2 (below), which goes to the Space instead.
   Two differences from shipping: every start page stays behind and closes
   with the window, used or not (a Space record here holds only web pages;
   a grouped one leaves its group first), and pinned tabs arrive unpinned, as
