@@ -9,6 +9,10 @@ since then are below as they're recorded.
   search to find tabs in your other windows and in your Spaces, and your
   Spaces themselves. Pick one and Blanc takes you there; a mini window you
   hadn't used yet closes behind you (#1734).
+- **Open links from other apps in a mini window.** Turn it on in Settings →
+  General, and a link you click in another app opens in a mini window
+  instead of your Blanc window; another link joins it. Links that match one
+  of your link rules still go where the rule says (#1734).
 
 ## Fixed
 
@@ -24,6 +28,9 @@ since then are below as they're recorded.
 - **Switch to tabs and Spaces from a mini window** (#1734) by hand in a
   packaged build: a tab in another window, a tab in a Space set aside, and a
   Space by name. Acceptance covers all three.
+- **Links from other apps in a mini window** (#1734) by hand in a packaged
+  build: from Mail or Messages on macOS, and from another app on Windows and
+  Linux (the command line), with the setting on and off, and with a link rule.
 
 - **Opening local HTML files on Linux** (#1630) by hand from a file manager's
   Open With (GNOME Files and Dolphin) with the AppImage, at launch and while

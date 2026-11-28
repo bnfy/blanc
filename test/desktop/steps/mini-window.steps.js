@@ -298,3 +298,46 @@ Then('the mini window is still open with its page', async function () {
   assert.ok(runtime?.attached, 'the mini window stays');
   assert.ok(runtime.tabs.some((t) => t.url === this.miniPageUrl), 'with its page');
 });
+
+// Links from other apps (#1734 part 3).
+Given('links from other apps open in a mini window', async function () {
+  assert.equal(await this.call('setMiniWindowForLinks', true), true);
+});
+
+When('another app opens the fixture page {string}', async function (name) {
+  this.linkUrls = { ...(this.linkUrls ?? {}), [name]: this.fixtureUrl(name) };
+  await ctx.app.evaluate(({ app }, link) => app.emit('open-url', { preventDefault() {} }, link), this.linkUrls[name]);
+});
+
+Then('a mini window shows {string} as its only tab', async function (name) {
+  const runtime = await waitForValue(async () => (await this.call('windowRuntimes'))
+    .find((r) => r.mini && r.attached && r.tabs.some((t) => t.url === this.linkUrls[name])), Boolean, `a mini window with ${name}`);
+  assert.equal(runtime.tabs.length, 1, JSON.stringify(runtime.tabs.map((t) => t.url)));
+  this.linkMiniId = runtime.id;
+});
+
+Then('that mini window holds {string} and {string}, and no other mini window is open', async function (first, second) {
+  const runtime = await waitForValue(async () => (await this.call('windowRuntimes')).find((r) => r.id === this.linkMiniId),
+    (r) => r?.tabs.some((t) => t.url === this.linkUrls[second]), `${second} in the same mini window`);
+  assert.deepEqual(runtime.tabs.map((t) => t.url), [this.linkUrls[first], this.linkUrls[second]]);
+  assert.equal((await this.call('windowRuntimes')).filter((r) => r.mini && r.attached).length, 1);
+});
+
+Given('a link rule sends the routed site to the Space {string}', async function (space) {
+  const spaceId = (await this.call('workspaceAction', 'list')).items.find((w) => w.name === space)?.id;
+  assert.ok(spaceId);
+  const host = new URL(this.insecureFixtureUrl('x')).hostname;
+  const result = await ctx.app.evaluate((_electron, { root, spaceId: id, host: h }) => {
+    const require = process.getBuiltinModule('module').createRequire(`${root}/package.json`);
+    return require('./src/main/settings').setLinkRoutes([{ id: 'to-space', match: { kind: 'domain', value: h }, destination: { profileId: 'default', spaceId: id } }]);
+  }, { root: process.cwd(), spaceId, host });
+  assert.equal(result.ok, true);
+  this.routedSpaceId = spaceId;
+});
+
+Then('that link opens in a window showing {string}, and no mini window is open', async function (space) {
+  const runtime = await waitForValue(async () => (await this.call('windowRuntimes'))
+    .find((r) => r.workspaceId === this.routedSpaceId && r.attached && r.tabs.some((t) => t.url === this.deliveredUrl)), Boolean, `the link in ${space}`);
+  assert.equal(runtime.mini, false);
+  assert.equal((await this.call('windowRuntimes')).filter((r) => r.mini).length, 0, 'no mini window, not even an empty one');
+});

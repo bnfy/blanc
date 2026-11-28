@@ -1,6 +1,6 @@
 # Mini Window: links from other apps (#1734, part 3)
 
-**Status:** design approved approach; not built.
+**Status:** shipping Blanc (Electron) implemented on `claude/mini-window-links`, not in a public release; the fork follows on `chromium/next`.
 **Asked for:** #1734 item 3, from Koen's feedback on #1138: "as some other
 browsers do, if I click a link in any other app, it opens in a mini window,
 from which I can then again move it if I want to." Parts 1 (Move to Space,

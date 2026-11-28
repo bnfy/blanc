@@ -97,3 +97,19 @@ Feature: mini windows
     And I search the mini window for "Reading" and pick the Space "Reading"
     Then a window shows "Reading"
     And the mini window is still open with its page
+
+  @F61-12 @F61
+  Scenario: with the setting on, links from other apps open in a mini window
+    Given links from other apps open in a mini window
+    When another app opens the fixture page "link-one"
+    Then a mini window shows "link-one" as its only tab
+    When another app opens the fixture page "link-two"
+    Then that mini window holds "link-one" and "link-two", and no other mini window is open
+
+  @F61-13 @F61
+  Scenario: a link rule still wins over the mini window
+    Given a saved space named "Reading" that is open in no window
+    And a link rule sends the routed site to the Space "Reading"
+    And links from other apps open in a mini window
+    When another app opens a link to the routed site
+    Then that link opens in a window showing "Reading", and no mini window is open
