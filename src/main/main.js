@@ -14171,7 +14171,8 @@ function moveMiniWindowToSpace(runtime, workspaceId, creation = null, { showErro
  * Space's set-aside runtime included, named by its Space), and the Space
  * records no runtime holds. */
 function miniSwitchInputs(runtime) {
-  const live = windowRuntimes.all().filter((r) => r.profileId === runtime.profileId && !r.closing);
+  // A window closed to the Dock (macOS) keeps its tabs and comes back for one.
+  const live = windowRuntimes.all().filter((r) => r.profileId === runtime.profileId && (!r.closing || r.dockClosed));
   const shown = new Set(live.map((r) => r.workspaceId).filter(Boolean));
   return {
     windows: live.map((r) => ({
@@ -14223,12 +14224,14 @@ function goToMiniSwitchTab(runtime, key) {
     if (!tab || !owner) {
       // Gone since the list was built (closed, or its held Space let go):
       // its Space, if it had one, is still worth showing.
-      if (!parsed.spaceId || !namedWorkspaces.get(parsed.spaceId)) return gone;
+      // A Space still on screen only lost the tab: say so rather than show it.
+      if (!parsed.spaceId || !namedWorkspaces.get(parsed.spaceId) || live(workspaceOwner(runtime, parsed.spaceId))) return gone;
       target = open(parsed.spaceId);
     } else {
       if (tab.private || owner === runtime || owner.mini || owner.profileId !== profileId) return gone;
-      if (!live(owner) && !owner.workspaceId) return gone;
-      target = live(owner) ? owner : open(owner.workspaceId);
+      if (owner.dockClosed && !owner.workspaceId) { createMainWindow(owner, { ensureStartTab: false }); target = owner; }
+      else if (!live(owner) && !owner.workspaceId) return gone;
+      else target = live(owner) ? owner : open(owner.workspaceId);
       select = parsed.tabId;
     }
   } else {

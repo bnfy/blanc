@@ -196,13 +196,16 @@ test('a mini window lists tabs elsewhere and goes to them, a tab or a Space by n
   assert.match(main, /chromeHandle\('chrome:mini-switch-tabs', \(\) => \{\s*const runtime = rt\(\);\s*if \(!runtime\.mini \|\| tabs\.get\(runtime\.activeTabId\)\?\.private\) return \[\];\s*return miniSwitch\.miniSwitchRows\(miniSwitchInputs\(runtime\)\);/);
   assert.match(main, /chromeHandle\('chrome:mini-switch-go', \(_e, key\) => goToMiniSwitchTab\(rt\(\), key\)\);/);
   const inputs = body('miniSwitchInputs');
-  assert.match(inputs, /r\.profileId === runtime\.profileId && !r\.closing/);
+
   assert.match(inputs, /self: r === runtime, mini: r\.mini === true, spaceId: r\.workspaceId \?\? null,/);
   assert.match(inputs, /namedWorkspaces\.list\(\)\.filter\(\(w\) => !shown\.has\(w\.id\)\)/);
   const go = body('goToMiniSwitchTab');
   assert.match(go, /miniSwitch\.parseMiniSwitchKey\(key\)/);
   // A tab gone since the list was built still shows its Space when it had one.
-  assert.match(go, /if \(!parsed\.spaceId \|\| !namedWorkspaces\.get\(parsed\.spaceId\)\) return gone;/);
+  assert.match(go, /if \(!parsed\.spaceId \|\| !namedWorkspaces\.get\(parsed\.spaceId\) \|\| live\(workspaceOwner\(runtime, parsed\.spaceId\)\)\) return gone;/);
+  // A window closed to the Dock (macOS) is listed and comes back for its tab.
+  assert.match(inputs, /r\.profileId === runtime\.profileId && \(!r\.closing \|\| r\.dockClosed\)/);
+  assert.match(go, /if \(owner\.dockClosed && !owner\.workspaceId\) \{ createMainWindow\(owner, \{ ensureStartTab: false \}\); target = owner; \}/);
   assert.match(go, /if \(tab\.private \|\| owner === runtime \|\| owner\.mini \|\| owner\.profileId !== profileId\) return gone;/);
   // A held Space, or a window closed to the Dock (closing, no live window),
   // opens through the Spaces controller, which brings a window back.
