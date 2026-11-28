@@ -262,6 +262,9 @@ export const FORK_STRINGS = [
   ['blancProfileImportNotRead', 'settings.profileImport.notRead'],
   ['blancProfileImportLeftBehind', 'settings.profileImport.leftBehind'],
   ['blancProfileImportSyncFailed', 'settings.profileImport.syncFailed'],
+  // Shipping's words since bnfy/blanc#1792 (#1734 part 3), after this pin.
+  ['blancMiniLinks', 'settings.general.miniWindowLinks.label'],
+  ['blancMiniLinksHint', 'settings.general.miniWindowLinks.hint'],
 ];
 const ALL = [...STRINGS, ...FORK_STRINGS];
 export function withForkStrings(rows) {

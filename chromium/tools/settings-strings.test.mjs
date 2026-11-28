@@ -24,7 +24,7 @@ test('the strings pin is the renderer pin or a later commit', () => {
 });
 
 test('every name the settings patch reads is generated', () => {
-  const patch = ['0021-blanc-settings-controls', '0022-blanc-settings-lists', '0023-blanc-settings-remaining', '0024-blanc-call-audio', '0063-blanc-tab-archive', '0086-blanc-reuse-new-tab', '0118-windows-video-decoding']
+  const patch = ['0021-blanc-settings-controls', '0022-blanc-settings-lists', '0023-blanc-settings-remaining', '0024-blanc-call-audio', '0063-blanc-tab-archive', '0086-blanc-reuse-new-tab', '0118-windows-video-decoding', '0121-blanc-mini-window-links']
     .map(name => fs.readFileSync(path.join(root, `patches/${name}.patch`), 'utf8')).join('\n');
   const used = new Set([...patch.matchAll(/^\+.*?(?:\$i18n\{|getString\('|blancString\(\s*')(blanc[A-Za-z0-9]+)/gm)].map(m => m[1]));
   const names = new Set([...STRINGS, ...FORK_STRINGS].map(([name]) => name));

@@ -109,6 +109,14 @@ bool ClickDockMenuItem(int item_tag) {
   return [NSApp sendAction:item.action to:item.target from:item];
 }
 
+bool OpenURLsAsTheSystem(const std::string& spec) {
+  id<NSApplicationDelegate> delegate = NSApp.delegate;
+  NSURL* url = [NSURL URLWithString:base::SysUTF8ToNSString(spec)];
+  if (!url || ![delegate respondsToSelector:@selector(application:openURLs:)]) return false;
+  [delegate application:NSApp openURLs:@[ url ]];
+  return true;
+}
+
 std::pair<std::string, std::string> BundleVersion() {
   NSString* version = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   NSString* build = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];

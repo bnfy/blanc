@@ -15,6 +15,7 @@
 #include "content/public/browser/service_process_host.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "build/build_config.h"
+#include "chrome/browser/ui/browser_window/public/desktop_browser_window_capabilities.h"
 #if BUILDFLAG(IS_WIN)
 #include "chrome/browser/about_flags.h"
 #include "components/webui/flags/flags_ui_pref_names.h"
@@ -7436,6 +7437,20 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       g_browser_process->local_state()->SetBoolean(kLinkRoutesInAppPref, quiet_args[0].GetBool());
       Reply(id, true, quiet_args[0].Clone()); return;
     }
+    if (quiet_method == "setMiniWindowLinks" && quiet_args.size() == 1 && quiet_args[0].is_bool()) {
+      g_browser_process->local_state()->SetBoolean(kMiniLinksPref, quiet_args[0].GetBool());
+      Reply(id, true, quiet_args[0].Clone()); return;
+    }
+#if BUILDFLAG(IS_MAC)
+    // The system's open-URL delivery, exactly as LaunchServices hands a link
+    // to the app controller (application:openURLs:).
+    if (quiet_method == "systemOpenURL" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      Reply(id, true, base::Value(blanc::OpenURLsAsTheSystem(quiet_args[0].GetString()))); return;
+    }
+#endif
+    if (quiet_method == "startupLink" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
+      Reply(id, true, base::Value(ClaimStartupLink(GURL(quiet_args[0].GetString())))); return;
+    }
     if (quiet_method == "externalLink" && quiet_args.size() == 1 && quiet_args[0].is_string()) {
       Reply(id, true, base::Value(OpenExternalLink(GURL(quiet_args[0].GetString())))); return;
     }
@@ -13788,7 +13803,7 @@ bool RouteNewTabLink(NavigateParams* params) {
 bool IsMiniWindow(BrowserWindowInterface* browser) { return MiniState(browser) != nullptr; }
 void OpenMiniWindow() { CreateMiniWindow(); }
 
-bool OpenExternalLink(const GURL& url) {
+bool OpenExternalLink(const GURL& url, bool startup_complete, bool trusted) {
   // A blanc-import: link is a tab handoff (N20), never a page to load.
   if (IsEnabled() && TabHandoff::Get()->Queue(url)) return true;
   // A local file never reaches Chromium's own startup tabs: Blanc opens a
@@ -13797,10 +13812,17 @@ bool OpenExternalLink(const GURL& url) {
   if (!g_browser_process || !g_browser_process->local_state() || !g_browser_process->profile_manager() || !url.SchemeIsHTTPOrHTTPS()) return false;
   if (const auto rule = MatchingLinkRoute(url); rule && BeginLinkRoute(url, *rule, nullptr, false)) return true;
   auto* browser = RouteWindow();
+  if (trusted && (startup_complete || browser) && OpenLinkInMiniWindow(url)) return true;
   if (!browser && !MiniWindows().empty()) browser = EnsureRouteWindow();
   if (!browser) return false; // Native startup retains ownership if no ordinary window exists yet.
   OpenRoutedURL(browser, url, false, false);
   return true;
+}
+bool ClaimStartupLink(const GURL& url) {
+  if (!g_browser_process || !g_browser_process->local_state() || !g_browser_process->profile_manager() ||
+      !url.SchemeIsHTTPOrHTTPS()) return false;
+  if (const auto rule = MatchingLinkRoute(url); rule && BeginLinkRoute(url, *rule, nullptr, false)) return true;
+  return OpenLinkInMiniWindow(url);
 }
 base::DictValue RouteActiveSite(BrowserWindowInterface* browser, const std::string& mode) {
   if (!browser || (mode != "on" && mode != "off" && mode != "toggle")) return base::DictValue().Set("ok", false).Set("error", "unavailable");

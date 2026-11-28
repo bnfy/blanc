@@ -38,7 +38,13 @@ class WebView;
 
 namespace blanc_prototype {
 base::OnceClosure ShowBlockerRecovery();
-bool OpenExternalLink(const GURL& url);
+// startup_complete is false for a link the Mac's app controller receives
+// before Chromium's own startup window exists; trusted is false for one it
+// stripped of a chromium: scheme. Neither opens a mini window (#1734).
+bool OpenExternalLink(const GURL& url, bool startup_complete = true, bool trusted = true);
+// A link from another app that arrived before any window could take it: true
+// when its link rule or the mini window setting took it (#1734 part 3).
+bool ClaimStartupLink(const GURL& url);
 bool IsMiniWindow(BrowserWindowInterface* browser);
 void OpenMiniWindow();
 void ConfirmLinkRouteActivation(content::WebContents* created);

@@ -1,12 +1,19 @@
 // Mini windows are ordinary native tab containers with explicit transient
 // session ownership. Promotion changes that ownership before persisting.
 constexpr char kMiniShortcutPref[] = "blanc.mini_window.shortcut";
+// Links from other apps open in a mini window (#1734 part 3), device-wide.
+constexpr char kMiniLinksPref[] = "blanc.mini_window.links";
 struct MiniWindowState {
   base::WeakPtr<BrowserWindowInterface> browser;
   base::OneShotTimer idle;
   uint64_t generation = 0;
   bool probing = false;
+  // Last use (opened, focused or given a link), for links from other apps
+  // (#1734 part 3); closing once the idle probe has asked it to close.
+  uint64_t used = 0;
+  bool closing = false;
 };
+uint64_t NextMiniUse() { static uint64_t serial = 0; return ++serial; }
 std::map<BrowserWindowInterface*, std::unique_ptr<MiniWindowState>>& MiniWindows() {
   static base::NoDestructor<std::map<BrowserWindowInterface*, std::unique_ptr<MiniWindowState>>> states;
   return *states;
@@ -49,6 +56,7 @@ void ProbeMiniWindow(base::WeakPtr<BrowserWindowInterface> browser, uint64_t gen
     if (documents[i].AsRenderFrameHostIfValid() != browser->GetTabStripModel()->GetWebContentsAt(i)->GetPrimaryMainFrame()) {fail(); return;}
   if (next == documents.size()) {
     state->probing = false;
+    state->closing = true;
     browser->GetWindow()->Close(); // Native beforeunload remains the final guard.
     return;
   }
@@ -85,11 +93,19 @@ void MiniWindowFocusChanged(BrowserWindowInterface* browser) {
   auto* state = MiniState(browser);
   if (!state) return;
   ++state->generation;
+  if (browser->GetWindow()->IsActive()) state->used = NextMiniUse();
   ArmMiniWindow(browser);
 }
-BrowserWindowInterface* CreateMiniWindow() {
+// The profile a mini window opens in: the frontmost ordinary window's, as
+// for a link from another app, else the last used one.
+Profile* MiniWindowProfile() {
   auto* ordinary = RouteWindow();
-  auto* profile = ordinary ? ordinary->GetProfile() : ProfileManager::GetLastUsedProfileAllowedByPolicy();
+  return ordinary ? ordinary->GetProfile() : ProfileManager::GetLastUsedProfileAllowedByPolicy();
+}
+// A mini window opens on its start page, or on a link from another app in
+// its place (no start page beside it).
+BrowserWindowInterface* CreateMiniWindow(const GURL& first = GURL("chrome://newtab/")) {
+  auto* profile = MiniWindowProfile();
   if (!profile || profile->IsOffTheRecord() || GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk) return nullptr;
   const auto area = display::Screen::Get()->GetDisplayNearestPoint(display::Screen::Get()->GetCursorScreenPoint()).work_area();
   BrowserWindowCreateParams params(profile, true);
@@ -97,13 +113,44 @@ BrowserWindowInterface* CreateMiniWindow() {
   params.initial_bounds = MiniBounds(area, false);
   auto* browser = CreateBrowserWindow(std::move(params));
   if (!browser) return nullptr;
-  auto state = std::make_unique<MiniWindowState>();state->browser = browser->GetWeakPtr();
+  auto state = std::make_unique<MiniWindowState>();state->browser = browser->GetWeakPtr();state->used = NextMiniUse();
   MiniWindows().emplace(browser, std::move(state));
-  chrome::AddTabAt(browser, GURL("chrome://newtab/"), -1, true);
+  if (first == GURL("chrome://newtab/")) chrome::AddTabAt(browser, first, -1, true);
+  else {
+    NavigateParams link(browser, first, ui::PAGE_TRANSITION_LINK);
+    link.disposition = WindowOpenDisposition::kNewForegroundTab;
+    link.window_action = NavigateParams::WindowAction::kNoAction;
+    Navigate(&link);
+  }
   browser->GetWindow()->SetBounds(MiniBounds(area, false));
   browser->GetWindow()->Show();browser->GetWindow()->Activate();
   ArmMiniWindow(browser);
   return browser;
+}
+// With the setting on, a link no rule claims opens in the link profile's most
+// recently active mini window as a new tab, else in a new mini window.
+bool OpenLinkInMiniWindow(const GURL& url) {
+  if (!g_browser_process->local_state()->GetBoolean(kMiniLinksPref)) return false;
+  auto* profile = MiniWindowProfile();
+  if (!profile || profile->IsOffTheRecord()) return false;
+  // By last use, not activation order: a window just opened for the link
+  // before this one may not have become active yet.
+  BrowserWindowInterface* mini = nullptr;
+  uint64_t latest = 0;
+  for (const auto& [browser, state] : MiniWindows()) {
+    if (!state->browser || state->closing || state->used <= latest || browser->IsDeleteScheduled() ||
+        browser->GetProfile() != profile || DesktopBrowserWindowCapabilities::From(browser)->IsAttemptingToCloseBrowser()) continue;
+    mini = browser; latest = state->used;
+  }
+  if (!mini) return CreateMiniWindow(url) != nullptr;
+  NavigateParams link(mini, url, ui::PAGE_TRANSITION_LINK);
+  link.disposition = WindowOpenDisposition::kNewForegroundTab;
+  link.window_action = NavigateParams::WindowAction::kShowWindow;
+  Navigate(&link);
+  mini->GetWindow()->Activate();
+  MiniState(mini)->used = NextMiniUse();
+  MiniWindowFocusChanged(mini);
+  return true;
 }
 bool KeepMiniWindow(BrowserWindowInterface* browser) {
   if (!MiniState(browser) || browser->IsDeleteScheduled()) return false;

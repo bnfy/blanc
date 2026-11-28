@@ -222,5 +222,21 @@
     "fr": "Blanc n'a pas pu ouvrir ce Space pour le moment. Réessayez.",
     "it": "Blanc non è riuscito ad aprire quello Space in questo momento. Riprova.",
     "pt-BR": "O Blanc não conseguiu abrir esse Space agora. Tente de novo."
+  },
+  "settings.general.miniWindowLinks.label": {
+    "en": "Open links from other apps in a mini window",
+    "de": "Links aus anderen Apps in einem Mini-Fenster öffnen",
+    "es": "Abrir los enlaces de otras apps en una miniventana",
+    "fr": "Ouvrir les liens d'autres apps dans une mini-fenêtre",
+    "it": "Apri i link di altre app in una minifinestra",
+    "pt-BR": "Abrir links de outros apps em uma minijanela"
+  },
+  "settings.general.miniWindowLinks.hint": {
+    "en": "Links that match a rule still go where the rule says.",
+    "de": "Links, die zu einer Regel passen, gehen weiterhin dorthin, wo die Regel sie hinschickt.",
+    "es": "Los enlaces que coinciden con una regla siguen yendo a donde dice la regla.",
+    "fr": "Les liens qui correspondent à une règle vont toujours là où la règle les envoie.",
+    "it": "I link che corrispondono a una regola vanno comunque dove dice la regola.",
+    "pt-BR": "Links que correspondem a uma regra continuam indo para onde a regra manda."
   }
 }

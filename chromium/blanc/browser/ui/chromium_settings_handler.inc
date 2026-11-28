@@ -95,6 +95,13 @@ class ChromiumSettingsHandler final : public settings::SettingsPageUIHandler,
     ResolveJavascriptCallback(args[0], base::Value(MiniKeys().Apply(
         args[1].GetString().empty() ? std::nullopt : std::make_optional(args[1].GetString()))));
   }
+  void HandleMiniWindowLinks(const base::ListValue& args) {
+    if (!Begin(args, 1)) return;
+    auto* prefs = g_browser_process->local_state();
+    const auto& choice = args[1].GetString();
+    if (choice == "on" || choice == "off") { prefs->SetBoolean(kMiniLinksPref, choice == "on"); prefs->CommitPendingWrite(); }
+    ResolveJavascriptCallback(args[0], base::Value(prefs->GetBoolean(kMiniLinksPref)));
+  }
 #if BUILDFLAG(IS_MAC)
 #if BUILDFLAG(BLANC_BETA_CHANNEL)
   void HandleBetaUpdate(const base::ListValue& args) {
@@ -607,6 +614,7 @@ void ChromiumSettingsHandler::RegisterMessages() {
   bind("blancDiagnosticsReport", &ChromiumSettingsHandler::HandleDiagnosticsReport);
   bind("blancMouseGestures", &ChromiumSettingsHandler::HandleMouseGestures);
   bind("blancMiniWindowShortcut", &ChromiumSettingsHandler::HandleMiniWindowShortcut);
+  bind("blancMiniWindowLinks", &ChromiumSettingsHandler::HandleMiniWindowLinks);
   bind("blancLinkRouteState", &ChromiumSettingsHandler::HandleLinkRouteState);
   bind("blancLinkRouteValidate", &ChromiumSettingsHandler::HandleLinkRouteValidate);
   bind("blancLinkRouteSet", &ChromiumSettingsHandler::HandleLinkRouteSet);

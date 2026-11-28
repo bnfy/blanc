@@ -50,6 +50,6 @@ test('a second launch naming only local files opens no other window', () => {
 });
 
 test('OpenExternalLink still sends every local file to the grant path', () => {
-  const body = ui.slice(ui.indexOf('\nbool OpenExternalLink(const GURL& url) {'), ui.indexOf('\nbase::DictValue RouteActiveSite('));
+  const body = ui.slice(ui.indexOf('\nbool OpenExternalLink(const GURL& url, bool startup_complete, bool trusted) {'), ui.indexOf('\nbase::DictValue RouteActiveSite('));
   assert.match(body, /if \(url\.SchemeIsFile\(\) && IsEnabled\(\)\) \{ OpenLocalHtmlFile\(url\); return true; \}/);
 });

@@ -44,6 +44,9 @@ void SetDockIcon(base::span<const uint8_t> png);
 bool SetDockIconFromBundle(const std::string& name);
 std::u16string DockMenuItemTitle(int item_tag);
 bool ClickDockMenuItem(int item_tag);
+// Test hooks: hands the app delegate a URL as the system does when another
+// app opens a link (application:openURLs:); false without such a delegate.
+bool OpenURLsAsTheSystem(const std::string& spec);
 // The Dock menu top to bottom as the test hooks read it: each item's title,
 // "-" for a separator; whether an item carries an image; the Dock tile's
 // badge text ("" for none); and an application-menu item clicked by its tag.

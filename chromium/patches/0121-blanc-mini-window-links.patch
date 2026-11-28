@@ -1,0 +1,106 @@
+diff --git a/chrome/browser/app_controller_mac.mm b/chrome/browser/app_controller_mac.mm
+index 768f23f..a63561a 100644
+--- a/chrome/browser/app_controller_mac.mm
++++ b/chrome/browser/app_controller_mac.mm
+@@ -1270,6 +1270,11 @@ class AppControllerProfileObserver : public ProfileAttributesStorage::Observer,
+ 
+ - (void)openStartupUrls {
+   CHECK(_startupComplete);
++  // Blanc: a link from another app that arrived before any window could take
++  // it still meets its link rule or the mini window setting (#1734 part 3).
++  std::erase_if(_startupTabs, [](const auto& tab) {
++    return !tab.is_untrusted_launch && blanc_prototype::ClaimStartupLink(tab.url);
++  });
+   [self openStartupTabsReplacingNTP:std::move(_startupTabs)];
+   _startupTabs.clear();
+ }
+@@ -2127,7 +2132,10 @@ class AppControllerProfileObserver : public ProfileAttributesStorage::Observer,
+     }
+   }
+ 
+-  std::erase_if(startupTabs, [](const auto& tab) {return blanc_prototype::OpenExternalLink(tab.url);});
++  // Before startup completes a mini window must not precede Chromium's own
++  // startup window; openStartupUrls offers those links again (#1734 part 3).
++  const bool blancStartupComplete = _startupComplete;
++  std::erase_if(startupTabs, [&](const auto& tab) {return blanc_prototype::OpenExternalLink(tab.url, blancStartupComplete, !tab.is_untrusted_launch);});
+   if (!startupTabs.empty()) {
+     [self openStartupTabsReplacingNTP:std::move(startupTabs)];
+   }
+diff --git a/chrome/browser/prefs/browser_prefs.cc b/chrome/browser/prefs/browser_prefs.cc
+index 866466c..0073d16 100644
+--- a/chrome/browser/prefs/browser_prefs.cc
++++ b/chrome/browser/prefs/browser_prefs.cc
+@@ -1792,6 +1792,8 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
+   registry->RegisterListPref("blanc.links.routes");
+   registry->RegisterBooleanPref("blanc.links.in_app", false);
+   registry->RegisterStringPref("blanc.mini_window.shortcut", "off");
++  // Links from other apps open in a mini window (#1734 part 3), off.
++  registry->RegisterBooleanPref("blanc.mini_window.links", false);
+   // First run (F36) and the usage ping's consent (F21): device-wide, as
+   // shipping's are. The preview channel never sends.
+   registry->RegisterDoublePref("blanc.first_run.completed_at", 0);
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+index 9e612d4..a43cda3 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
+@@ -148,6 +148,14 @@ export function getHtml(this: SettingsAppearancePageElement) {
+         ${this.blancMiniOptions_.map(option=>html`<option value="${option.value}" ?selected="${option.value===this.blancMiniState_?.saved}">${option.name}</option>`)}
+       </select>
+     </div>
++<if expr="is_macosx">
++    <!-- Only the Mac hands Blanc links from other apps itself (#1734). -->
++    <div class="cr-row" id="blancMiniLinksRow">
++      <div class="flex cr-padded-text"><div id="blancMiniLinksLabel">$i18n{blancMiniLinks}</div><div class="secondary" id="blancMiniLinksHint">$i18n{blancMiniLinksHint}</div></div>
++      <cr-toggle id="blancMiniLinks" aria-labelledby="blancMiniLinksLabel" aria-describedby="blancMiniLinksHint"
++          ?disabled="${this.blancMiniLinks_===undefined}" ?checked="${this.blancMiniLinks_===true}" @change="${this.onBlancMiniLinksChange_}"></cr-toggle>
++    </div>
++</if>
+     <div class="cr-row" id="blancTabArchiveRow">
+       <div class="flex cr-padded-text" aria-hidden="true">
+         <div>$i18n{blancTabArchive}</div>
+diff --git a/chrome/browser/resources/settings/appearance_page/appearance_page.ts b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+index ce38bf8..b809c0e 100644
+--- a/chrome/browser/resources/settings/appearance_page/appearance_page.ts
++++ b/chrome/browser/resources/settings/appearance_page/appearance_page.ts
+@@ -164,6 +164,7 @@ export class SettingsAppearancePageElement extends
+       blancGestureAction_: {type:String},
+       blancMiniState_: {type: Object},
+       blancMiniOptions_: {type: Array},
++      blancMiniLinks_: {type: Boolean},
+       blancAppIconOptions_: {type: Array},
+       blancSurfaceStyleOptions_: {type: Array},
+       sidePanelAlignmentOverridesPref_: {type: Object},
+@@ -304,6 +305,12 @@ export class SettingsAppearancePageElement extends
+     const value=(event.target as HTMLSelectElement).value;
+     this.blancMiniState_=await blancSettings.miniWindow(value);
+   }
++  protected accessor blancMiniLinks_: boolean|undefined;
++  protected async onBlancMiniLinksChange_(event: CustomEvent<boolean>) {
++    const toggle=event.currentTarget as HTMLElement&{checked:boolean};
++    this.blancMiniLinks_=await blancSettings.miniLinks(event.detail);
++    toggle.checked=this.blancMiniLinks_===true;
++  }
+ 
+   protected accessor blancTabArchiveOptions_: DropdownMenuOptionList = [
+     {value: 'off', name: loadTimeData.getString('blancTabArchiveOff')},
+@@ -463,6 +470,7 @@ export class SettingsAppearancePageElement extends
+     super.connectedCallback();
+     void blancSettings.mouseGestures().then(result=>{this.blancGestures_=result.state;});
+     void blancSettings.miniWindow().then(state=>{this.blancMiniState_=state;});
++    void blancSettings.miniLinks().then(on=>{this.blancMiniLinks_=on;});
+ 
+     this.mirrorPrefs({
+       'autogenerated.theme.policy.color': 'themePolicyColorPref_',
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+index 8b17fa3..5a2b457 100644
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -67,6 +67,8 @@ export interface BlancTrustReceipt {
+ }
+ 
+ export const blancSettings = {
++  // Links from other apps open in a mini window (#1734 part 3): '' reads.
++  miniLinks: (on: boolean|null = null) => sendWithPromise<boolean>('blancMiniWindowLinks', on === null ? '' : on ? 'on' : 'off'),
+   // <if expr="is_win">
+   setHardwareVideoDecoding: (on: boolean) =>
+       sendWithPromise<boolean>('blancSetHardwareVideoDecoding', on ? 'on' : 'off'),
