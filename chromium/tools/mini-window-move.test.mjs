@@ -31,3 +31,52 @@ test('the Island has the mini window\'s Spaces button and the menu its move mode
   assert.match(read('blanc/island/workspace-ui.js'), /setMoveMode\(on, \{ tabCount = 0 \} = \{\}\)/);
   assert.match(read('blanc/island/overlay.js'), /workspaceUI\.setMoveMode\(payload\.miniWindow === true, \{ tabCount: movingTabCount\(payload\) \}\);/);
 });
+
+// The host (blanc/island/host.js) does the move with the native batch move
+// it already has: one spaceMoveTabs per run of tabs, each run keeping its group.
+const host = read('blanc/island/host.js');
+function body(name) {
+  const start = host.search(new RegExp(`(?:async )?function ${name}\\(`));
+  assert.ok(start >= 0, `${name} is in host.js`);
+  let depth = 0;
+  for (let i = host.indexOf('{', host.indexOf(')', start)); i < host.length; i++) {
+    if (host[i] === '{') depth++;
+    else if (host[i] === '}' && --depth === 0) return host.slice(start, i + 1);
+  }
+  throw Error(`${name} has no end`);
+}
+
+test('a mini window moves in runs of tabs, each keeping its group; an unused start page stays', () => {
+  const miniMoveRuns = new Function(`${body('miniMoveRuns')}; return miniMoveRuns;`)();
+  const tab = (id, extra = {}) => ({ id, url: `https://example.com/${id}`, groupId: null, canGoBack: false, canGoForward: false, ...extra });
+  assert.deepEqual(miniMoveRuns([
+    tab('1', { url: 'blanc://newtab/' }),
+    tab('2'), tab('3', { groupId: 'g' }), tab('4', { groupId: 'g' }), tab('5'),
+    tab('6', { url: 'blanc://newtab/', canGoBack: true }),
+  ]), [{ ids: ['2'], groupId: null }, { ids: ['3', '4'], groupId: 'g' }, { ids: ['5', '6'], groupId: null }]);
+  assert.deepEqual(miniMoveRuns([tab('1', { url: 'blanc://newtab/' })]), []);
+  // A start page inside a group stays with its group (a group moves whole).
+  assert.deepEqual(miniMoveRuns([tab('1', { url: 'blanc://newtab/', groupId: 'g' }), tab('2', { groupId: 'g' })]),
+    [{ ids: ['1', '2'], groupId: 'g' }]);
+});
+
+test('only the menu\'s move mode moves a mini window; switching by name stays refused', () => {
+  assert.match(body('openSpace'), /if \(snapshot\?\.miniWindow\) return options\.move === true && !otherProfileTarget\(options\) \? moveMiniWindowToSpace\(id, null\) : \{ ok: false, error: 'busy' \};/);
+  assert.match(body('createBlankSpace'), /if \(snapshot\?\.miniWindow\) return options\.move === true && !otherProfileTarget\(options\) \? moveMiniWindowToSpace\(null, \{ name: rawName, color: options\.color, symbol: options\.symbol \}\) : \{ ok: false, error: 'busy' \};/);
+  // The menu lists this profile's Spaces in a mini window; saving and
+  // switching the window itself stay refused.
+  assert.ok(!host.slice(host.indexOf('const spaceList = async'), host.indexOf('const savedTabCount')).includes('miniWindow'), 'a mini window reads the list');
+  for (const name of ['saveSpaceAs', 'swapToSpace']) assert.match(body(name), /if \(snapshot\?\.miniWindow\) return \{ok:false,error:'busy'\};/);
+  assert.match(body('refreshNow'), /snapshot\.miniWindowCanMove = !!snapshot\.miniWindow && miniMoveRuns\(snapshot\.tabs\)\.length > 0;/);
+});
+
+test('the move is all or nothing, writes the new Space after its first run, then closes the mini window', () => {
+  const move = body('moveMiniWindowToSpace');
+  assert.match(move, /request\('batchTabsMenuState', \[ids\.map\(nativeId\)\]\)/);
+  assert.match(move, /if \(!state\?\.canPlace\) return \{ ok: false, error: 'unmovable', movedCount: 0 \};/);
+  assert.match(move, /request\('spaceMoveTabs', \[run\.ids\.map\(nativeId\), target, create, \.\.\.\(run\.groupId \? \[run\.groupId\] : \[\]\)\]\)/);
+  assert.match(move, /error: moved \? 'moved-partly' : /);
+  assert.match(move, /request\('spaceFocus', \[target\]\)/);
+  assert.match(move, /openSpaceElsewhere\(target\)/);
+  assert.match(move, /request\('closeWindow'\)/);
+});
