@@ -1,6 +1,6 @@
 # Mini Window: Move to Space (#1734, part 1)
 
-**Status:** design approved; shipping Blanc (Electron) implemented on `claude/mini-window-move-to-space`, not in a public release; the fork follows. Goes into shipping Blanc (Electron) first, then Blanc Beta (the Chromium fork) on `chromium/next` (owner, November 25, 2026).
+**Status:** shipping Blanc (Electron) merged in bnfy/blanc#1763 (870c400de), not in a public release; Blanc Beta (the fork) on `chromium/next`, checked on the Mac Studio's 159 prototype (`chromium/STATUS.md`, 2026-11-28).
 **Asked for:** #1734 item 1, from Koen's feedback on #1138: the mini window as
 a "look, then decide" window. Open something fast, then file it into a Space,
 keep it (Open in Blanc), or let it close after an hour. Parts 2 (switch to
