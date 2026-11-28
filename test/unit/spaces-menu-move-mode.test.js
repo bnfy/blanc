@@ -104,3 +104,19 @@ test('the overlay turns move mode on in a mini window and opens New space… fro
   assert.match(overlay, /for \(const profile of spaceResults \? wsOtherProfiles : \[\]\)/);
   assert.match(overlay, /purpose\?\.miniNewSpace\) \{[\s\S]*?workspaceUI\.begin\('new', null, \{ start: 'mini', thisProfile: true,/);
 });
+
+test('New space… counts the tabs a mini window moves, from the payload main sends (#1734)', () => {
+  // The tabs payload lists this window's tabs in order and has no tabOrder;
+  // an unused start page stays behind, a used or private one moves.
+  const overlay = fs.readFileSync(path.join(__dirname, '../../src/renderer/overlay.js'), 'utf8');
+  const source = overlay.match(/ {2}function movingTabCount\(payload\) \{[\s\S]*?\n {2}\}\n/)[0];
+  const movingTabCount = new Function(`${source}; return movingTabCount;`)();
+  assert.equal(movingTabCount({ tabs: [
+    { id: 'a', url: 'https://example.com/' },
+    { id: 'b', url: 'blanc://newtab/', canGoBack: false, canGoForward: false },
+    { id: 'c', url: 'blanc://newtab/', canGoBack: true, canGoForward: false },
+    { id: 'd', url: 'blanc://newtab/?private=1', canGoBack: false, canGoForward: false },
+  ] }), 3);
+  assert.equal(movingTabCount({ tabs: [{ id: 'b', url: 'blanc://newtab/' }] }), 0);
+  assert.equal(movingTabCount({}), 0);
+});

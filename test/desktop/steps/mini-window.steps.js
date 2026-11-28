@@ -167,6 +167,8 @@ When("I create the space {string} from the mini window's Spaces button", async f
     start: !!document.querySelector('.ws-segmented'),
   }))()`);
   assert.match(editor.text, /With these tabs/);
+  // The fixture page moves; the window's unused start page stays (#1734).
+  assert.match(editor.text, /\b1 tab\b/);
   assert.equal(editor.profile, false, 'no Profile choice');
   assert.equal(editor.start, false, 'the start is fixed');
   await this.call('miniWindowOverlay', this.miniWindowId, `(() => {
