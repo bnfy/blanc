@@ -1882,18 +1882,27 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     return /^(?!\.)[^\s./?#:]+(?:\.[^\s./?#:]+)+(?::\d+)?([/?#][^\s]*)?$/u.test(trimmed);
   }
 
+  // Move to Space (#1734): the tabs a mini window's move would take, for the
+  // New space… editor (an unused start page stays behind).
+  function movingTabCount(payload) {
+    return (payload.tabs ?? []).filter((tab) => (payload.tabOrder ?? []).includes(tab.id) && tab.url !== 'blanc://newtab/').length;
+  }
+
   function switcherResults(query) {
     const results = [];
+    // A mini window holds no Space and switches to none (#1734): its Spaces
+    // button moves it instead, so typing a Space's name offers no Space here.
+    const spaceResults = state.miniWindow !== true;
     // Spaces rank with groups: typing a space's name switches to it. The
     // current space is already here, so it never appears.
-    for (const w of wsWorkspaces) {
+    for (const w of spaceResults ? wsWorkspaces : []) {
       if (w.active) continue;
       const s = matchScore(query, w.name);
       if (s) results.push({ kind: 'space', title: w.name, sub: blancI18n.t('result.groupCount', { count: w.tabCount }), workspace: w, score: s + 0.3 });
     }
     // Other profiles' Spaces open in a window of their profile; they rank
     // just below this profile's.
-    for (const profile of wsOtherProfiles) {
+    for (const profile of spaceResults ? wsOtherProfiles : []) {
       for (const w of profile.items ?? []) {
         const s = matchScore(query, w.name);
         if (s) results.push({ kind: 'space', title: w.name, sub: blancI18n.t('ws.switcher.profileLabel', { profile: profile.name }), workspace: { ...w, profileId: profile.id, profileName: profile.name }, score: s + 0.2 });
@@ -3065,6 +3074,10 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
         // From Move Group to Space ▸ the editor names the group (user data).
         workspaceUI.begin('new', null, { start: 'tabs', tabId: purpose.newSpaceTabIds,
           tabTitle: typeof purpose.newSpaceGroupName === 'string' ? purpose.newSpaceGroupName : blancI18n.t('tabsMenu.header', { count: purpose.newSpaceTabIds.length }) });
+      } else if (purpose?.miniNewSpace) {
+        // File → Move to Space ▸ → New space… in a mini window (#1734).
+        workspaceUI.begin('new', null, { start: 'mini', thisProfile: true,
+          tabTitle: blancI18n.t('tabsMenu.header', { count: movingTabCount(state) }) });
       } else if (purpose?.newSpaceTabId != null) {
         const tab = state.tabs.find((item) => item.id === purpose.newSpaceTabId);
         workspaceUI.begin('new', null, { start: 'tab', tabId: purpose.newSpaceTabId, tabTitle: tab?.customTitle || tab?.title || tab?.url || '' });
@@ -4068,6 +4081,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     applyIslandSize(payload.islandSize);
     // Mini Window (#1138): no Spaces button in a mini window (CSS).
     document.documentElement.toggleAttribute('data-mini-window', payload.miniWindow === true);
+    // Move to Space (#1734): from a mini window the Spaces menu moves its tabs.
+    workspaceUI.setMoveMode(payload.miniWindow === true, { tabCount: movingTabCount(payload) });
     const activeTabChanged = payload.activeTabId !== state.activeTabId;
     if (JSON.stringify(payload.selectedTabIds ?? []) !== JSON.stringify(state.selectedTabIds ?? [])) {
       const count = payload.selectedTabIds?.length ?? 0;
@@ -4131,6 +4146,8 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
     state = payload;
     applyIslandSize(payload.islandSize);
     document.documentElement.toggleAttribute('data-mini-window', payload.miniWindow === true);
+    // Move to Space (#1734): from a mini window the Spaces menu moves its tabs.
+    workspaceUI.setMoveMode(payload.miniWindow === true, { tabCount: movingTabCount(payload) });
     if (mode === 'glance') renderGlancePicker();
   });
 

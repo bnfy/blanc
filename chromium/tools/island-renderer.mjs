@@ -49,6 +49,12 @@ export const MAIN_FILES = {'island-hover-open.js': 'BlancIslandHoverOpen', 'isla
   'whats-new.js': 'BlancWhatsNew', 'glance-card.js': 'BlancGlanceCard', 'clean-link.js': 'BlancCleanLink', 'invite-friend.js': 'BlancInviteFriend', 'site-security.js': 'BlancSiteSecurity', 'tab-switcher.js': 'BlancTabSwitcher'};
 // Trusted Types policy names, per hardened script.
 const HARDEN = {'overlay.js': 'overlay', 'renderer.js': 'renderer', 'vertical-tabs.js': 'vertical-tabs'};
+// #1763's button, as shipping's index.html draws it.
+const MINI_SPACES_BUTTON = `        <button id="pillMiniSpaces" class="mini-spaces" type="button" aria-haspopup="dialog" aria-expanded="false" data-tooltip="Move this mini window's tabs to a Space" aria-label="Move to Space — move this mini window's tabs to a Space" data-i18n-tooltip="mini.moveToSpace.title" data-i18n-aria-label="mini.moveToSpace.label" hidden>
+          <!-- The Spaces planet (SpaceIdentity.SPACES_GLYPH), as on the ⌘L footer's Spaces button. -->
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M20.29 13.84A11.3 3.1 27 1 1 5.64 6.37"/></svg>
+        </button>
+`;
 const PREVIEW_META = fs.readFileSync(path.join(root, 'tools/preview-build-meta.html'), 'utf8').trimEnd();
 
 // The fork's edits to shipping's files. Each `find` must occur exactly once.
@@ -68,6 +74,10 @@ export const EDITS = {
     ['  <link rel="stylesheet" href="styles.css" />\n', '  <link rel="stylesheet" href="styles.css" />\n  <link rel="stylesheet" href="prototype.css" />\n'],
     // Chromium's extension controls sit in the pill's action cluster.
     ['<div id="pillActions" class="pill-btns"></div>', '<div id="pillActions" class="pill-btns"><span id="nativeExtensions" aria-hidden="true"></span></div>'],
+    // Move to Space (#1734, from #1763): a mini window's Spaces button beside
+    // Open in Blanc; its menu files come from blanc/spaces-menu.json's commit.
+    ['          <span data-i18n="mini.openInBlanc">Open in Blanc</span>\n        </button>\n',
+     '          <span data-i18n="mini.openInBlanc">Open in Blanc</span>\n        </button>\n' + MINI_SPACES_BUTTON],
   ],
   // The permission prompt (F13) is a frame of the Island host, like the overlay.
   'permission.html': [
@@ -128,6 +138,30 @@ export const EDITS = {
     ["if (e.target === stripEl && !floatSurface)", "if (platform !== 'linux' && e.target === stripEl && !floatSurface)"],
     ["  dragBand.addEventListener('dblclick'", "  if (platform !== 'linux') dragBand.addEventListener('dblclick'"],
     ["    pillSpace.hidden = spaceMarkOnIsland();", "    pillSpace.hidden = document.documentElement.hasAttribute('data-mini-window') || spaceMarkOnIsland();"],
+    // Move to Space (#1734, #1763's renderer hunks): the mini window's Spaces
+    // button opens the Spaces menu in its move mode.
+    ["  const pillMiniOpen = document.getElementById('pillMiniOpen');\n",
+     "  const pillMiniOpen = document.getElementById('pillMiniOpen');\n  const pillMiniSpaces = document.getElementById('pillMiniSpaces');\n"],
+    ["    const anchor = pillSpace.hidden ? islandPill : pillSpace;",
+     "    const anchor = !pillMiniSpaces.hidden ? pillMiniSpaces : pillSpace.hidden ? islandPill : pillSpace;"],
+    ["    pillMiniOpen.hidden = !miniWindow;\n",
+     "    pillMiniOpen.hidden = !miniWindow;\n    pillMiniSpaces.hidden = !miniWindow;\n    pillMiniSpaces.disabled = !state.miniWindowCanMove;\n"],
+    ["    pillSpace.setAttribute('aria-expanded', String(mode === 'spaces'));\n",
+     "    pillSpace.setAttribute('aria-expanded', String(mode === 'spaces'));\n    pillMiniSpaces.setAttribute('aria-expanded', String(mode === 'spaces'));\n"],
+    ["    window.browserAPI.keepMiniWindow();\n  });\n",
+     `    window.browserAPI.keepMiniWindow();
+  });
+  // Move to Space (#1734): the Spaces menu, in its move mode. A press while
+  // the menu is open closes it, as the Space mark's does.
+  let miniSpacesPressedWhileOpen = false;
+  pillMiniSpaces.addEventListener('pointerdown', () => { miniSpacesPressedWhileOpen = pillMiniSpaces.getAttribute('aria-expanded') === 'true'; });
+  pillMiniSpaces.addEventListener('mousedown', (e) => e.preventDefault());
+  pillMiniSpaces.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const closing = miniSpacesPressedWhileOpen; miniSpacesPressedWhileOpen = false;
+    window.browserAPI.openSpacesMenu({ ...spacesAnchor(), closing });
+  });
+`],
     // An extension's page goes by the extension's name, not its 32-letter id.
     // An extension's page shows the extension's name, not its 32-letter id
     // (a blank new tab still shows nothing, as shipping's locationLabel).
@@ -155,7 +189,13 @@ export const EDITS = {
   // later shipping changes to it (#1622, #1624) aren't in the fork yet.
   'styles.css': [
     // Both text actions use the shipping pill's button dimensions.
-    ['#pillMiniOpen {', '#pillMiniOpen,\n:root[data-platform="linux"] #pillRestartToUpdate {'],
+    // (and the mini window's Spaces button, #1734, #1763's styles.css hunk)
+    ['#pillMiniOpen {', '#pillMiniOpen,\n#pillMiniSpaces,\n:root[data-platform="linux"] #pillRestartToUpdate {'],
+    ['#pillMiniOpen svg {', '#pillMiniOpen svg,\n#pillMiniSpaces svg {'],
+    ['#pillMiniOpen:hover,\n#pillMiniOpen:focus-visible { background: var(--accent-dim); border-color: transparent; }\n#pillMiniOpen:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }\n#pillMiniOpen[hidden] { display: none; }\n',
+     '#pillMiniOpen:hover,\n#pillMiniOpen:focus-visible,\n#pillMiniSpaces:enabled:hover,\n#pillMiniSpaces:focus-visible,\n#pillMiniSpaces[aria-expanded="true"] { background: var(--accent-dim); border-color: transparent; }\n' +
+     '#pillMiniOpen:focus-visible,\n#pillMiniSpaces:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }\n#pillMiniOpen[hidden],\n#pillMiniSpaces[hidden] { display: none; }\n' +
+     '#pillMiniSpaces { padding: 0; width: 22px; justify-content: center; }\n#pillMiniSpaces svg { width: 13px; height: 13px; stroke-width: 1.8; }\n#pillMiniSpaces:disabled { opacity: 0.45; cursor: default; }\n'],
     // Linux reserves the actual GTK cluster on each side. Other platforms
     // keep the measured shipping clearances for the horizontal and rail layouts.
     [' - 184px) / var(--pill-zoom)', ' - var(--pill-window-clearance, 184px)) / var(--pill-zoom)'],
