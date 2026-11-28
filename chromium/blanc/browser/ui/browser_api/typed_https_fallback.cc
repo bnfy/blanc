@@ -1,6 +1,8 @@
 // Copyright 2026 Bananify Creative. MIT; see the Blanc repository LICENSE.
 #include "blanc/browser/ui/browser_api/typed_https_fallback.h"
 
+#include <initializer_list>
+
 namespace blanc::browser_api {
 namespace {
 
