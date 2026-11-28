@@ -670,7 +670,9 @@
     const runs = [];
     for (const tab of tabs) {
       const groupId = tab.groupId ?? null;
-      if (!groupId && tab.url === 'blanc://newtab/' && !tab.canGoBack && !tab.canGoForward) continue;
+      // A private tab's start page also reads as blanc://newtab/; it is never
+      // left behind to close with the window (canPlace refuses it instead).
+      if (!groupId && !tab.private && tab.url === 'blanc://newtab/' && !tab.canGoBack && !tab.canGoForward) continue;
       const last = runs.at(-1);
       if (last && last.groupId === groupId) last.ids.push(tab.id);
       else runs.push({ ids: [tab.id], groupId });

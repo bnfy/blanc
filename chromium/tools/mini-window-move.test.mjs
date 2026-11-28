@@ -55,6 +55,10 @@ test('a mini window moves in runs of tabs, each keeping its group; an unused sta
     tab('6', { url: 'blanc://newtab/', canGoBack: true }),
   ]), [{ ids: ['2'], groupId: null }, { ids: ['3', '4'], groupId: 'g' }, { ids: ['5', '6'], groupId: null }]);
   assert.deepEqual(miniMoveRuns([tab('1', { url: 'blanc://newtab/' })]), []);
+  // A private tab's start page reads as blanc://newtab/ too, but it is never
+  // left behind: it goes into the run, where canPlace refuses it (found on
+  // the Mac Studio's candidate, F61-7).
+  assert.deepEqual(miniMoveRuns([tab('1'), tab('2', { url: 'blanc://newtab/', private: true })]), [{ ids: ['1', '2'], groupId: null }]);
   // A start page inside a group stays with its group (a group moves whole).
   assert.deepEqual(miniMoveRuns([tab('1', { url: 'blanc://newtab/', groupId: 'g' }), tab('2', { groupId: 'g' })]),
     [{ ids: ['1', '2'], groupId: 'g' }]);
