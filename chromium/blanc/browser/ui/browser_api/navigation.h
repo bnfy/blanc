@@ -50,9 +50,11 @@ class Navigation : public mojom::Navigation {
  private:
   content::WebContents* Tab(const std::string& id);
   // Loads `url` and reports whether it committed and finished loading (false
-  // when superseded or failed), or nothing when no load started.
+  // when superseded or failed), or nothing when no load started. With
+  // `http_fallback`, an https:// address that fails to connect or fails TLS is
+  // tried once over HTTP (typed_https_fallback.h).
   void Load(content::WebContents* tab, const GURL& url,
-            base::OnceCallback<void(std::optional<bool>)> done);
+            base::OnceCallback<void(std::optional<bool>)> done, bool http_fallback = false);
 
   BrowserGetter browser_;
   mojo::Receiver<mojom::Navigation> receiver_;
