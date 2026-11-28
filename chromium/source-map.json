@@ -500,7 +500,7 @@
     "blanc/browser/ui/browser_api/suggestion_policy.cc": "98ca4142c2d0901845afb75e4fd7aa5a509f98571c648d2ecbed2a087af9341f",
     "blanc/browser/ui/browser_api/suggestion_policy.h": "465018506f4f94a07ee3cebfec366c58db670d7c9afc596bb9d082950915a11c",
     "blanc/browser/ui/browser_api/theme_choice.h": "828a86ba9adf378a023ac92d90ebad6b65c4c5ee9ef3d35538344454db080ab5",
-    "blanc/browser/ui/browser_api/typed_https_fallback.cc": "ae5665ab05631e024559a13e0dc01370393496dee1bdb4aefb049726d9b39339",
+    "blanc/browser/ui/browser_api/typed_https_fallback.cc": "496df89e9978f66a5c380d8368472235f9335967a2ad3f0da893df2088b2ceb5",
     "blanc/browser/ui/browser_api/typed_https_fallback.h": "a4595fbd7164fcdb94adf0675b4d8d6543d7ec5f8f0fb2a36856131962490e25",
     "blanc/browser/ui/chromium_settings_handler.inc": "9c5a371badbfb7dd65eb4c799927371a8b1b5d33fce9d5fb86b0a1bf176c2864",
     "blanc/browser/ui/desktop_shared_spaces.inc": "718f38b4df55a9690189867f3edefff3ffffc66f426ce6d77e1941aaf6998d3a",
