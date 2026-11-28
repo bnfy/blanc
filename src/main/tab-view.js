@@ -597,8 +597,8 @@ function wireTabView(tab, view, { owner, adopted }) {
       traceFailure('gate-refused-late');
       return;
     }
-    // A typed bare domain that doesn't answer HTTPS is tried once over HTTP
-    // instead of showing an error page (typed-https-fallback.js).
+    // An address from the address bar that doesn't answer HTTPS is tried once
+    // over HTTP instead of showing an error page (typed-https-fallback.js).
     const httpFallback = httpFallbackFor(tab.typedHttpsFallback, { code: errorCode, url: validatedURL });
     tab.typedHttpsFallback = null;
     if (httpFallback) {
