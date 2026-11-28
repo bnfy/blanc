@@ -1868,9 +1868,10 @@
   }
 
   // Move to Space (#1734): the tabs a mini window's move would take, for the
-  // New space… editor (an unused start page stays behind).
+  // New space… editor. The payload lists this window's tabs; an unused start
+  // page (no history either way, as main's newTabPageUsed) stays behind.
   function movingTabCount(payload) {
-    return (payload.tabs ?? []).filter((tab) => (payload.tabOrder ?? []).includes(tab.id) && tab.url !== 'blanc://newtab/').length;
+    return (payload.tabs ?? []).filter((tab) => !(tab.url === 'blanc://newtab/' && !tab.canGoBack && !tab.canGoForward)).length;
   }
 
   function switcherResults(query) {
