@@ -1,37 +1,37 @@
 ---
-// A real Blanc Mail screenshot, taken from the signed demo build by the Mail
-// repository's native/scripts/capture-public-shots.sh (demo mode only, never a
-// connected mailbox). Mail has no public release, so docs/marketing-claims.md
-// requires every one to be labelled as a preview; this component is the only
-// way the Mail pages show a screenshot, so the label can't be left off.
-// Every capture uses the demo's made-up mail, and the caption says so.
-// Files: /mail/screens/<name>.webp, the capture as taken (2200px wide for a
-// window, 1400px for the rule editor), and <name>-1100.webp, built from it by
-// site/scripts/build-display-images.mjs.
-interface Props {
+// Real Blanc Mail screenshots from preview builds running with sample mail.
+// One caption labels the screenshots together per docs/marketing-claims.md.
+// Each screenshot has a smaller copy from site/scripts/build-display-images.mjs.
+interface Shot {
   name: string;
   alt: string;
   width: number;
   height: number;
-  class?: string;
-  eager?: boolean;
-  // The page's largest image (the Mail hero): fetched first.
+  displayWidth?: number;
+  class: string;
   priority?: boolean;
-  sizes?: string;
+  sizes: string;
 }
-const { name, alt, width, height, class: className = '', eager = false, priority = false, sizes = '(max-width: 1120px) 100vw, 1072px' } = Astro.props;
+interface Props { shots: Shot[] }
+const { shots } = Astro.props;
 ---
-<figure class={`mail-shot ${className}`}>
-  <img
-    src={`/mail/screens/${name}.webp`}
-    srcset={`/mail/screens/${name}-1100.webp 1100w, /mail/screens/${name}.webp ${width}w`}
-    sizes={sizes}
-    alt={alt}
-    width={width}
-    height={height}
-    loading={eager || priority ? 'eager' : 'lazy'}
-    fetchpriority={priority ? 'high' : undefined}
-    decoding="async"
-  />
-  <figcaption>Preview build · sample mail</figcaption>
+<figure id="iphone" class="mail-shot">
+  <div class="offer-devices">
+    {shots.map(({ name, alt, width, height, displayWidth = 1100, class: className, priority, sizes }) => (
+      <div class={className}>
+        <img
+          src={`/mail/screens/${name}.webp`}
+          srcset={`/mail/screens/${name}-${displayWidth}.webp ${displayWidth}w, /mail/screens/${name}.webp ${width}w`}
+          sizes={sizes}
+          alt={alt}
+          width={width}
+          height={height}
+          loading="eager"
+          fetchpriority={priority ? 'high' : undefined}
+          decoding="async"
+        />
+      </div>
+    ))}
+  </div>
+  <figcaption>Preview builds</figcaption>
 </figure>
