@@ -81,7 +81,7 @@ try{
   assert.equal(s.tabs.at(-1).url,six.url,'last');
   assert.equal(s.groups.find(g=>g.id===tab.groupId)?.name,'Research','still in its group');
  }
- passed('F61-6');
+ passed('F61-6: a mini window moved to a Space open nowhere closes, and its page arrives last, in its group');
 
  // F61-7: a private tab refuses with its reason; then New space… with the page.
  const elsewhere=await savedSpace('Elsewhere');
@@ -94,7 +94,7 @@ try{
  assert.ok(await byNativeWindow(seven.native),'the mini window stays');
  assert.ok((await snap(seven.r)).tabs.some(t=>t.url===seven.url),'its page stays');
  assert.ok(elsewhere.id,'Elsewhere was offered');
- passed('F61-7 refusal');
+ passed('F61-7 refusal: a private tab stops the move with its reason; nothing moves and the window stays');
  assert.equal(await w.call('closeTabInWindow',seven.id,privateId),true);
  await openMoveMenu(seven);
  await inFrame(seven.r,'#overlay',`doc.querySelector('[data-focus-key="new"]').click();return true;`);
@@ -109,7 +109,7 @@ try{
   assert.equal(s.tabs.at(-1).url,seven.url);
   assert.ok(!s.tabs.some(t=>t.private),'no private page reached the Space');
  }
- passed('F61-7 new Space');
+ passed('F61-7 new Space: New space… in move mode (no Profile or start choice) makes the Space with the page and closes the window');
 
  // F61-8: a Space already on screen comes forward; no window opens.
  const shown=await savedSpace('Shown',{keepOpen:true});
@@ -121,14 +121,14 @@ try{
  const after=await w.waitFor(async()=>{const r=await byNativeWindow(shown.native);const s=r&&await snap(r);return s?.tabs.at(-1)?.url===eight.url?s:null;},Boolean,'Shown\'s window with the page');
  assert.equal(after.spaceName,shown.id);
  assert.equal((await runtimes(w)).length,before-1,'only the mini window went away');
- passed('F61-8');
+ passed('F61-8: a Space already on screen gets the page in its own window; only the mini window goes');
 
  // Switching by name (the Quick Switcher, /space) never moves a mini window.
  const nine=await miniWithPage('mini-move-refused');
  const refused=await nine.r.cdp.eval(`window.BlancPrototypeHost.api.openWorkspace(${jsLiteral(reading.id)},{})`);
  assert.equal(refused?.ok,false);
  assert.ok((await snap(nine.r)).tabs.some(t=>t.url===nine.url),'the page stays');
- passed('switching by name stays refused');
+ passed('switching by name stays refused: openWorkspace without move leaves the mini window as it is');
  await visible();result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{
