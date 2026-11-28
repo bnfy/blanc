@@ -23,8 +23,10 @@ export async function waitForLinuxGlanceResize(w,width,height) {
   return area?.width===width && area.y+islandY+area.height===height;
  }, 'Glance layout after resize');
 }
-// Opening the editor changes the popup height and moves its scroll area.
-async function openLinuxSpaceEditor(name) {
+// Opening the editor changes the popup height and moves its scroll area, so
+// the next click waits for the editor to settle (Windows and Linux). A case
+// whose editor never opens carries the menu's evidence (lib/spaces-evidence.mjs).
+export async function openSpaceEditor(name) {
  const page=this.frame('overlay');
  const {items}=await this.call('workspaceAction','list');
  const space=items.find(s=>s.name===name);
@@ -34,7 +36,7 @@ async function openLinuxSpaceEditor(name) {
  return page;
 }
 export async function openLinuxSpacePicker(name) {
- const page=await openLinuxSpaceEditor.call(this,name);
+ const page=await openSpaceEditor.call(this,name);
  await page.click('[data-focus-key="color:custom"]');
  await page.waitForSelector('.space-picker-hex');
 }
@@ -83,19 +85,24 @@ export async function moveWithinIslandUntilOpen() {
 // step (the first Windows nightly's island-and-commands:115).
 export function windowLayoutSteps(platform=process.platform) {
  return new Map([
- ...(platform!=='darwin'?[['I move the pointer off the panel',moveOffSettledPanel]]:[]),
- ...(platform==='win32'?[['I move within the Island every 50 milliseconds',moveWithinIslandUntilOpen]]:[]),
- ...(platform==='linux'?[
+ ...(platform!=='darwin'?[['I move the pointer off the panel',moveOffSettledPanel],
  ['I open the color picker for {string}',openLinuxSpacePicker],
+ ['I edit {string} to the color {string} and the symbol {string}',async function(name,color,symbol){
+  const page=await openSpaceEditor.call(this,name);
+  await page.click(`[data-focus-key="color:${color}"]`);
+  await page.click(`[data-focus-key="symbol:${symbol}"]`);
+ }],
  ['I give {string} the custom color {string}',async function(name,hex){
   await openLinuxSpacePicker.call(this,name);
   await this.frame('overlay').fill('.space-picker-hex',hex);
  }],
  ['I delete {string} from its editor',async function(name){
-  const page=await openLinuxSpaceEditor.call(this,name);
+  const page=await openSpaceEditor.call(this,name);
   await page.click('[data-focus-key="delete"]');
   await page.waitForSelector('[data-focus-key="undo"]');
- }],
+ }]]:[]),
+ ...(platform==='win32'?[['I move within the Island every 50 milliseconds',moveWithinIslandUntilOpen]]:[]),
+ ...(platform==='linux'?[
  ["the window's page is {int} by {int}",async function(width,height){
   await resize.call(this,width,height);
   await waitForLinuxGlanceResize(this,width,height);

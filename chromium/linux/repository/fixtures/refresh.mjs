@@ -61,7 +61,11 @@ export async function exercisePackageManagers(dir) {
         args = ['-o', 'Dir::Etc::sourcelist=' + home + '/sources.list', '-o', 'Dir::Etc::sourceparts=' + home + '/empty',
           '-o', 'Dir::State::lists=' + home + '/lists', '-o', 'Dir::Cache=' + home,
           '-o', 'APT::Architecture=amd64', '-o', 'APT::Sandbox::User=' + (process.env.USER || 'root'),
-          '-o', 'APT::Update::Error-Mode=any', '-o', 'Acquire::Languages=none', 'update'];
+          '-o', 'APT::Update::Error-Mode=any', '-o', 'Acquire::Languages=none',
+          // The runner's apt forces IPv4 (scripts/ci-apt-mirror.sh). In this
+          // loopback-only namespace glibc then finds no IPv4 address to use and
+          // apt can't resolve even 127.0.0.1, so this run lets apt choose.
+          '-o', 'Acquire::ForceIPv4=false', 'update'];
       } else {
         const repos = home + '/repos';
         await mkdir(repos);

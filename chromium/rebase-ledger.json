@@ -7,8 +7,8 @@
       "to": "159.0.8154.33",
       "upstream": "ab2e5d8ad16ca47ad4361c9517225f1ac884d255",
       "startedAt": "2026-11-24T18:25:10Z",
-      "finishedAt": null,
-      "hours": null,
+      "finishedAt": "2026-11-26T14:18:32Z",
+      "hours": 43.9,
       "patchesConflicted": [
         "patches/baseline/0001-foundation-baseline.patch",
         "patches/0003-island-mode-predicate.patch",
@@ -30,7 +30,7 @@
         "patches/0113-blanc-linux-identity.patch",
         "patches/0115-blanc-linux-installer.patch"
       ],
-      "notes": "Stage 1 (side branch chromium/rebase-159, no build tree touched): the pin, the upstream copies and every desktop patch moved to the newest 159 Beta (same version and commit on Mac, Windows and Linux) at 18:55 UTC, and the fork unit suite matched chromium/next's at 19:00 UTC. refresh-upstream exited 1 first: 159 moved the privacy_page, settings_main, settings_menu and settings_ui templates from .html to .html.ts, so the manifest pins those instead. 0029, 0036, 0047 and 0083 needed only fresh context. What each conflict needed and the toolchain changes (clang, Rust, Siso, GN; no Windows toolchain or SDK change) are in chromium/reports/rebase-159-preflight.md. Stage 2 (owner approved 2026-11-24): both checkouts moved to 159 (syncs 19:21 and 19:22 UTC), clang the only toolchain change; all eight desktop outputs built by 2026-11-25 03:57 UTC after two fixes (blanc/ui.gni's moved and removed GN targets, MdTextButton::SetBgColorOverride in 0085 and 0110). Not yet run (Task 6). Task 6 (2026-11-25): Mac suite 637/0/30 as at 158; Mac API-key, pf outbound, active-session and used-158-profile checks pass; Windows 633/2/32 and Linux x64 634/2/31 with one intermittent case each failing twice (F41:16; island-and-commands:61), Linux arm64 634/2/31 passing on rerun; the Windows beta install smoke passes. One regression fixed on the branch: the closing Spaces menu's placement (F41-27). Passkey check not due."
+      "notes": "Stage 1 (side branch chromium/rebase-159, no build tree touched): the pin, the upstream copies and every desktop patch moved to the newest 159 Beta (same version and commit on Mac, Windows and Linux) at 18:55 UTC, and the fork unit suite matched chromium/next's at 19:00 UTC. refresh-upstream exited 1 first: 159 moved the privacy_page, settings_main, settings_menu and settings_ui templates from .html to .html.ts, so the manifest pins those instead. 0029, 0036, 0047 and 0083 needed only fresh context. What each conflict needed and the toolchain changes (clang, Rust, Siso, GN; no Windows toolchain or SDK change) are in chromium/reports/rebase-159-preflight.md. Stage 2 (owner approved 2026-11-24): both checkouts moved to 159 (syncs 19:21 and 19:22 UTC), clang the only toolchain change; all eight desktop outputs built by 2026-11-25 03:57 UTC after two fixes (blanc/ui.gni's moved and removed GN targets, MdTextButton::SetBgColorOverride in 0085 and 0110). Not yet run (Task 6). Task 6 (2026-11-25): Mac suite 637/0/30 as at 158; Mac API-key, pf outbound, active-session and used-158-profile checks pass; Windows 633/2/32 and Linux x64 634/2/31 with one intermittent case each failing twice (F41:16; island-and-commands:61), Linux arm64 634/2/31 passing on rerun; the Windows beta install smoke passes. One regression fixed on the branch: the closing Spaces menu's placement (F41-27). Passkey check not due. Finished when the last platform published on 159: Mac 2.0.0-beta.11 (2026-11-25 21:02 UTC), Windows 159.0.8154.910 (22:28 UTC) and Linux 159.0.8154.912 (2026-11-26 14:18 UTC); hours are wall-clock from the rebase's start."
     }
   ]
 }

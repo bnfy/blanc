@@ -130,6 +130,71 @@
       "checksumsSigstoreSha256": "7b535aa25eb6a2cf096dcb1fae606f62bc96a21f6b2af592d2e719cada8c2518",
       "publishedAt": "2026-11-23T15:00:17Z",
       "note": "First Linux beta update: Chromium 158.0.8127.37, and the first repository tree with a DEP-11 (AppStream) catalog, so Ubuntu's App Center lists Blanc's updates (seen in the VM hand check, 908 -> 909). Staging's first 909 tree lacked the plain catalog name apt needs; with the owner's approval staging was reset to 906 and 909 re-signed and re-staged before any proof passed."
+    },
+    {
+      "build": 911,
+      "version": "159.0.8154.911",
+      "date": "2026-11-26",
+      "sourceCommit": "afd08df8d8cc4566ba384a1b3399154571f6839a",
+      "proofOnly": true,
+      "purpose": "proof",
+      "candidates": {
+        "x64": {
+          "id": "linux-x64-e702356f46b67032",
+          "tarSha256": "5c145ab18763d3238c7daaff8388930cf178550c1569affa414d8c4991b22dea"
+        },
+        "arm64": {
+          "id": "linux-arm64-2510235cfcdaa01b",
+          "tarSha256": "3c1cb697695c85156ff0a6d771d0b785631860ba2deb95c1f28b913d2a962341"
+        }
+      },
+      "packages": {
+        "blanc-beta_159.0.8154.911-1_amd64.deb": "f060bfde0dbe5dafb892686505f2f67723e19f294541821172e87127d258813d",
+        "blanc-beta-159.0.8154.911-1.x86_64.rpm": "8995d397b5e7591c8087c382693bd401876079310b5bfcb7486c0690207ba58b",
+        "blanc-beta_159.0.8154.911-1_arm64.deb": "053b09629eef371aa203c7ac91d3f96f0dad46ef0a495a24b4451cb706e9ccc9",
+        "blanc-beta-159.0.8154.911-1.aarch64.rpm": "4a97db34ba6f80f7775ff1c5f6b21cc15f3c7eac1476aa32fb9fc13734223ccf"
+      },
+      "buildCheckRuns": {
+        "x64": 45752074681,
+        "arm64": 45752373195
+      },
+      "note": "Proof-only N-1 for 912's update proof and VM hand check; never published."
+    },
+    {
+      "build": 912,
+      "version": "159.0.8154.912",
+      "tag": "chromium-beta-linux-159.0.8154.912",
+      "date": "2026-11-26",
+      "sourceCommit": "afd08df8d8cc4566ba384a1b3399154571f6839a",
+      "chromiumVersion": "159.0.8154.33",
+      "candidates": {
+        "x64": {
+          "id": "linux-x64-9778c6824d038520",
+          "tarSha256": "ad858ace50a625ac6338a3694f29314badc69b0c145219abefda39a5b200aa98"
+        },
+        "arm64": {
+          "id": "linux-arm64-b43f046adb83a1fd",
+          "tarSha256": "f8224225b5b562460a4bb528887cf9a209a2483192af326a68b796445a58662a"
+        }
+      },
+      "packages": {
+        "blanc-beta_159.0.8154.912-1_amd64.deb": "5371f700ce03bac865f5433adcbbd453a6ec522f519932ee7b6314e3b189119f",
+        "blanc-beta-159.0.8154.912-1.x86_64.rpm": "c956f536f1e09d1018f56689cc048c7761fbcd29e4d28e34c189eb3bec34380f",
+        "blanc-beta_159.0.8154.912-1_arm64.deb": "117557e4e4bbad84abb46df912d55091d90e4b2a51210fb1cd6b9e903729bc61",
+        "blanc-beta-159.0.8154.912-1.aarch64.rpm": "ebd562bb2bc121929dcacdc3ce5f6e119656b0d5dbc066ac5088bd45e77d972f"
+      },
+      "buildCheckRuns": {
+        "x64": 45752700372,
+        "arm64": 45753065720
+      },
+      "repositoryGeneration": 912,
+      "repositoryDigest": "129df1b4c9c11e195b624e6c95f966ed6d169fba2ff53bbb5074af6e9984d6fa",
+      "updateProofRun": 45761487715,
+      "repoLifecycleRun": 45761910883,
+      "verifyPublicRun": 45839063871,
+      "checksumsSigstoreSha256": "63f33d2e4c6ce49e4a36cd386f8407bcdc1f78fc096956ae22cee85026cb6a3c",
+      "publishedAt": "2026-11-26T14:18:32Z",
+      "note": "First Linux beta on Chromium 159 (159.0.8154.33, Chrome's beta milestone, before its December 8 stable), and the Spaces menu stays put as it closes. VM hand check 911 -> 912: apt and PackageKit offered 912, Restart to update relaunched into it. The sign stage needed c609f1cdc (the repository fixture's apt resolving loopback while the runner forces IPv4); verify-public's first run (45837770153) failed only removing a smoke profile still being written, fixed in 2f6c07ece."
     }
   ]
 }

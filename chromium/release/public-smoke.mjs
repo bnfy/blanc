@@ -107,7 +107,11 @@ export async function smoke(tag, out, {feed = false, io = realIO()} = {}) {
         const launched = await io.launch(dmg, home);
         check(launched.requests.some(q => / \/$/.test(q)), 'the app did not open its page');
         check(!launched.quitOnItsOwn, 'the app quit on its own');
-      } finally { fs.rmSync(home, {recursive: true, force: true}); }
+      } finally {
+        // Helpers can outlive the app for a moment; a leftover folder isn't a failure.
+        try { fs.rmSync(home, {recursive: true, force: true, maxRetries: 10, retryDelay: 300}); }
+        catch (e) { console.error(`could not remove ${home}: ${e.message}`); }
+      }
     });
     if (feed) await step(`blanc.day's ${io.arch} feed is the release appcast`, async () => {
       equal(sha256(await io.text(feedURL(io.arch))), sha256(fs.readFileSync(path.join(dir, `appcast-${io.arch}.xml`))), 'the live feed differs from the release appcast');
