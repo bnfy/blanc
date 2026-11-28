@@ -17,7 +17,15 @@
               0,
               -34.13333333333333
             ]
-          }
+          },
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:1.00000,0.94902,0.83529,1.00000"
+              }
+            }
+          ]
         }
       ],
       "lighting": "individual",
@@ -45,7 +53,15 @@
               0,
               -34.13333333333333
             ]
-          }
+          },
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.97647,0.89020,0.67843,1.00000"
+              }
+            }
+          ]
         },
         {
           "name": "Reflection 2",
@@ -58,7 +74,15 @@
               0,
               -34.13333333333333
             ]
-          }
+          },
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.94902,0.81176,0.54902,1.00000"
+              }
+            }
+          ]
         },
         {
           "name": "Reflection 3",
@@ -71,7 +95,15 @@
               0,
               -34.13333333333333
             ]
-          }
+          },
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.91765,0.72549,0.41176,1.00000"
+              }
+            }
+          ]
         },
         {
           "name": "Reflection 4",
@@ -84,7 +116,15 @@
               0,
               -34.13333333333333
             ]
-          }
+          },
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.85490,0.62745,0.32941,1.00000"
+              }
+            }
+          ]
         },
         {
           "name": "Reflection 5",
@@ -97,7 +137,15 @@
               0,
               -34.13333333333333
             ]
-          }
+          },
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "extended-srgb:0.78039,0.53333,0.25098,1.00000"
+              }
+            }
+          ]
         },
         {
           "name": "Seven rays",
