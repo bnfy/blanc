@@ -1360,7 +1360,14 @@
       snapshot.miniWindowCanMove = !!snapshot.miniWindow && miniMoveRuns(snapshot.tabs).length > 0;
       if (snapshot.miniWindow && !miniSearchOpened) {
         miniSearchOpened = true;
-        setTimeout(() => window.BlancPrototypeHost.open(true), 50);
+        // A new window's panel page may not listen yet, and an Island event
+        // sent before it does is lost: the panel then shows without its
+        // lists (Favorites, history, tabs elsewhere) until it opens again.
+        const openWhenListening = (tries) => {
+          if (pruneOverlayShowSubscribers()?.size || tries <= 0) window.BlancPrototypeHost.open(true);
+          else setTimeout(() => openWhenListening(tries - 1), 50);
+        };
+        setTimeout(() => openWhenListening(100), 50);
       }
       const activityKey = JSON.stringify(snapshot.downloadsActivity);
       if (activityKey !== downloadsActivityKey) {

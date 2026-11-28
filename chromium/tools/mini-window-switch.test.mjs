@@ -119,3 +119,10 @@ test('native lists other windows\' tabs and focuses a tab by id or by its Space 
   assert.match(native, /if \(method == "miniSwitchFocus" && args\.size\(\) == 1 && args\[0\]\.is_int\(\)\) \{/);
   assert.match(native, /if \(method == "miniSwitchFocusUrl" && args\.size\(\) == 3 && args\[0\]\.is_string\(\) && args\[1\]\.is_string\(\) && args\[2\]\.is_int\(\)\) \{/);
 });
+
+// A new mini window opens its search only once its panel page listens:
+// an Island event sent earlier is lost and the panel shows empty lists.
+test('a new mini window\'s search opens once its panel listens', () => {
+  assert.match(host, /if \(pruneOverlayShowSubscribers\(\)\?\.size \|\| tries <= 0\) window\.BlancPrototypeHost\.open\(true\);\s*else setTimeout\(\(\) => openWhenListening\(tries - 1\), 50\);/);
+  assert.match(host, /setTimeout\(\(\) => openWhenListening\(100\), 50\);/);
+});

@@ -42,8 +42,9 @@ const gone=mini=>w.waitFor(async()=>!(await byNativeWindow(mini.native)),Boolean
 // The mini window's own search: open the panel, type, then click a row.
 // A new mini window opens its own panel 50 ms after its first snapshot,
 // which can clear what was typed, and another window taking focus closes
-// it, so the picker opens and types again until the text holds.
-const typed=(mini,text)=>inFrame(mini.r,'#overlay',`const input=doc.getElementById('addressInput');if(!input||doc.defaultView.getComputedStyle(input).display==='none')return 'hidden';if(input.value===${jsLiteral(text)})return 'held';input.value=${jsLiteral(text)};input.dispatchEvent(new Event('input',{bubbles:true}));return 'typed';`);
+// it, so the picker opens it again and types on every poll: an input event
+// sent before the panel can render leaves it empty.
+const typed=(mini,text)=>inFrame(mini.r,'#overlay',`const input=doc.getElementById('addressInput');if(!input||document.querySelector('#overlay').hidden||doc.defaultView.getComputedStyle(input).display==='none')return 'hidden';const held=input.value===${jsLiteral(text)};input.value=${jsLiteral(text)};input.dispatchEvent(new Event('input',{bubbles:true}));return held?'held':'typed';`);
 async function search(mini,text){
  // open(true) shows the panel; open(false) would toggle the panel a new
  // mini window's start page already opened.
@@ -63,7 +64,9 @@ async function pickRow(mini,match){
   },Boolean,'the row to pick');
  }catch(error){
   const shown=await inFrame(mini.r,'#overlay',"return [...doc.querySelectorAll('.island-row')].map(r=>[r.querySelector('.row-title')?.textContent,r.querySelector('.row-sub')?.textContent]);");
-  throw Error(`${error.message}\nshown: ${JSON.stringify(shown)}\nlisted: ${JSON.stringify(await listed(mini).catch(e=>String(e)))}`);
+  const timing=await mini.r.cdp.eval(`(async()=>{const a=window.BlancPrototypeHost.api,out={};for(const [k,f] of Object.entries({listFavorites:()=>a.listFavorites(),listHistory:()=>a.listHistory({limit:300}),listRemoteTabs:()=>a.listRemoteTabs(),listWorkspaces:()=>a.listWorkspaces(),bangs:()=>a.bangs(),archiveList:()=>a.archiveList(),archiveNotice:()=>a.archiveNotice(),listSentToThisDevice:()=>a.listSentToThisDevice(),listMiniSwitchTabs:()=>a.listMiniSwitchTabs()})){const t=performance.now();try{await f();out[k]=Math.round(performance.now()-t);}catch(e){out[k]='threw '+String(e).slice(0,80);}}return out;})()`).catch(e=>String(e));
+  const miniAttr=await inFrame(mini.r,'#overlay',"return doc.documentElement.hasAttribute('data-mini-window');");
+  throw Error(`${error.message}\nshown: ${JSON.stringify(shown)}\nmini attribute: ${miniAttr}\ncalls: ${JSON.stringify(timing)}\nlisted: ${JSON.stringify(await listed(mini).catch(e=>String(e)))}`);
  }
 }
 try{
