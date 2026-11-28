@@ -19,7 +19,7 @@ import {jsLiteral} from './lib/js-literal.mjs';
 import {checkLedger} from './lib/check-ledger.mjs';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false);fs.mkdirSync(out,{recursive:true});
-const CHECKS=['F61-6','F61-7 refusal','F61-7 new Space','F61-8','switching by name stays refused'];
+const CHECKS=['F61-6','F61-7 refusal','F61-7 new Space','F61-8','switching by name goes to the Space'];
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
 const passed=checkLedger(result,CHECKS);
 const parent=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-mini-move-'));
@@ -139,12 +139,16 @@ try{
  assert.equal((await runtimes(w)).length,before-1,'only the mini window went away');
  passed('F61-8: a Space already on screen gets the page in its own window; only the mini window goes');
 
- // Switching by name (the Quick Switcher, /space) never moves a mini window.
- const nine=await miniWithPage('mini-move-refused');
- const refused=await nine.r.cdp.eval(`window.BlancPrototypeHost.api.openWorkspace(${jsLiteral(reading.id)},{})`);
- assert.equal(refused?.ok,false);
- assert.ok((await snap(nine.r)).tabs.some(t=>t.url===nine.url),'the page stays');
- passed('switching by name stays refused: openWorkspace without move leaves the mini window as it is');
+ // Switching by name (the Quick Switcher, /space) goes to the Space and never
+ // moves a mini window's pages (#1734 part 2): one holding a page stays.
+ const nine=await miniWithPage('mini-move-by-name');
+ const went=await nine.r.cdp.eval(`window.BlancPrototypeHost.api.openWorkspace(${jsLiteral(reading.id)},{})`);
+ assert.equal(went?.ok,true,JSON.stringify(went));
+ await w.waitFor(async()=>{for(const r of await runtimes(w))if((await snap(r)).spaceName===reading.id)return true;return false;},Boolean,'a window showing Reading');
+ const kept=await byNativeWindow(nine.native);
+ assert.ok(kept,'the mini window holding a page stays');
+ assert.ok((await snap(kept)).tabs.some(t=>t.url===nine.url),'the page stays');
+ passed('switching by name goes to the Space: openWorkspace without move leaves the mini window and its page as they are');
  await visible();result.result='pass';
 }catch(error){result.result=error.code==='BLANC_ENVIRONMENT_STOP'?'blocked-environment':'fail';result.error=String(error.stack);process.exitCode=1;}
 finally{
