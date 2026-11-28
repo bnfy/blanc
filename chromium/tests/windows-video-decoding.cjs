@@ -12,7 +12,8 @@ async function openSystemSheet(page, profile, connect, waitFor) {
   await page.goto(url).catch(error => {
     if (!error.message.includes('net::ERR_ABORTED')) throw error;
   });
-  const port = fs.readFileSync(path.join(profile, 'DevToolsActivePort'), 'utf8').split(/\r?\n/)[0];
+  const port = +fs.readFileSync(path.join(profile, 'DevToolsActivePort'), 'utf8').split(/\r?\n/)[0];
+  if (!(Number.isInteger(port) && port > 0 && port < 65536)) throw Error('DevToolsActivePort holds no port');
   const target = await waitFor(async () => {
     const targets = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json();
     return targets.find(t => t.type === 'page' && t.url === url);
