@@ -596,7 +596,7 @@
           "body": "Turn on Auto-hide the Island, and the page fills the window to its top edge. The Island slides back when you point at the top edge, rest the pointer near the top, or press `⌘L`.",
           "steps": [
             "Open Settings → General.",
-            "Turn on Auto-hide the Island, or press `⌘⌥B` (`Ctrl+Alt+B` on Windows and Linux)."
+            "Turn on Auto-hide the Island, or press `⇧⌘B` on Mac (`Ctrl+Alt+B` on Windows and Linux)."
           ],
           "note": "It’s off by default.",
           "learnMore": "/features/island",

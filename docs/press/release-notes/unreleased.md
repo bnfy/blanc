@@ -1,9 +1,9 @@
 # Unreleased notes
 
-v1.52.0 is the current public release ([notes](v1.52.0.md)). Changes merged
+v1.53.0 is the current public release ([notes](v1.53.0.md)). Changes merged
 since then are below as they're recorded.
 
-## Still open for 1.53
+## Still open from 1.53
 
 - **Move a mini window to a Space** (#1734) by hand in a packaged build, with
   a real mouse: the Island's Spaces button, the move-mode menu, and File →
