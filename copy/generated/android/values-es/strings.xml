@@ -2810,6 +2810,8 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Espacio</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Espacio</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Mayús+Espacio</string>
+    <string name="settings_general_mini_window_links_label">Abrir los enlaces de otras apps en una miniventana</string>
+    <string name="settings_general_mini_window_links_hint">Los enlaces que coinciden con una regla siguen yendo a donde dice la regla.</string>
     <string name="shared_spaces_switch_android">Mantener Spaces y grupos sincronizados en este teléfono</string>
     <string name="shared_spaces_switch_line_android">Las pestañas de tus Spaces compartidos se sincronizan desde este teléfono.</string>
     <string name="shared_spaces_save_this_phone">Guardar Este teléfono como Space</string>

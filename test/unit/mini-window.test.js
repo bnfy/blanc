@@ -224,3 +224,16 @@ test('a mini window lists tabs elsewhere and goes to them, a tab or a Space by n
   assert.match(preload, /listMiniSwitchTabs: \(\) => ipcRenderer\.invoke\('chrome:mini-switch-tabs'\)/);
   assert.match(preload, /goToMiniSwitchTab: \(key\) => ipcRenderer\.invoke\('chrome:mini-switch-go', key\)/);
 });
+
+test('links from other apps can open in a mini window: off by default and device-local (#1734 part 3)', () => {
+  const settings = read('src/main/settings.js');
+  assert.match(settings, /\n  miniWindowForLinks: false,\n/);
+  assert.match(settings, /if \(typeof data\.miniWindowForLinks !== 'boolean'\) data\.miniWindowForLinks = DEFAULTS\.miniWindowForLinks;/);
+  assert.match(settings, /if \(typeof partial\.miniWindowForLinks === 'boolean'\) clean\.miniWindowForLinks = partial\.miniWindowForLinks;/);
+  assert.doesNotMatch(settings.match(/const SYNCED_KEYS = \[([^\]]*)\]/)[1], /miniWindowForLinks/);
+  assert.ok(JSON.parse(read('settings-schema/schema.json')).internalDefaults.includes('miniWindowForLinks'));
+  const html = read('src/renderer/pages/settings.html');
+  assert.match(html, /<input id="miniWindowForLinks" type="checkbox"[^>]*data-i18n-aria-label="settings\.general\.miniWindowLinks\.label"/);
+  assert.match(html, /data-i18n="settings\.general\.miniWindowLinks\.hint">Links that match a rule still go where the rule says\.</);
+  assert.match(read('src/renderer/pages/settings.js'), /window\.bowserPages\.settings\.set\(\{ miniWindowForLinks: miniWindowForLinks\.checked \}\)/);
+});

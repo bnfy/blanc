@@ -9881,6 +9881,14 @@
     "message": "Strg+Umschalt+Leertaste",
     "source": "sha256:5f579d29dff6300530617e41e4a883a52c075e51ffb3573d781ced720a7601a8"
   },
+  "settings.general.miniWindowLinks.label": {
+    "message": "Links aus anderen Apps in einem Mini-Fenster öffnen",
+    "source": "sha256:79c0dd7e53817d6765378d4a9766d63e036050976a21c6129450ff0ee88eca6a"
+  },
+  "settings.general.miniWindowLinks.hint": {
+    "message": "Links, die zu einer Regel passen, gehen weiterhin dorthin, wo die Regel sie hinschickt.",
+    "source": "sha256:ff510a0617a43d12f85d108322255638c9fc017d78db60579b49b6e5573d74f9"
+  },
   "sharedSpaces.switch.android": {
     "message": "Spaces und Gruppen auf diesem Telefon synchron halten",
     "source": "sha256:3fd5725f20014ae99a8e54ec771f70bbd0aded56cb6824418f77a77cfc7bb6c1"

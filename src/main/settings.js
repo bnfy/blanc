@@ -302,6 +302,9 @@ const DEFAULTS = {
   // default: a global shortcut takes the chord from every other app.
   // Device-local, not Profile Synced (chords differ by platform).
   miniWindowShortcut: 'off',
+  // Links from other apps that no rule claims open in a mini window (#1734
+  // part 3). Device-local, like the shortcut; off by default.
+  miniWindowForLinks: false,
   // The resting Island's size (#1292). Device-local, not Profile Synced.
   islandSize: 'default',
   // Default page zoom in percent. Device-local, not Profile Synced; each
@@ -632,6 +635,7 @@ function getSettings() {
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
   if (!VERTICAL_TABS_TEXT_SIZES.includes(data.verticalTabsTextSize)) data.verticalTabsTextSize = DEFAULTS.verticalTabsTextSize;
   if (!MINI_WINDOW_SHORTCUT_IDS.includes(data.miniWindowShortcut)) data.miniWindowShortcut = DEFAULTS.miniWindowShortcut;
+  if (typeof data.miniWindowForLinks !== 'boolean') data.miniWindowForLinks = DEFAULTS.miniWindowForLinks;
   if (!ISLAND_SIZES.includes(data.islandSize)) data.islandSize = DEFAULTS.islandSize;
   data.pageZoom = normalizePageZoom(data.pageZoom);
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
@@ -716,6 +720,7 @@ function sanitize(partial) {
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (VERTICAL_TABS_TEXT_SIZES.includes(partial.verticalTabsTextSize)) clean.verticalTabsTextSize = partial.verticalTabsTextSize;
   if (MINI_WINDOW_SHORTCUT_IDS.includes(partial.miniWindowShortcut)) clean.miniWindowShortcut = partial.miniWindowShortcut;
+  if (typeof partial.miniWindowForLinks === 'boolean') clean.miniWindowForLinks = partial.miniWindowForLinks;
   if (ISLAND_SIZES.includes(partial.islandSize)) clean.islandSize = partial.islandSize;
   if (DEFAULT_ZOOM_OPTIONS.includes(partial.pageZoom)) clean.pageZoom = partial.pageZoom;
   if (typeof partial.islandSiteColors === 'boolean') clean.islandSiteColors = partial.islandSiteColors;
