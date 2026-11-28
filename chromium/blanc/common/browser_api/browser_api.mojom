@@ -720,6 +720,19 @@ struct OtherProfileSpaces {
   bool full;
   array<OtherProfileSpace> items;
 };
+
+struct MiniSwitchRow {
+  string key;
+  string title;
+  string url;
+  string? favicon;
+  string? place;
+};
+
+struct MiniSwitchResult {
+  bool ok;
+  string? error;
+};
 // Contract group "tabs".
 interface Tabs {
   CreateTab(string? url, CreateTabOptions? opts) => (string result);
@@ -862,6 +875,8 @@ interface Island {
   OpenFindBar();
   SiteInfoForgetCertificateException() => (bool result);
   KeepMiniWindow() => (bool result);
+  ListMiniSwitchTabs() => (array<MiniSwitchRow> result);
+  GoToMiniSwitchTab(string key) => (MiniSwitchResult result);
   InviteFriend() => (string result);
 };
 

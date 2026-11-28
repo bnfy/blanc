@@ -1004,6 +1004,26 @@ export interface OtherProfileSpaces {
   items: OtherProfileSpace[];
 }
 
+/** A tab elsewhere in a mini window's Quick Switcher (#1734 part 2), from miniSwitchRows() in mini-switch.js: display data and an opaque key main resolves again when it is picked. */
+export interface MiniSwitchRow {
+  /** Opaque: t:<tabId> for a live tab, s:<spaceId>:<index> for a tab in a saved Space. */
+  key: string;
+  /** The tab's name, else its address. */
+  title: string;
+  url: string;
+  /** A PNG data URL, or null. */
+  favicon: string | null;
+  /** The Space's name, or null for a window in no Space. */
+  place: string | null;
+}
+
+/** Result of goToMiniSwitchTab, built by goToMiniSwitchTab() in main.js. */
+export interface MiniSwitchResult {
+  ok: boolean;
+  /** Present when ok is false: the tab or its Space is gone, or the Space couldn't open now. */
+  error?: 'gone' | 'busy';
+}
+
 export interface BlancBrowserAPI {
   /**
    * The host OS as Electron's sandboxed process reports it.
@@ -1688,6 +1708,16 @@ export interface BlancBrowserAPI {
    * IPC: invoke `chrome:mini-keep`.
    */
   keepMiniWindow(): Promise<boolean>;
+  /**
+   * In a mini window (#1734 part 2): the profile's tabs in its other windows and in its Spaces set aside or saved, never private ones or other mini windows'. Empty in an ordinary window or while the active tab is private.
+   * IPC: invoke `chrome:mini-switch-tabs`.
+   */
+  listMiniSwitchTabs(): Promise<MiniSwitchRow[]>;
+  /**
+   * Go to a tab listMiniSwitchTabs listed: bring its window forward, or open its Space, with the tab selected; an untouched mini window then closes.
+   * IPC: invoke `chrome:mini-switch-go`.
+   */
+  goToMiniSwitchTab(key: string): Promise<MiniSwitchResult>;
   /**
    * Open a prefilled invite email in the person's own mail app (/invite). Blanc sends nothing; without a mail app the invite is copied instead.
    * IPC: invoke `chrome:invite-friend`.

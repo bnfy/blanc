@@ -272,7 +272,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "11850943f5bdea06dfa5338ca5448f6b51b6e74de694336635d11fca201d2190",
+      "sha256": "64c515e96cc368197d2c8444be43dcf8082d397ce645af86cdbb223ace0d534b",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -323,6 +323,8 @@
         "chrome:island-state",
         "chrome:layout",
         "chrome:mini-keep",
+        "chrome:mini-switch-go",
+        "chrome:mini-switch-tabs",
         "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
@@ -705,7 +707,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "afcb0f7d2d969c10259416e87e3b85cb5677fd184b6074edd0a6f4f124f3983c",
+      "sha256": "f4f275a9bbfd7b1ce889070447cc5d7d69880a5201ed0146b1d517597de67b1b",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -744,6 +746,8 @@
         "chrome:island-state",
         "chrome:layout",
         "chrome:mini-keep",
+        "chrome:mini-switch-go",
+        "chrome:mini-switch-tabs",
         "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
