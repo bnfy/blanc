@@ -2018,6 +2018,13 @@ candidate branch (PR 1); not in a public release.
   opens it. An unused start page stays behind. If any page can't go to a
   Space (a private tab, sound, camera or microphone, screen sharing, a pop-up),
   nothing moves and the menu says why.
+- **Switch to tabs and Spaces** (#1734 part 2, `docs/superpowers/specs/2026-11-28-mini-window-switch-design.md`).
+  A mini window's search also finds the profile's tabs in its other windows
+  and in its Spaces set aside (held or saved), each saying where it is, and
+  offers Spaces again. Picking a tab brings its window forward, or opens its
+  Space, with that tab selected; picking a Space goes to it. Nothing moves. An
+  untouched mini window then closes; one holding pages stays. Private tabs,
+  other mini windows and other profiles' tabs are never listed.
 - **Mobile.** Not applicable.
 - **Acceptance:** `spec/acceptance/mini-window.feature`.
 

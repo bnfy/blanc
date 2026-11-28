@@ -2796,6 +2796,9 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="mini_move_to_space_label">Mover para o Space: mover as abas desta minijanela para um Space</string>
     <string name="mini_move_to_space_title">Mover as abas desta minijanela para um Space</string>
     <string name="mini_move_to_space_menu">Mover para o Space</string>
+    <string name="mini_switch_another_window">Outra janela</string>
+    <string name="mini_switch_gone">Essa aba não está mais aberta.</string>
+    <string name="mini_switch_busy">O Blanc não conseguiu abrir esse Space agora. Tente de novo.</string>
     <string name="ws_move_mode_header">Mover esta janela para…</string>
     <string name="ws_error_mini_unmovable">Uma aba privada, ou uma página que está tocando som, usando a câmera ou o microfone, compartilhando a tela ou mostrando um pop-up, não pode ir para um Space. Feche ou pare essa página e tente de novo.</string>
     <string name="mini_open_in_blanc_label">Abrir no Blanc: manter esta minijanela como uma janela comum do Blanc</string>

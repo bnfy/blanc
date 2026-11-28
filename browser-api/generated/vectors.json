@@ -6896,6 +6896,75 @@
         false
       ]
     },
+    "listMiniSwitchTabs": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:mini-switch-tabs",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:mini-switch-tabs",
+              "args": []
+            }
+          ]
+        }
+      ],
+      "replies": [
+        [],
+        [
+          {
+            "key": "mini-switch-row-1",
+            "title": "mini-switch-row-1",
+            "url": "mini-switch-row-1",
+            "favicon": "mini-switch-row-1",
+            "place": "mini-switch-row-1"
+          }
+        ]
+      ]
+    },
+    "goToMiniSwitchTab": {
+      "kind": "invoke",
+      "platforms": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "channel": "chrome:mini-switch-go",
+      "calls": [
+        {
+          "label": "typical",
+          "args": [
+            "example"
+          ],
+          "sends": [
+            {
+              "kind": "invoke",
+              "channel": "chrome:mini-switch-go",
+              "args": [
+                "example"
+              ]
+            }
+          ]
+        }
+      ],
+      "replies": [
+        {
+          "ok": true
+        },
+        {
+          "ok": true,
+          "error": "gone"
+        }
+      ]
+    },
     "inviteFriend": {
       "kind": "invoke",
       "platforms": [

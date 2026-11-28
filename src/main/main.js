@@ -29,6 +29,7 @@ const {
   windowStatePersistenceOptions,
 } = require('./window-state-persistence');
 const miniWindow = require('./mini-window');
+const miniSwitch = require('./mini-switch');
 
 // Electron's default uncaught-exception path raises a native modal dialog,
 // which can leave the acceptance runner reporting green while app.close()
@@ -12452,10 +12453,17 @@ function registerIpcHandlers() {
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
   });
   chromeHandle('chrome:workspaces-open', (_e, id, opts) => {
-    // A mini window (#1138) holds no Space and reaches no other profile's:
-    // choosing one of its profile's Spaces moves its tabs there (#1734).
-    // Only the menu's move mode asks (`move`); switching by name stays refused.
-    if (rt().mini) return opts?.move !== true || otherProfileTarget(opts) ? { ok: false, error: 'busy' } : { ...moveMiniWindowToSpace(rt(), id, null, { showError: false }), ...workspacesProjection() };
+    // A mini window (#1138) holds no Space. Its Spaces menu's move mode
+    // (`move`) files its tabs into one of its profile's (#1734); a Space
+    // picked by name (the Quick Switcher, /space) is gone to, any profile's,
+    // and nothing moves (#1734 part 2).
+    if (rt().mini) {
+      if (opts?.move === true) return otherProfileTarget(opts) ? { ok: false, error: 'busy' } : { ...moveMiniWindowToSpace(rt(), id, null, { showError: false }), ...workspacesProjection() };
+      const mini = rt();
+      const { result: went } = openSpaceInProfile({ profileId: otherProfileTarget(opts) ?? mini.profileId, spaceId: id });
+      if (went.ok) { hideOverlay({ refocusContent: false }); closeMiniWindowIfUntouched(mini); }
+      return went.ok ? { ...went, ...workspacesProjection() } : went;
+    }
     // Another profile's Space opens in a window of that profile; this window
     // and its tabs are never touched (spec 2026-11-19 D1).
     const otherProfile = otherProfileTarget(opts);
@@ -12641,6 +12649,14 @@ function registerIpcHandlers() {
   chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
   // Mini Window (#1138): the Island's Open in Blanc keeps this window.
   chromeHandle('chrome:mini-keep', () => keepMiniWindow(rt()));
+  // Switch to tabs elsewhere (#1734 part 2): never while a private tab is
+  // in front, as the Archive (F52).
+  chromeHandle('chrome:mini-switch-tabs', () => {
+    const runtime = rt();
+    if (!runtime.mini || tabs.get(runtime.activeTabId)?.private) return [];
+    return miniSwitch.miniSwitchRows(miniSwitchInputs(runtime));
+  });
+  chromeHandle('chrome:mini-switch-go', (_e, key) => goToMiniSwitchTab(rt(), key));
   chromeHandle('chrome:invite-friend', () => inviteFriendNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
@@ -14155,6 +14171,93 @@ function moveMiniWindowToSpace(runtime, workspaceId, creation = null, { showErro
   runtime.window.close();
   openSpaceInProfile({ profileId, spaceId });
   return result;
+}
+
+/** Switch to tabs elsewhere (#1734 part 2, spec 2026-11-28): the inputs of
+ * miniSwitchRows. Every live runtime of the mini window's profile (a held
+ * Space's set-aside runtime included, named by its Space), and the Space
+ * records no runtime holds. */
+function miniSwitchInputs(runtime) {
+  // A window closed to the Dock (macOS) keeps its tabs and comes back for one.
+  const live = windowRuntimes.all().filter((r) => r.profileId === runtime.profileId && (!r.closing || r.dockClosed));
+  const shown = new Set(live.map((r) => r.workspaceId).filter(Boolean));
+  return {
+    windows: live.map((r) => ({
+      self: r === runtime, mini: r.mini === true, spaceId: r.workspaceId ?? null,
+      place: r.workspaceId ? namedWorkspaces.get(r.workspaceId)?.name ?? null : null,
+      tabs: r.tabOrder.map((id) => tabs.get(id)).filter(Boolean)
+        .map((t) => ({ id: t.id, title: displayTitle(t) || '', url: t.url, favicon: t.favicon, private: !!t.private })),
+    })),
+    saved: namedWorkspaces.list().filter((w) => !shown.has(w.id))
+      .map((w) => ({ id: w.id, name: w.name, urls: w.urls, meta: w.meta })),
+  };
+}
+
+/** After going somewhere from a mini window, it closes if it is untouched:
+ * nothing in it but an unused start page (part 1's test). */
+function closeMiniWindowIfUntouched(runtime) {
+  if (!runtime?.mini || miniWindowMoveCandidates(runtime)) return false;
+  runtime.window.close();
+  return true;
+}
+
+function focusMiniSwitchTarget(target) {
+  if (!target?.window || target.window.isDestroyed()) return;
+  if (target.window.isMinimized()) target.window.restore();
+  target.window.show();
+  target.window.focus();
+}
+
+/** A pick from a mini window's switcher: the key is resolved again here.
+ * A tab in a window on screen brings that window forward with it selected;
+ * one in a Space set aside (held, or saved only) opens the Space with it
+ * selected. Nothing moves or is duplicated; a tab gone since the list was
+ * built answers `gone`. */
+function goToMiniSwitchTab(runtime, key) {
+  const gone = { ok: false, error: 'gone' };
+  const parsed = miniSwitch.parseMiniSwitchKey(key);
+  if (!runtime?.mini || !parsed) return gone;
+  const { profileId } = runtime;
+  // A window on screen; a held Space's runtime, or a window closed to the
+  // Dock (closing, its window gone), opens through the Spaces controller.
+  const live = (r) => !!r && !r.resident && !r.closing && !!r.window && !r.window.isDestroyed();
+  const open = (spaceId) => {
+    const { result, runtime: shown } = openSpaceInProfile({ profileId, spaceId });
+    return result.ok && shown ? shown : null;
+  };
+  let target = null, select = null;
+  if (parsed.kind === 'tab') {
+    const tab = tabs.get(parsed.tabId), owner = windowRuntimes.runtimeForTab(parsed.tabId);
+    if (!tab || !owner) {
+      // Gone since the list was built (closed, or its held Space let go):
+      // its Space, if it had one, is still worth showing.
+      // A Space still on screen only lost the tab: say so rather than show it.
+      if (!parsed.spaceId || !namedWorkspaces.get(parsed.spaceId) || live(workspaceOwner(runtime, parsed.spaceId))) return gone;
+      target = open(parsed.spaceId);
+    } else {
+      if (tab.private || owner === runtime || owner.mini || owner.profileId !== profileId) return gone;
+      if (owner.dockClosed && !owner.workspaceId) { createMainWindow(owner, { ensureStartTab: false }); target = owner; }
+      else if (!live(owner) && !owner.workspaceId) return gone;
+      else target = live(owner) ? owner : open(owner.workspaceId);
+      select = parsed.tabId;
+    }
+  } else {
+    const record = namedWorkspaces.get(parsed.spaceId), url = record?.urls?.[parsed.index];
+    if (!record || !url) return gone;
+    const owner = workspaceOwner(runtime, parsed.spaceId);
+    target = live(owner) ? owner : open(parsed.spaceId);
+    // Restoring can drop or reorder rows: the tab with the address nearest
+    // its saved place.
+    if (target) select = miniSwitch.nearestTabByUrl(target.tabOrder.map((id) => ({ id, url: tabs.get(id)?.url })), url, parsed.index);
+  }
+  if (!target) return { ok: false, error: 'busy' };
+  // The mini window's panel closes without taking focus back from the window
+  // it sent you to (settleElsewhere's rule, F41-86).
+  withWindowRuntime(runtime, () => hideOverlay({ refocusContent: false }));
+  if (select && target.tabOrder.includes(select)) withWindowRuntime(target, () => setActiveTab(select));
+  focusMiniSwitchTarget(target);
+  closeMiniWindowIfUntouched(runtime);
+  return { ok: true };
 }
 
 /** File → Move to Space ▸ in a mini window: the profile's Spaces, then New

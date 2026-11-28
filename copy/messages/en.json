@@ -10122,6 +10122,18 @@
     "message": "Move to Space",
     "note": "File menu submenu in a mini window (#1734): lists the profile's Spaces and New space…; choosing one moves the mini window's tabs there."
   },
+  "mini.switch.anotherWindow": {
+    "message": "Another window",
+    "note": "Quick Switcher row in a mini window (#1734): where a tab elsewhere is, when its window shows no Space. Shown after the site, e.g. \"example.com · Another window\"."
+  },
+  "mini.switch.gone": {
+    "message": "That tab isn't open anymore.",
+    "note": "Quick Switcher notice in a mini window (#1734): the tab picked closed since the list was built; the panel stays open."
+  },
+  "mini.switch.busy": {
+    "message": "Blanc couldn't open that Space just now. Try again.",
+    "note": "Quick Switcher notice in a mini window (#1734): the picked tab's Space couldn't open now (busy, or its profile unavailable); the row stays for another try."
+  },
   "ws.moveMode.header": {
     "message": "Move this window to…",
     "note": "Heading of the Spaces menu opened from a mini window (#1734): choosing a Space moves the window's tabs there and closes the window."
