@@ -73,6 +73,14 @@
           "windows"
         ],
         "purpose": "release"
+      },
+      {
+        "build": 914,
+        "sourceCommit": "7744b2bb04372e8b12f28a4881d45070a6cd8d29",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "proof"
       }
     ]
   }
