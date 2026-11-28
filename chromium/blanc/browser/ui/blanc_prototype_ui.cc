@@ -1998,6 +1998,20 @@ class Owner : public base::SupportsUserData::Data,
               u"window.BlancPrototypeHost?.railDismiss('page')", base::NullCallback());
       }
     }
+    // A click in the page closes the open Island, as shipping's overlay blur
+    // does. The host's own blur covers the first click, which moves focus
+    // to the page; once the page has focus (it took it as the panel opened,
+    // or a click dismissed a right-click menu in the panel), later clicks
+    // move no focus and left the panel open (owner's report, 2026-11-28).
+    if (height > strip_height &&
+        (event.GetType() == blink::WebInputEvent::Type::kMouseDown ||
+         event.GetType() == blink::WebInputEvent::Type::kGestureTapDown)) {
+      auto* host = view ? view->GetWebContents() : nullptr;
+      if (host && host->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html") &&
+          host->GetPrimaryMainFrame()->IsRenderFrameLive())
+        host->GetPrimaryMainFrame()->ExecuteJavaScript(
+            u"window.BlancPrototypeHost?.pageClick?.()", base::NullCallback());
+    }
     // Wheel/gesture updates include inertial scrolling, unlike the
     // WebContents interaction callback which only reports scroll start.
     if (event.GetType() != blink::WebInputEvent::Type::kMouseMove) {
