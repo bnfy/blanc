@@ -19,6 +19,8 @@ run walkthrough node "$TREE/chromium/tests/android/walkthrough.mjs" --apk "$APK"
 run launch-ping node "$TREE/chromium/tests/android/launch-ping.mjs" --apk "$APK" --evidence "$EVIDENCE/launch-ping"
 # A6's HTTP sign-in, certificate warning and shared words (patches 0127–0129).
 run a6-small node "$TREE/chromium/tests/android/a6-small.mjs" --apk "$APK" --evidence "$EVIDENCE/a6-small"
+# MP4, H.264 and AAC are built in (args/*.gn).
+run codecs node "$TREE/chromium/tests/android/codecs.mjs" --apk "$APK" --evidence "$EVIDENCE/codecs"
 # A5b's Start Page checks, which the A5a gate predates.
 run pages-phone node "$TREE/chromium/tests/android/pages-phone.mjs" --apk "$APK" --evidence "$EVIDENCE/pages-phone"
 run start-shortcuts node "$TREE/chromium/tests/android/start-shortcuts.mjs" --apk "$APK" --evidence "$EVIDENCE/start-shortcuts"

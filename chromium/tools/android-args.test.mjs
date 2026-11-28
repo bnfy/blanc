@@ -15,6 +15,7 @@ for (const [file, cpu] of [['debug-arm64.gn', 'arm64'], ['debug-x64.gn', 'x64']]
     assert.deepEqual(args, {
       target_os: 'android', target_cpu: cpu, is_debug: false, is_java_debug: true, debuggable_apks: true, is_component_build: false, symbol_level: 1, android_static_analysis: 'on', disable_android_lint: true,
       android_channel: 'stable', chrome_public_manifest_package: 'me.bnfy.blanc.dev', use_official_google_api_keys: false,
+      proprietary_codecs: true, ffmpeg_branding: 'Chrome',
     });
     for (const key of ['google_api_key', 'google_default_client_id', 'google_default_client_secret']) assert.ok(!(key in args));
   });
@@ -29,6 +30,7 @@ for (const [file, cpu] of [['release-arm64.gn', 'arm64'], ['release-x64.gn', 'x6
       android_static_analysis: 'on', android_channel: 'stable',
       chrome_public_manifest_package: 'me.bnfy.blanc', use_official_google_api_keys: false,
       blanc_channel: 'release',
+      proprietary_codecs: true, ffmpeg_branding: 'Chrome',
     });
     for (const key of [
       'google_api_key', 'google_default_client_id', 'google_default_client_secret',

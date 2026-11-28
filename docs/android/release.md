@@ -105,6 +105,13 @@ means a new `WORK`.
 - `notes`: a file inside `WORK` holding the owner-approved release notes, en-US, 1–500 characters.
   Required on every track but `internal`. Its digest is recorded with the upload.
 
+When an args template changes (as on November 28, 2026, when the codecs were turned on), each
+existing output on the server needs its new arguments prepared by hand once, before the next
+build through `build.mjs`: copy the template into `out/<dir>/args.gn` (the nightly's
+`nightlyArgs` for `AndroidNightlyX64`), regenerate GN, review and record the environment with
+`--record-environment`, and build once with `--allow-large-build`. Until then the guard stops on
+the changed `argsSha256`, which also stops the nightly.
+
 ## The six stages
 
 Set `WORK` to that directory, then invoke each command separately:
