@@ -30,19 +30,47 @@ const water = [
   x: cx - width * waterUnit / 2, y: top * waterUnit, width: width * waterUnit, height: height * waterUnit,
 }));
 
-// The transparent master supplies the brushed metal within editable SVG
-// contours. Embedding the material keeps downloaded SVGs self-contained.
-function goldVector(master) {
-  const n = value => Number(value.toFixed(5));
-  const ray = ({ ends: [x1, y1, x2, y2] }) =>
-    `<path d="M${n(x1)} ${n(y1)}L${n(x2)} ${n(y2)}" stroke="url(#brass)" stroke-width="${n(rayWidth)}" stroke-linecap="round"/>`;
-  const bar = ({ x, y, width, height }) =>
-    `<rect x="${n(x)}" y="${n(y)}" width="${n(width)}" height="${n(height)}" rx="${n(height / 2)}"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <defs><pattern id="brass" patternUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><image width="1024" height="1024" xlink:href="data:image/png;base64,${master.toString('base64')}"/></pattern></defs>
-  <g id="rays" fill="none">${rays.map(ray).join('\n    ')}</g>
-  <path id="sun" d="M${n(cx - rx)} ${n(cy)}a${n(rx)} ${n(ry)} 0 0 1 ${n(2 * rx)} 0Z" fill="url(#brass)"/>
-  <g id="horizon-and-reflections" fill="url(#brass)">${water.map(bar).join('\n    ')}</g>
+const n = value => Number(value.toFixed(5));
+
+// Use the historical material's own coordinates for its bevels. Only the
+// straight sections change length, so all the tips retain round end caps.
+function goldRay({ angle, ends: [insideX, insideY, tipX, tipY] }) {
+  const scale = rayWidth / 23;
+  const length = Math.hypot(tipX - insideX, tipY - insideY) / scale;
+  const spine = `M0 0V${n(length)}`;
+  return `<g transform="translate(${n(tipX)} ${n(tipY)}) rotate(${angle}) scale(${n(scale)})" stroke-linecap="round">
+    <path d="${spine}" stroke="#785319" stroke-width="23"/>
+    <path d="${spine}" stroke="url(#rayGold)" stroke-width="19.2"/>
+    <path d="M-3.4 1V${n(length - 1)}" stroke="#fff0b3" stroke-opacity=".62" stroke-width="1.6"/>
+    <path d="${spine}" stroke="url(#rayLight)" stroke-width="14"/>
+    <path d="M-8.2 0a8.2 8.2 0 0 1 11.6 -7.45" stroke="#fff0bf" stroke-opacity=".79" stroke-width="1.05"/>
+    <path d="M8.3 ${n(length)}a8.3 8.3 0 0 1 -8.3 8.3" stroke="#d1a452" stroke-opacity=".70" stroke-width=".9"/>
+    <use xlink:href="#ray-grain" transform="scale(1 ${n(length / 228)})"/>
+  </g>`;
+}
+
+function goldBar({ x, y, width, height }) {
+  const scale = height / 26;
+  const length = (width - height) / scale;
+  const spine = `M0 0H${n(length)}`;
+  return `<g transform="translate(${n(x + height / 2)} ${n(y + height / 2)}) scale(${n(scale)})" stroke-linecap="round">
+    <path d="${spine}" stroke="#644313" stroke-width="26"/>
+    <path d="${spine}" stroke="url(#barGold)" stroke-width="23"/>
+    <path d="M-1 -7H${n(length + 1)}" stroke="#fff0b4" stroke-opacity=".8" stroke-width="1.1"/>
+    <path d="${spine}" stroke="url(#recess)" stroke-width="8.4"/>
+    <path d="M0 5.5H${n(length)}" stroke="#e7b64d" stroke-opacity=".5" stroke-width=".7"/>
+  </g>`;
+}
+
+function goldVector(material) {
+  const defs = material.slice(material.indexOf('<defs>'), material.lastIndexOf('</defs>') + '</defs>'.length);
+  // The original face is a semicircle with radius 170, centered at (340,456).
+  const discTransform = `translate(${n(cx)} ${n(cy)}) scale(${n(rx / 170)} ${n(ry / 170)}) translate(-340 -456)`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  ${defs}
+  <g id="rays">${rays.map(goldRay).join('\n    ')}</g>
+  <use id="sun" xlink:href="#sun-disc" transform="${discTransform}"/>
+  <g id="horizon-and-reflections">${water.map(goldBar).join('\n    ')}</g>
 </svg>\n`;
 }
 

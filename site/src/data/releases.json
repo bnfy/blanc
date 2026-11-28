@@ -1,5 +1,135 @@
 [
   {
+    "tag": "v1.53.0",
+    "version": "1.53.0",
+    "name": "1.53.0",
+    "publishedAt": "2026-11-28T01:43:49.000Z",
+    "humanDate": "November 27, 2026",
+    "machineDate": "2026-11-27",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.53.0",
+    "anchor": "v1-53-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Move a mini window to a Space."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Click the Spaces button beside "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open in Blanc"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or choose "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "File → Move to Space"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Pick an existing Space in the current profile or create a new one. Your tabs, groups, and splits move together, and Blanc brings the destination Space forward. If a tab can’t move, such as a private tab or one playing audio, Blanc explains why and keeps the tabs in the mini window (#1734)."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Open local HTML files on Linux."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Choose Blanc from your file manager’s "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Open With"
+                  },
+                  {
+                    "type": "text",
+                    "value": " menu to see an "
+                  },
+                  {
+                    "type": "code",
+                    "value": ".html"
+                  },
+                  {
+                    "type": "text",
+                    "value": " file in a static preview. The preview blocks scripts and network requests (#1630)."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Favorites opens with ⌥⌘B on the Mac again."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Auto-hide the Island now uses ⇧⌘B, and Close Window uses ⇧⌘W. Use ⌘W to close the current tab (#1737)."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Ctrl+Y redoes on Windows and Linux."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Use Ctrl+H for History (#1737)."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Clearer screen reader labels."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The share picker, tab handoff, Sync settings, Start Page, and Mahjong now give assistive technology more context for their labelled controls and groups (#1748)."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.52.0",
     "version": "1.52.0",
     "name": "1.52.0",

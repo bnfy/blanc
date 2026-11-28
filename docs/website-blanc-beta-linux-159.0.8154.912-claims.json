@@ -1,0 +1,169 @@
+{
+  "release": "159.0.8154.912",
+  "tag": "chromium-beta-linux-159.0.8154.912",
+  "sourceCommit": "b82e4fab7bb0400932a047beff0eaab5ba34b36f",
+  "publicRelease": "2026-11-26",
+  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-159.0.8154.912",
+  "releaseEvidence": "The release's own files (linux-release.json, RELEASE-MANIFEST.json, Sigstore-signed SHA256SUMS, blanc-repository.asc) and its approved release notes; chromium/reports/l3-linux.json on chromium/next (build checks 45185037743 and 45185525873, update proof 45761487715, repository lifecycle 45761910883, verify-public 45839063871) and the owner's VM hand checks in chromium/linux/hand-checks-l3.md on chromium/next.",
+  "ownerDecisions": {
+    "approvedOn": "2026-11-26",
+    "status": "The owner asked for the 159 betas to ship on every platform on 2026-11-26, the site moving with each. Every sentence is the copy approved in PR #1708 for 906; only the release facts (build, versions, Chromium 159.0.8154.33, files, runs) changed.",
+    "decisions": [
+      "A Linux beta is its own GitHub pre-release, never latest, tagged chromium-beta-linux-<version>, version 159.0.8154.<build>, with .deb and .rpm packages for x64 and arm64 (docs/superpowers/specs/2026-11-21-linux-fork-design.md and the L3 plan on chromium/next).",
+      "The Download page's Linux tile offers both packages for each architecture and the commands of chromium/linux/manual-repository.md (L3 plan); its update wording says 'offered', never 'installed automatically' (L3 plan decision 5, spec section 3).",
+      "Public copy names only the systems a gate ran on, and says KDE and x64 desktops weren't checked by eye (spec sections 1 and 2).",
+      "The update wording still doesn't name a graphical updater. From 909 the repository publishes DEP-11 metadata and Ubuntu 26.04's App Center lists Blanc's updates (chromium/linux/hand-checks-l3.md); the tile's copy is unchanged.",
+      "Each package has its own counted blanc-ping route, /dl/beta-linux-<arch>-<format> (owner, 2026-11-23), answering with that package on the pre-release, like /dl/beta and /dl/beta-win.",
+      "Compact release list (owner, 2026-11-23): the three betas share one dark panel across the row, headed Preview, Betas and one sentence, recorded in the Mac beta's ledger, so this row no longer repeats them; each beta is one row with its platform, its build number and Chromium major version and its download, and a Details control (closed by default) opens the full versions, the requirement and release day, what isn't in the beta yet and the release notes. The build number and Chromium lines appear twice, in the row and in the opened details, so they are recorded twice. The four packages become an x64 / arm64 switch beside a .deb and an .rpm button: each button is still its own counted /dl/beta-linux-<arch>-<format> link, named in full for screen readers (x64 .deb, and so on)."
+    ]
+  },
+  "page": "site/src/pages/download.astro#beta-linux",
+  "claims": [
+    {
+      "text": "Linux",
+      "kind": "label"
+    },
+    {
+      "text": "Build 912",
+      "evidence": "linux-release.json build 912; the version's last number."
+    },
+    {
+      "text": "Chromium 159",
+      "evidence": "The fork's pinned Chromium 159.0.8154.33 (chromium/reports/l3-linux.json chromiumVersion); the beta replaces only its last number with its build."
+    },
+    {
+      "text": "Last updated:",
+      "kind": "label"
+    },
+    {
+      "text": "x64",
+      "kind": "label"
+    },
+    {
+      "text": "arm64",
+      "kind": "label"
+    },
+    {
+      "text": "Build 912",
+      "evidence": "linux-release.json build 912; the version's last number."
+    },
+    {
+      "text": "159.0.8154.912",
+      "evidence": "linux-release.json version 159.0.8154.912, the version the package names and blanc-beta --product-version reports."
+    },
+    {
+      "text": "Chromium 159",
+      "evidence": "The fork's pinned Chromium 159.0.8154.33 (chromium/reports/l3-linux.json chromiumVersion); the beta replaces only its last number with its build."
+    },
+    {
+      "text": "159.0.8154.33",
+      "evidence": "The fork's Chromium pin 159.0.8154.33 (chromium/lanes/desktop.json); the approved release notes say the beta is built on Chromium 159.0.8154.33."
+    },
+    {
+      "text": "Debian, Ubuntu and Fedora · x64 and arm64",
+      "evidence": "The release carries a .deb and an .rpm for amd64/x86_64 and arm64/aarch64 (RELEASE-MANIFEST.json); the approved release notes say 'Packages for Debian, Ubuntu and Fedora'."
+    },
+    {
+      "text": "Released November 26, 2026",
+      "evidence": "The GitHub pre-release chromium-beta-linux-159.0.8154.912 was published on 2026-11-26 at 14:18 UTC."
+    },
+    {
+      "text": "x64 .deb",
+      "evidence": "Links to blanc-beta_159.0.8154.912-1_amd64.deb on the release (156121392 bytes, SHA-256 5371f700…, in SHA256SUMS and RELEASE-MANIFEST.json)."
+    },
+    {
+      "text": "x64 .rpm",
+      "evidence": "Links to blanc-beta-159.0.8154.912-1.x86_64.rpm on the release (157698345 bytes, SHA-256 c956f536…, in SHA256SUMS and RELEASE-MANIFEST.json)."
+    },
+    {
+      "text": "arm64 .deb",
+      "evidence": "Links to blanc-beta_159.0.8154.912-1_arm64.deb on the release (139446896 bytes, SHA-256 117557e4…, in SHA256SUMS and RELEASE-MANIFEST.json)."
+    },
+    {
+      "text": "arm64 .rpm",
+      "evidence": "Links to blanc-beta-159.0.8154.912-1.aarch64.rpm on the release (140657873 bytes, SHA-256 ebd562bb…, in SHA256SUMS and RELEASE-MANIFEST.json)."
+    },
+    {
+      "text": "Details",
+      "kind": "label"
+    },
+    {
+      "text": "Use the .deb on Debian and Ubuntu, the .rpm on Fedora.",
+      "evidence": "verify-public (45839063871) installed the public .deb on Ubuntu and Debian and the public .rpm on Fedora, on x64 and arm64; the approved release notes say the same."
+    },
+    {
+      "text": "Installing the package adds Blanc’s own signed package repository.",
+      "evidence": "The package's cron job writes the apt source or dnf repository for https://pkg.blanc.day with Blanc's key (fingerprint 50D3 6197 4F47 7C8C 87E1 17BD 95AE 97AB CACF EE6C); hand check 1 in chromium/linux/hand-checks-l3.md and the repository lifecycle run (45761910883); the dnf repository checks both package and metadata signatures (gpgcheck, repo_gpgcheck)."
+    },
+    {
+      "text": "New betas are then offered with your system updates through apt or dnf, and within about two hours of installing one, Blanc shows Restart to update in the Island.",
+      "evidence": "The update proof (45761487715) moved 911 to 912 through apt and dnf on every leg; hand check 4 (chromium/linux/hand-checks-l3.md) showed Restart to update in the Island and relaunched into 912. Chromium polls the installed version every 2 hours (installed_version_poller.cc), so 'within about two hours', matching the approved release notes. 'Offered', never 'installed automatically' (unattended upgrades skip third-party repositories unless allowed); it doesn't claim a graphical updater lists it, although from 909 Ubuntu 26.04's App Center does (chromium/linux/hand-checks-l3.md, 909 section)."
+    },
+    {
+      "text": "Install and update checks ran on Ubuntu 24.04, Debian 12 and Fedora 45, on x64 and arm64.",
+      "evidence": "The update proof (45761487715), repository lifecycle (45761910883) and verify-public (45839063871) legs x64-ubuntu, x64-debian, x64-fedora, arm64-ubuntu, arm64-debian and arm64-fedora (chromium/reports/l3-linux.json); the approved release notes' 'Tested on'."
+    },
+    {
+      "text": "Ubuntu 26.04 with GNOME on Wayland was also checked by hand on arm64.",
+      "evidence": "The owner's Ubuntu 26.04 ARM64 VM, GNOME on Wayland (chromium/linux/hand-checks-l3.md, November 22, 2026)."
+    },
+    {
+      "text": "KDE and x64 desktops haven’t been checked by hand.",
+      "evidence": "The only hand checks ran in the owner's arm64 GNOME VM; the spec requires public copy to say KDE and x64 desktops are unchecked by eye (docs/superpowers/specs/2026-11-21-linux-fork-design.md, section 2)."
+    },
+    {
+      "text": "It doesn’t make itself your default browser, but where none is chosen yet, as on a fresh Ubuntu 26.04, links from other apps may open in it until you pick one in Settings.",
+      "evidence": "Hand check 7 (chromium/linux/hand-checks-l3.md): nothing was written to mimeapps.list, and gio names blanc-beta.desktop for https because it is the only registered browser; the approved release notes say the same."
+    },
+    {
+      "text": "Set up the repository yourself",
+      "kind": "label"
+    },
+    {
+      "text": "To install the package without adding the repository, run this before installing it.",
+      "evidence": "chromium/linux/manual-repository.md, 'Turn off automatic repository setup'; the repository lifecycle run (45761910883) checks that with the opt-out set the cron never writes a source."
+    },
+    {
+      "text": "To add the repository by hand instead, first download Blanc’s key and check it.",
+      "evidence": "chromium/linux/manual-repository.md, 'Download and verify the key': the command refuses a key whose fingerprint isn't 50D361974F477C8C87E117BD95AE97ABCACFEE6C."
+    },
+    {
+      "text": "Then, on Debian and Ubuntu, add the source and install with sudo apt-get install blanc-beta.",
+      "evidence": "chromium/linux/manual-repository.md, 'Debian and Ubuntu'; the repository lifecycle run (45761910883) runs the manual setup on a fresh system."
+    },
+    {
+      "text": "On Fedora, add the source and install with sudo dnf install blanc-beta.",
+      "evidence": "chromium/linux/manual-repository.md, 'Fedora'; the repository lifecycle run (45761910883) runs the manual setup on a fresh system."
+    },
+    {
+      "text": "Full guide, including how to turn the repository off",
+      "evidence": "chromium/linux/manual-repository.md on chromium/next, whose 'Disable an existing source' section removes the source and key files."
+    },
+    {
+      "text": "Not in this beta yet",
+      "kind": "label"
+    },
+    {
+      "text": "Protected video, such as Netflix or Spotify.",
+      "evidence": "The Linux beta is built without Widevine (enable_widevine = false in chromium/linux/args/beta-x64.gn and beta-arm64.gn on chromium/next); the approved release notes say protected video doesn't play."
+    },
+    {
+      "text": "Sync checked against the live Sync service.",
+      "evidence": "The approved release notes say Sync is included but still being checked against the live service, so don't rely on it yet."
+    },
+    {
+      "text": "Release notes",
+      "kind": "label"
+    }
+  ],
+  "commands": {
+    "source": "chromium/linux/manual-repository.md at 07f74ae01db4cdf0947c3236315dc1ee893dc111 on chromium/next",
+    "note": "The page shows four of the guide's command blocks verbatim, each with a Copy button that appears only with scripting; site/src/data/blanc-beta-linux.json holds them, and test/unit/site-blanc-beta-linux.test.js checks they keep Blanc's repository address and key fingerprint.",
+    "blocks": [
+      "optOut",
+      "key",
+      "deb",
+      "rpm"
+    ]
+  }
+}

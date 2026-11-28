@@ -3872,8 +3872,32 @@
     "note": "Settings → General → Browsing: label of the switch (off by default) that shows a Save As dialog for every download. When it's off, downloads go straight to the Downloads folder."
   },
   "settings.general.askWhereToSave.hint": {
-    "message": "When this is off, downloads go straight to your Downloads folder, and a file with the same name gets a number added.",
-    "note": "Settings → General → Browsing: hint under Ask where to save each file. Downloads is the name of the system's Downloads folder; use the folder's name on that platform in this language."
+    "message": "When this is off, downloads go straight to the folder above, and a file with the same name gets a number added.",
+    "note": "Settings → General → Browsing: hint under Ask where to save each file. \"The folder above\" is the folder shown in the Save files to row just above this switch."
+  },
+  "settings.general.downloadFolder.label": {
+    "message": "Save files to",
+    "note": "Settings → General → Browsing: label of the row showing the folder downloads go to (#1780), with Change… and Use Downloads buttons. The row's hint is the folder's path."
+  },
+  "settings.general.downloadFolder.change": {
+    "message": "Change…",
+    "note": "Settings → General → Browsing, Save files to: button that opens a folder dialog to choose where downloads go."
+  },
+  "settings.general.downloadFolder.reset": {
+    "message": "Use Downloads",
+    "note": "Settings → General → Browsing, Save files to: button shown when another folder is chosen; sends downloads to the system's Downloads folder again. Use the folder's name on that platform in this language."
+  },
+  "settings.general.downloadFolder.chooseTitle": {
+    "message": "Choose where to save downloads",
+    "note": "Title of the folder dialog opened by Settings → Save files to → Change…."
+  },
+  "settings.general.downloadFolder.missing": {
+    "message": "{path} can't be found right now, so downloads ask where to save until it's back or you choose another folder.",
+    "note": "Settings → General → Browsing: hint under Save files to when the chosen folder is missing (an unplugged drive, a deleted folder). {path} is the folder's path."
+  },
+  "settings.general.downloadFolder.unwritable": {
+    "message": "Blanc can't save to {path}, so downloads ask where to save until it can or you choose another folder.",
+    "note": "Settings → General → Browsing: hint under Save files to when the chosen folder exists but Blanc can't write to it (read-only, or access refused). {path} is the folder's path."
   },
   "settings.general.tabSwitchOrder.recent": {
     "message": "In the order you used them",
@@ -5373,7 +5397,7 @@
     "note": "Settings → Sync, off state: the primary button. Turns Sync on with no name or passphrase."
   },
   "settings.sync.off.haveCode": {
-    "message": "Already sync on another device?",
+    "message": "Already syncing on another device?",
     "note": "Settings → Sync, off state: the question above the Add with a code card."
   },
   "settings.sync.off.addWithCode": {
@@ -5453,7 +5477,7 @@
     "note": "Settings → Sync → Connect your iPhone: shown while the pairing code is being made."
   },
   "settings.sync.sheet.alreadySync": {
-    "message": "Already sync on another computer?",
+    "message": "Already syncing on another computer?",
     "note": "Settings → Sync → Connect your iPhone with Sync off: the guard against starting a second sync by accident."
   },
   "settings.sync.sheet.addThisFirst": {
@@ -10098,6 +10122,18 @@
     "message": "Move to Space",
     "note": "File menu submenu in a mini window (#1734): lists the profile's Spaces and New space…; choosing one moves the mini window's tabs there."
   },
+  "mini.switch.anotherWindow": {
+    "message": "Another window",
+    "note": "Quick Switcher row in a mini window (#1734): where a tab elsewhere is, when its window shows no Space. Shown after the site, e.g. \"example.com · Another window\"."
+  },
+  "mini.switch.gone": {
+    "message": "That tab isn't open anymore.",
+    "note": "Quick Switcher notice in a mini window (#1734): the tab picked closed since the list was built; the panel stays open."
+  },
+  "mini.switch.busy": {
+    "message": "Blanc couldn't open that Space just now. Try again.",
+    "note": "Quick Switcher notice in a mini window (#1734): the picked tab's Space couldn't open now (busy, or its profile unavailable); the row stays for another try."
+  },
   "ws.moveMode.header": {
     "message": "Move this window to…",
     "note": "Heading of the Spaces menu opened from a mini window (#1734): choosing a Space moves the window's tabs there and closes the window."
@@ -10142,6 +10178,14 @@
   "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
     "message": "Ctrl+Shift+Spacebar",
     "note": "Settings → General → Mini window shortcut: option on Windows and Linux. Use the key names keyboards in your language print (for example Strg and Umschalt in German)."
+  },
+  "settings.general.miniWindowLinks.label": {
+    "message": "Open links from other apps in a mini window",
+    "note": "Settings → General switch (#1734): links from other apps that match no link rule open in a mini window (a small window that isn't saved)."
+  },
+  "settings.general.miniWindowLinks.hint": {
+    "message": "Links that match a rule still go where the rule says.",
+    "note": "Hint under that switch: link rules (Settings → Profiles) still win over the mini window."
   },
   "sharedSpaces.switch.android": {
     "message": "Keep Spaces and groups in sync on this phone",

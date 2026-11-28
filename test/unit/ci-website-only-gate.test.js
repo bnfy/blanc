@@ -9,6 +9,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const { execFileSync, spawnSync } = require('node:child_process');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..', '..');
@@ -54,11 +55,71 @@ test('the classifier defaults to the app and treats packaged notices as app file
     'the packaged notices match before the root Markdown rule');
 });
 
-test('the cross-platform unit job keeps running for every pull request', () => {
+test('the merge workflow reports on every PR and keeps cross-platform tests on main', () => {
   const text = workflow('unit-tests.yml');
   const on = text.slice(text.indexOf('\non:\n'), text.indexOf('\npermissions:'));
   assert.match(on, /\n  pull_request:\n/);
   assert.match(on, /\n  push:\n    branches: \[main\]\n/, 'merged combinations are tested on main');
-  assert.doesNotMatch(on, /paths/, 'no path filter');
-  assert.doesNotMatch(text, /needs: changes/);
+  assert.doesNotMatch(on, /paths/, 'no path filter on the required workflow');
+
+  const all = jobs(text);
+  assert.match(all.changes, /--name-only -z --no-renames HEAD\^1 HEAD/, 'both sides of a rename count');
+  assert.match(all.unit, /needs: changes/);
+  assert.ok(all.unit.includes("needs.changes.outputs.website_only != 'true'"));
+  assert.ok(all.site.includes("needs.changes.outputs.website == 'true'"));
+  assert.match(all.site, /uses: \.\/\.github\/workflows\/site\.yml/);
+  assert.match(workflow('site.yml'), /\n  workflow_call:\n/);
+  assert.match(all['website-and-unit-checks'], /always\(\)/, 'the gate runs when a dependency fails or is skipped');
+  assert.match(all['website-and-unit-checks'], /needs: \[changes, site, unit\]/);
+});
+
+test('only website paths skip the native unit matrix', () => {
+  const cases = [
+    [['site/src/components/Header.astro', 'test/site/header.test.mjs'], true, true],
+    [['site/public/voice clip\nold name.mp3'], true, true],
+    [['src/main/main.js', 'site/src/pages/index.astro'], true, false],
+    [['package-lock.json'], true, false],
+    [['.github/workflows/site.yml'], true, false],
+    [['docs/website-notes.md'], false, false],
+    [['site-old/index.html'], false, false],
+    [[], false, false],
+  ];
+  for (const [paths, website, websiteOnly] of cases) {
+    const result = execFileSync('bash', ['scripts/ci-website-paths.sh'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      input: paths.length ? paths.join('\0') + '\0' : '',
+    });
+    assert.equal(result, `website=${website}\nwebsite_only=${websiteOnly}\n`, JSON.stringify(paths));
+  }
+
+  // Every push path that triggers Site must also trigger it in a PR.
+  for (const pattern of workflow('site.yml').matchAll(/^      - '(.+)'$/gm)) {
+    const file = pattern[1].replace('**', 'example');
+    const result = execFileSync('bash', ['scripts/ci-website-paths.sh'], { cwd: ROOT, encoding: 'utf8', input: file + '\0' });
+    assert.match(result, /^website=true\n/, file);
+  }
+});
+
+test('the required merge gate only succeeds when the selected suites pass', () => {
+  const gate = jobs(workflow('unit-tests.yml'))['website-and-unit-checks'];
+  const script = gate.split('        run: |\n')[1];
+  const variables = ['PATHS_RESULT', 'WEBSITE', 'WEBSITE_ONLY', 'SITE_RESULT', 'UNIT_RESULT'];
+  const cases = [
+    [['success', 'true', 'true', 'success', 'skipped'], 0],
+    [['success', 'true', 'false', 'success', 'success'], 0],
+    [['success', 'false', 'false', 'skipped', 'success'], 0],
+    [['success', 'true', 'true', 'failure', 'skipped'], 1],
+    [['success', 'true', 'true', 'cancelled', 'skipped'], 1],
+    [['success', 'true', 'false', 'success', 'failure'], 1],
+    [['success', 'false', 'false', 'skipped', 'skipped'], 1],
+    [['success', 'false', 'false', 'skipped', 'failure'], 1],
+    [['failure', '', '', 'skipped', 'success'], 1],
+    [['success', '', '', 'skipped', 'success'], 1],
+  ];
+  for (const [values, expected] of cases) {
+    const env = { ...process.env, ...Object.fromEntries(variables.map((key, index) => [key, values[index]])) };
+    const result = spawnSync('bash', ['-e', '-c', script], { env, encoding: 'utf8' });
+    assert.equal(result.status, expected, values.join(':') + '\n' + result.stderr);
+  }
 });

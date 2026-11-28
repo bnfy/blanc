@@ -3788,8 +3788,32 @@
     "source": "sha256:b76a33ee6f66a3a942dc934105c61bb667a1a1470c9719187037c601cd65b595"
   },
   "settings.general.askWhereToSave.hint": {
-    "message": "Si está desactivado, las descargas van directamente a tu carpeta Descargas, y un archivo con el mismo nombre recibe un número.",
-    "source": "sha256:707ca337ae8ad262052b4d64e6e02f0e0e9936dd104700c11fd819b11d0465b1"
+    "message": "Si está desactivado, las descargas van directamente a la carpeta de arriba, y un archivo con el mismo nombre recibe un número.",
+    "source": "sha256:27fd412b98a41c36f65025703c5d3f78d51dfab45ccf071bd7e5d61136d3ea71"
+  },
+  "settings.general.downloadFolder.label": {
+    "message": "Guardar archivos en",
+    "source": "sha256:071d1d04435f594a50135c381b43f602a639d44c2ecc91b7033058fd80b0cf24"
+  },
+  "settings.general.downloadFolder.change": {
+    "message": "Cambiar…",
+    "source": "sha256:bcaa61e7f1a9f6fd6c50a0608f8886ba24a3d30730dd4671655216388b8c0d29"
+  },
+  "settings.general.downloadFolder.reset": {
+    "message": "Usar Descargas",
+    "source": "sha256:606749e85fbf55e65d4c1af552244d1b54641181e4fbe8577782c46ea20ef81e"
+  },
+  "settings.general.downloadFolder.chooseTitle": {
+    "message": "Elige dónde guardar las descargas",
+    "source": "sha256:7d88bd727a21ad228c82c70062336117a3fc24eb48c094261386da178d464896"
+  },
+  "settings.general.downloadFolder.missing": {
+    "message": "No se encuentra {path} ahora mismo, así que las descargas preguntan dónde guardarse hasta que vuelva o elijas otra carpeta.",
+    "source": "sha256:de5ec843b81e00a51159742ab925aa76624e2800a40051ff7e7d0c19a735e2ad"
+  },
+  "settings.general.downloadFolder.unwritable": {
+    "message": "Blanc no puede guardar en {path}, así que las descargas preguntan dónde guardarse hasta que pueda o elijas otra carpeta.",
+    "source": "sha256:5d3402f1a92633fe04bab30c8c4def1fb8b2a3fc53360a298b9ec757474356b3"
   },
   "settings.general.tabSwitchOrder.recent": {
     "message": "En el orden en que las usaste",
@@ -5225,7 +5249,7 @@
   },
   "settings.sync.off.haveCode": {
     "message": "¿Ya sincronizas en otro dispositivo?",
-    "source": "sha256:3426075d57dc0745205927e7c7f5dce5649626744542b1c676692c362c56b517"
+    "source": "sha256:22e120522b446020ca273c7295dfae0411faff7102e28a07fee6ea10ea2c7c45"
   },
   "settings.sync.off.addWithCode": {
     "message": "Añadir este dispositivo con un código",
@@ -5305,7 +5329,7 @@
   },
   "settings.sync.sheet.alreadySync": {
     "message": "¿Ya sincronizas en otro ordenador?",
-    "source": "sha256:505577a9919cf0dd4610cc2decf0e3d12ad0199ffa9cfaa3fd8524867fe9f99a"
+    "source": "sha256:96903e800d2b76cae038a9620df21dc41b339be834ecf8683c74345d4ad1bac2"
   },
   "settings.sync.sheet.addThisFirst": {
     "message": "Añade primero este Mac con un código",
@@ -9801,6 +9825,18 @@
     "message": "Mover al Space",
     "source": "sha256:71e059404f39cdb4f355481c2a7de11d640eb7f1a25bbf4a4faf4b8582963f5e"
   },
+  "mini.switch.anotherWindow": {
+    "message": "Otra ventana",
+    "source": "sha256:5be3fec0e74fdf3b4ba01bd6fc128a96b9f5320d496b73d9b365e41f4a066b2b"
+  },
+  "mini.switch.gone": {
+    "message": "Esa pestaña ya no está abierta.",
+    "source": "sha256:2e7500de9dc2f9f977e368368cec3e436dd07e279b8c50c732be7122f1dd16b7"
+  },
+  "mini.switch.busy": {
+    "message": "Blanc no pudo abrir ese Space ahora mismo. Inténtalo de nuevo.",
+    "source": "sha256:acea9de724a6f8159baa3be7775fe3e2daa6bd8d8f45c1fbf2a712782247852a"
+  },
   "ws.moveMode.header": {
     "message": "Mover esta ventana a…",
     "source": "sha256:81fd38d4a6df0d472f68c974fa785f2e1f1259218d0f87bbad426045d124cb81"
@@ -9844,6 +9880,14 @@
   "settings.general.miniWindow.shortcut.ctrlShiftSpace": {
     "message": "Ctrl+Mayús+Espacio",
     "source": "sha256:5f579d29dff6300530617e41e4a883a52c075e51ffb3573d781ced720a7601a8"
+  },
+  "settings.general.miniWindowLinks.label": {
+    "message": "Abrir los enlaces de otras apps en una miniventana",
+    "source": "sha256:79c0dd7e53817d6765378d4a9766d63e036050976a21c6129450ff0ee88eca6a"
+  },
+  "settings.general.miniWindowLinks.hint": {
+    "message": "Los enlaces que coinciden con una regla siguen yendo a donde dice la regla.",
+    "source": "sha256:ff510a0617a43d12f85d108322255638c9fc017d78db60579b49b6e5573d74f9"
   },
   "sharedSpaces.switch.android": {
     "message": "Mantener Spaces y grupos sincronizados en este teléfono",

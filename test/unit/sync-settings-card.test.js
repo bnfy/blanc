@@ -24,7 +24,7 @@ test('the off state leads with Turn on Sync, then the code path, then Other ways
   // are one level deeper, under Other ways.
   assert.match(html, /<button id="syncTurnOn" type="button">Turn on Sync<\/button>/);
   assert.ok(html.indexOf('id="syncTurnOn"') < html.indexOf('id="syncPathCode"'));
-  assert.match(html, /Already sync on another device\?[\s\S]{0,200}?id="syncPathCode"[\s\S]{0,900}?Add this device with a code/);
+  assert.match(html, /Already syncing on another device\?[\s\S]{0,200}?id="syncPathCode"[\s\S]{0,900}?Add this device with a code/);
   const other = html.slice(html.indexOf('<details class="sync-other-ways" id="syncOtherWays">'), html.indexOf('</details>', html.indexOf('id="syncOtherWays"')));
   assert.match(other, /<summary>Other ways<\/summary>/);
   assert.match(other, /id="syncPathJoin"[\s\S]{0,300}?Use a sync name and passphrase/);

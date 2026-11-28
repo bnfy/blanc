@@ -23,13 +23,16 @@ test('Classic, Amber Glass and the flat master share the approved ray tips and r
   const rayMasks = await Promise.all(rays.map((_, i) => alpha(path.join(classic, `Sunrise Ray ${i + 1}.png`))));
   const amberRays = await apple('Rays');
   const master = await alpha(await sharp(path.join(root, 'assets/sunrise-mark-4096.png')).resize(1024).png().toBuffer());
+  const svg = fs.readFileSync(path.join(root, 'assets/sunrise-mark.svg'), 'utf8');
+  assert.doesNotMatch(svg, /<image\b|data:image\//, 'the gold SVG must retain its scalable material');
+  const vector = await alpha(await sharp(Buffer.from(svg)).png().toBuffer());
   const pixel = (mask, x, y) => mask[Math.round(y) * 1024 + Math.round(x)];
   for (const [i, { angle, ends: [x1, y1, x2, y2] }] of rays.entries()) {
     const a = angle * Math.PI / 180;
     for (const offset of [-2, 2]) {
       const x = x2 + (rayWidth / 2 + offset) * Math.sin(a);
       const y = y2 - (rayWidth / 2 + offset) * Math.cos(a);
-      for (const mask of [rayMasks[i], amberRays, master]) assert.equal(pixel(mask, x, y) > 127, offset < 0, `ray ${i + 1} tip`);
+      for (const mask of [rayMasks[i], amberRays, master, vector]) assert.equal(pixel(mask, x, y) > 127, offset < 0, `ray ${i + 1} tip`);
     }
     const reflected = rays[6 - i].ends;
     assert.ok(Math.abs(x1 + reflected[0] - 2 * cx) < 0.001 && Math.abs(y1 - reflected[1]) < 0.001);
@@ -40,7 +43,7 @@ test('Classic, Amber Glass and the flat master share the approved ray tips and r
   assert.ok(pixel(sun, cx, cy - ry + 2) > 127 && pixel(sun, cx + rx + 2, cy - 2) < 128);
   for (const [i, bar] of water.entries()) {
     const name = i === 0 ? 'Horizon' : `Reflection ${i}`;
-    for (const mask of [await alpha(path.join(classic, `Sunrise ${name}.png`)), await apple(name), master]) {
+    for (const mask of [await alpha(path.join(classic, `Sunrise ${name}.png`)), await apple(name), master, vector]) {
       const y = bar.y + bar.height / 2;
       for (const x of [bar.x + 2, 2 * cx - bar.x - 2]) assert.ok(pixel(mask, x, y) > 127, name);
       for (const x of [bar.x - 2, 2 * cx - bar.x + 2]) assert.ok(pixel(mask, x, y) < 128, name);

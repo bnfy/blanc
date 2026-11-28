@@ -1676,6 +1676,39 @@
         "doc": "Replace the link routing rules; main validates the whole list and stores all or nothing."
       },
       {
+        "name": "settings.downloadFolder",
+        "kind": "invoke",
+        "channel": "pages:settings:download-folder",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Where downloads go now, and whether that folder is there and writable."
+      },
+      {
+        "name": "settings.chooseDownloadFolder",
+        "kind": "invoke",
+        "channel": "pages:settings:download-folder:choose",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Open the folder dialog and store the folder downloads go to; the page never sends a path."
+      },
+      {
+        "name": "settings.resetDownloadFolder",
+        "kind": "invoke",
+        "channel": "pages:settings:download-folder:reset",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Send downloads to the system's Downloads folder again."
+      },
+      {
         "name": "settings.blockingStatus",
         "kind": "invoke",
         "channel": "pages:blocking:status",

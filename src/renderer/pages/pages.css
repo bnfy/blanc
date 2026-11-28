@@ -693,6 +693,8 @@ body.sheet .page > .row-list > .empty {
 .setting .label .hint { color: var(--text-dim); font-size: 12px; }
 /* Outranks the dim hint colour above; the generic .hint.field-error can't. */
 .setting .label .hint.field-error { color: var(--danger); }
+/* #1780: a folder path is one long word; let it wrap anywhere. */
+.setting .label .hint.download-folder-path { overflow-wrap: anywhere; }
 .setting .label .hint.folded {
   display: -webkit-box;
   -webkit-box-orient: vertical;

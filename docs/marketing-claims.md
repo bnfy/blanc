@@ -668,6 +668,14 @@ original reports:
   packaged build on Windows or Linux before release, and card dragging was
   never tried with a real mouse or finger, so don't claim either. Describe
   all of it as since v1.51.0.
+- **1.53.0:** The Spaces button in a mini window and **File → Move to Space**
+  move its tabs, groups and splits to an existing or new Space in the current
+  profile. Blanc brings the destination forward. A tab that cannot move,
+  such as a private tab or one playing audio, keeps the whole mini window in
+  place with an explanation. On Linux, **Open With** shows local HTML in a
+  static preview with scripts and network requests blocked. The packaged
+  AppImage checks cover the file handoff at launch and with Blanc running.
+  Direct testing from GNOME Files and Dolphin is still open.
 - **1.52.0:** With more than one profile, the Spaces menu lists every
   profile's Spaces under their profile names; choosing one opens it in a
   window of that profile (its own sign-ins), and a new Space can be made in
@@ -685,14 +693,13 @@ original reports:
   passkey fix with Windows Hello or on real sites, or closed a real Proxmox
   console window, so don't claim any of these beyond what the notes say.
   Describe all of it as since v1.52.0.
-- **Favorites shortcut on the Mac:** Through v1.52.0, ⌥⌘B on the Mac turns
-  Auto-hide the Island on or off and never opens Favorites, because both
-  were bound to it and Auto-hide's handler won (bnfy/blanc#1737 moves
-  Auto-hide to ⇧⌘B on the Mac, unreleased). Until a release ships that fix,
-  don't tell Mac users a key opens Favorites: say **Favorites → Show
-  Favorites**, or `/favorites`. Ctrl+Shift+O on Windows and Linux works.
+- **Menu shortcuts since 1.53.0:** On the Mac, ⌥⌘B opens Favorites, ⇧⌘B
+  toggles Auto-hide the Island, ⇧⌘W closes the window, and ⌘W closes the
+  current tab. On Windows and Linux, Ctrl+Shift+O opens Favorites, Ctrl+Y
+  redoes, and Ctrl+H opens History. Through v1.52.0, the Mac Favorites
+  shortcut triggered Auto-hide because both actions shared the key.
 - **Auto-hide the Island:** Since v1.39.0 an opt-in, device-local setting
-  (Settings → General, the View menu, ⌘⌥B or Ctrl+Alt+B) hides the Island's
+  (Settings → General or the View menu) hides the Island's
   strip so the page fills the window. Pointing at or just above the top edge,
   resting near the top, or any Island surface such as ⌘L brings it back. It is
   off by default. On native Wayland the band above a floating window can't

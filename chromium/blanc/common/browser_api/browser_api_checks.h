@@ -252,6 +252,11 @@ inline bool IsValidGlanceCardResizeEdge(std::string_view value) {
          value == "sw";
 }
 
+inline bool IsValidMiniSwitchResultError(std::string_view value) {
+  return value == "gone" ||
+         value == "busy";
+}
+
 inline bool IsValidSelectTabMode(std::string_view value) {
   return value == "toggle" ||
          value == "range" ||

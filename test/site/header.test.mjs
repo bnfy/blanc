@@ -6,6 +6,7 @@
 // button (revamp.css). It stays put while scrolling, because the homepage's
 // sticky scenes sit just below it.
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
 
@@ -42,6 +43,32 @@ const header = page => page.evaluate(() => {
       .every(el => { const r = el.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; }),
     overflow: document.documentElement.scrollWidth > innerWidth,
   };
+});
+
+test('the header pronunciation plays under the deployed media policies', async () => {
+  // Astro preview does not apply Cloudflare Pages' _headers rules.
+  const headers = await readFile(new URL('../../site/dist/_headers', import.meta.url), 'utf8');
+  const blocks = headers.split(/\n(?=\S)/);
+  for (const [path, rule] of [['/', '/*'], ['/mail/reserve', '/mail/reserve']]) {
+    const block = blocks.find(block => block.startsWith(rule + '\n'));
+    const policy = block?.match(/^  Content-Security-Policy: (.+)$/m)?.[1];
+    assert.ok(policy, `Cloudflare policy for ${path}`);
+    const { page, context } = await openPage(path);
+    try {
+      await page.route(baseURL + path, async route => {
+        const response = await route.fetch();
+        await route.fulfill({ response, headers: { ...response.headers(), 'content-security-policy': policy } });
+      });
+      await page.reload();
+      await page.getByRole('button', { name: 'Hear how to pronounce Blanc' }).press('Enter');
+      await page.waitForFunction(() => {
+        const audio = document.querySelector('#blanc-pronunciation');
+        return audio?.ended || audio?.error;
+      });
+      const error = await page.locator('#blanc-pronunciation').evaluate(audio => audio.error?.message ?? null);
+      assert.equal(error, null, path);
+    } finally { await context.close(); }
+  }
 });
 
 test('the header stays at the top, marks the current section and points Download at the right place', async () => {

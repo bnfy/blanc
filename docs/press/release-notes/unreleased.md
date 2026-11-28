@@ -1,44 +1,48 @@
 # Unreleased notes
 
-v1.52.0 is the current public release ([notes](v1.52.0.md)). Changes merged
+v1.53.0 is the current public release ([notes](v1.53.0.md)). Changes merged
 since then are below as they're recorded.
 
 ## Added
 
-- **Move a mini window to a Space.** A Spaces button now sits beside Open in
-  Blanc in a mini window. Pick one of your Spaces, or New space…, and the mini
-  window's tabs move there; the mini window closes and that Space comes
-  forward. If a page can't move (a private tab, or one playing sound or using
-  the camera), nothing moves and Blanc says why (#1734).
+- **Switch to tabs and Spaces from a mini window.** Type in a mini window's
+  search to find tabs in your other windows and in your Spaces, and your
+  Spaces themselves. Pick one and Blanc takes you there; a mini window you
+  hadn't used yet closes behind you (#1734).
+- **Open links from other apps in a mini window.** Turn it on in Settings →
+  General, and a link you click in another app opens in a mini window
+  instead of your Blanc window; another link joins it. Links that match one
+  of your link rules still go where the rule says (#1734).
 
 ## Fixed
 
-- **Favorites opens with ⌥⌘B on the Mac again.** Since 1.39, ⌥⌘B also
-  turned Auto-hide the Island on or off, and Auto-hide always won, so Show
-  Favorites never opened from the keyboard. Auto-hide the Island is now ⇧⌘B on
-  the Mac; Windows and Linux keep Ctrl+Alt+B. Close Window in the File menu is
-  now ⇧⌘W, since ⌘W already closes the tab.
-- **Ctrl+Y redoes on Windows and Linux.** It used to open History, even
-  while typing in a text field or a web app, so it never redid anything.
-  Ctrl+Y now reaches the page and Edit → Redo, as in Chrome; History is
-  Ctrl+H.
-- **Open local HTML files on Linux.** Choosing Blanc under a file manager's
-  **Open With** for an `.html` file now opens it in the static preview
-  window, as on Windows and the Mac. Before, Blanc only came to the front
-  with nothing opened (#1630).
+- **Sites that answer only without HTTPS open again.** Typing `keurig.com` or
+  `https://keurig.com` showed a connection error, because that site serves
+  its bare address only over plain HTTP to send you to www. Blanc now tries
+  plain HTTP once when a typed address doesn't answer over HTTPS (#1790).
+- **New space… in a mini window counts the tabs that move.** It said
+  "0 tabs" every time (#1734).
 
-## Still open from 1.52
+## Still open from 1.53
 
 - **Move a mini window to a Space** (#1734) by hand in a packaged build, with
   a real mouse: the Island's Spaces button, the move-mode menu, and File →
   Move to Space ▸. Acceptance covers moving to a saved Space, to one on
   screen, to a new Space, and the private-tab refusal.
+- **Switch to tabs and Spaces from a mini window** (#1734) by hand in a
+  packaged build: a tab in another window, a tab in a Space set aside, and a
+  Space by name. Acceptance covers all three.
+- **Links from other apps in a mini window** (#1734) by hand in a packaged
+  build: from Mail or Messages on macOS, and from another app on Windows and
+  Linux (the command line), with the setting on and off, and with a link rule.
 
 - **Opening local HTML files on Linux** (#1630) by hand from a file manager's
   Open With (GNOME Files and Dolphin) with the AppImage, at launch and while
   Blanc is running. CI opens a file in the static preview from the packaged
   AppImage's command line, as a `file:///` URI at launch and as a path handed
   to a running Blanc.
+
+## Still open from 1.52
 
 - **Download peek with Auto-hide on**, by hand in a packaged build on macOS
   and Windows: a real click on a download link shows the hidden Island in both

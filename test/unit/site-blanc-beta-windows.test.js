@@ -13,6 +13,9 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const win = JSON.parse(read('site/src/data/blanc-beta-windows.json'));
 const ledger = JSON.parse(read(`docs/website-blanc-beta-windows-${win.version}-claims.json`));
 const page = read('site/src/pages/download.astro');
+// The Windows beta is built from the desktop lane's Chromium pin; its version
+// keeps the pin's first three numbers and replaces the last with its build.
+const pin = JSON.parse(read('chromium/lanes/desktop.json')).version;
 
 const section = () => {
   const start = page.indexOf('<article class="dl-beta-row" id="beta-windows"');
@@ -34,7 +37,7 @@ test('the data and ledger name the same published Windows pre-release', () => {
   assert.equal(ledger.release, win.version);
   assert.equal(ledger.tag, win.tag);
   assert.equal(win.tag, `chromium-beta-windows-${win.version}`);
-  assert.match(win.version, /^158\.0\.8127\.(\d+)$/);
+  assert.equal(win.version, `${pin.split('.').slice(0, 3).join('.')}.${win.build}`);
   assert.equal(win.version.split('.')[3], String(win.build));
   assert.equal(win.releaseUrl, `https://github.com/bnfy/blanc/releases/tag/${win.tag}`);
   assert.equal(win.setup.name, `Blanc-Beta-Setup-${win.version}.exe`);
@@ -42,7 +45,7 @@ test('the data and ledger name the same published Windows pre-release', () => {
   assert.match(win.setup.sha256, /^[a-f0-9]{64}$/);
   assert.ok(Number.isInteger(win.setup.bytes) && win.setup.bytes > 1e6);
   assert.equal(win.published, ledger.publicRelease);
-  assert.equal(win.chromium, '158.0.8127.2');
+  assert.equal(win.chromium, pin);
 });
 
 test('/dl/beta-win answers with the same setup and is counted', async () => {

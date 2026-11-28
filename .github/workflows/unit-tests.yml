@@ -1,13 +1,8 @@
 name: Unit tests
 
-# Runs the unit suite on Windows and macOS for every pull request. Parity guards
-# already run it on Linux for every pull request; the uBlock Origin workflow
-# runs it on all four desktop targets only nightly and on manual runs, so a
-# test-only change otherwise never runs on Windows or macOS (#608). No path
-# filter here on purpose: a platform-specific failure can come from any file.
-# It also runs on every push to main: main doesn't require a pull request to be
-# up to date before merging, so two pull requests that each passed are only
-# tested together here. A newer push cancels a run still in progress.
+# Pull requests always report a merge gate. Website-only PRs run the Site
+# suite and skip the Windows and macOS matrix. Shared inputs run both. Pushes
+# to main still test merged combinations on both platforms.
 on:
   push:
     branches: [main]
@@ -22,7 +17,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Classify website changes
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      website: ${{ steps.paths.outputs.website }}
+      website_only: ${{ steps.paths.outputs.website_only }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2 # PR merge commit and its base parent.
+      - id: paths
+        shell: bash
+        run: |
+          git rev-parse --verify HEAD^2 >/dev/null
+          git diff --name-only -z --no-renames HEAD^1 HEAD | bash scripts/ci-website-paths.sh >> "$GITHUB_OUTPUT"
+
+  site:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.website == 'true' }}
+    uses: ./.github/workflows/site.yml
+
   unit:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.website_only != 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -50,3 +69,23 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run test:unit
+
+  website-and-unit-checks:
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    needs: [changes, site, unit]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the suites selected for this change
+        env:
+          PATHS_RESULT: ${{ needs.changes.result }}
+          WEBSITE: ${{ needs.changes.outputs.website }}
+          WEBSITE_ONLY: ${{ needs.changes.outputs.website_only }}
+          SITE_RESULT: ${{ needs.site.result }}
+          UNIT_RESULT: ${{ needs.unit.result }}
+        run: |
+          case "$PATHS_RESULT:$WEBSITE:$WEBSITE_ONLY:$SITE_RESULT:$UNIT_RESULT" in
+            success:true:true:success:skipped) ;;
+            success:true:false:success:success) ;;
+            success:false:false:skipped:success) ;;
+            *) echo "::error::Expected suites did not pass (paths=$PATHS_RESULT, website=$WEBSITE, website_only=$WEBSITE_ONLY, site=$SITE_RESULT, unit=$UNIT_RESULT)"; exit 1 ;;
+          esac

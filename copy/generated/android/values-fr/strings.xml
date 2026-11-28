@@ -1083,7 +1083,13 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_reuse_new_tab_label">Aller à un nouvel onglet inutilisé</string>
     <string name="settings_general_reuse_new_tab_hint">Nouvel onglet va à un nouvel onglet de cette fenêtre que vous n’avez pas encore utilisé, au lieu d’en ouvrir un autre. Nouvel onglet privé fait de même pour les onglets privés.</string>
     <string name="settings_general_ask_where_to_save_label">Demander où enregistrer chaque fichier</string>
-    <string name="settings_general_ask_where_to_save_hint">Lorsque cette option est désactivée, les téléchargements vont directement dans votre dossier Téléchargements, et un fichier portant le même nom reçoit un numéro.</string>
+    <string name="settings_general_ask_where_to_save_hint">Lorsque cette option est désactivée, les téléchargements vont directement dans le dossier ci-dessus, et un fichier portant le même nom reçoit un numéro.</string>
+    <string name="settings_general_download_folder_label">Enregistrer les fichiers dans</string>
+    <string name="settings_general_download_folder_change">Modifier…</string>
+    <string name="settings_general_download_folder_reset">Utiliser Téléchargements</string>
+    <string name="settings_general_download_folder_choose_title">Choisissez où enregistrer les téléchargements</string>
+    <string name="settings_general_download_folder_missing">%1$s est introuvable pour le moment : les téléchargements demandent où les enregistrer jusqu’à ce qu’il revienne ou que vous choisissiez un autre dossier.</string>
+    <string name="settings_general_download_folder_unwritable">Blanc ne peut pas enregistrer dans %1$s : les téléchargements demandent où les enregistrer jusqu’à ce que ce soit possible ou que vous choisissiez un autre dossier.</string>
     <string name="settings_general_tab_switch_order_recent">Dans l’ordre où vous les avez utilisés</string>
     <string name="settings_general_tab_switch_order_list">Dans l’ordre de la liste des onglets</string>
     <string name="settings_general_tab_archive_label">Archiver les onglets inactifs</string>
@@ -2790,6 +2796,9 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="mini_move_to_space_label">Déplacer dans le Space : déplacer les onglets de cette mini-fenêtre dans un Space</string>
     <string name="mini_move_to_space_title">Déplacer les onglets de cette mini-fenêtre dans un Space</string>
     <string name="mini_move_to_space_menu">Déplacer dans le Space</string>
+    <string name="mini_switch_another_window">Autre fenêtre</string>
+    <string name="mini_switch_gone">Cet onglet n\'est plus ouvert.</string>
+    <string name="mini_switch_busy">Blanc n\'a pas pu ouvrir ce Space pour le moment. Réessayez.</string>
     <string name="ws_move_mode_header">Déplacer cette fenêtre vers…</string>
     <string name="ws_error_mini_unmovable">Un onglet privé, ou une page qui joue du son, utilise la caméra ou le micro, partage l\'écran ou affiche une fenêtre pop-up, ne peut pas être déplacé dans un Space. Fermez-le ou arrêtez-le, puis réessayez.</string>
     <string name="mini_open_in_blanc_label">Ouvrir dans Blanc : garder cette mini-fenêtre comme une fenêtre Blanc ordinaire</string>
@@ -2801,6 +2810,8 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Espace</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Espace</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Maj+Espace</string>
+    <string name="settings_general_mini_window_links_label">Ouvrir les liens d\'autres apps dans une mini-fenêtre</string>
+    <string name="settings_general_mini_window_links_hint">Les liens qui correspondent à une règle vont toujours là où la règle les envoie.</string>
     <string name="shared_spaces_switch_android">Garder les Spaces et les groupes synchronisés sur ce téléphone</string>
     <string name="shared_spaces_switch_line_android">Les onglets de vos Spaces partagés sont synchronisés depuis ce téléphone.</string>
     <string name="shared_spaces_save_this_phone">Enregistrer Ce téléphone comme Space</string>

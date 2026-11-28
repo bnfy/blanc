@@ -14,7 +14,8 @@ import testHookCall from './support/test-hook-call.js';
 // page starts without a click still asks, one click lets only one download
 // skip Save As (the packaged check found a click followed by a burst), and
 // every download asks once "Ask where to save each file" is on. Clicks are
-// real mouse events sent to the tab. Downloads go to a temporary folder.
+// real mouse events sent to the tab. Downloads go to a temporary folder, and
+// then to another one chosen as in Settings (#1780).
 
 const { waitForValue } = poll;
 const { callTestHook } = testHookCall;
@@ -180,6 +181,26 @@ try {
   await finished(saved);
   assert.equal((await islandState()).downloadPeek, false, 'no peek with auto-hide off');
 
+  // #1780: a folder chosen in Settings takes the next download instead, and
+  // Use Downloads sends them back. setDownloadFolder() is the write the
+  // folder dialog makes.
+  const chosenDir = path.join(root, 'Chosen folder');
+  fs.mkdirSync(chosenDir);
+  const setFolder = (folder) => app.evaluate(({ app: electronApp }, [settingsPath, value]) =>
+    process.mainModule.require(settingsPath).setDownloadFolder(value, electronApp.getPath('downloads')),
+  [path.join(repo, 'src/main/settings.js'), folder]);
+  assert.equal(await setFolder(chosenDir), chosenDir);
+  await click();
+  await waitForValue(
+    () => { try { return fs.readFileSync(path.join(chosenDir, 'report.txt'), 'utf8'); } catch { return null; } },
+    (body) => body === BODY, 'the download in the chosen folder', 15_000,
+  );
+  await finished(saved);
+  assert.equal(await setFolder(''), '');
+  await click();
+  saved = [...saved, 'report (7).txt'].sort();
+  await finished(saved);
+
   // With "Ask where to save each file" on, a clicked download asks too.
   await app.evaluate(({}, settingsPath) => {
     process.mainModule.require(settingsPath).setSettings({ askWhereToSave: true });
@@ -200,6 +221,7 @@ try {
   console.log('ok   a page-started download and the switch both leave it to Save As');
   console.log('ok   one click lets only one download skip Save As');
   console.log('ok   a download shows the auto-hidden Island (float and push), and nothing else changes');
+  console.log('ok   a folder chosen in Settings takes downloads, and Use Downloads sends them back');
 } finally {
   if (app) await app.close().catch(() => {});
   server.closeAllConnections();

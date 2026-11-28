@@ -7,6 +7,44 @@
   ],
   "pages": [
     {
+      "release": "1.53",
+      "highlights": [
+        {
+          "id": "move-a-mini-window-to-a-space",
+          "tile": "Mini Window",
+          "title": "Move a mini window to a Space",
+          "body": "Keep the tabs you opened in a mini window by moving them together into a Space. Blanc brings that Space forward with your tabs, groups, and splits.",
+          "steps": [
+            "Click the Spaces button beside Open in Blanc, or choose File → Move to Space.",
+            "Pick a Space in your current profile or choose New space…"
+          ],
+          "note": "If a tab can’t move, such as a private tab or one playing audio, all the tabs stay in the mini window and Blanc explains why.",
+          "learnMore": "/features/workspaces",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/mini-window-move-to-space-v1.53.0.webp",
+            "width": 1440,
+            "height": 1137,
+            "alt": "A Blanc mini window shows the Move this window to menu with Reading, Projects, and New space over The Met’s page for Van Gogh’s Wheat Field with Cypresses."
+          }
+        },
+        {
+          "id": "favorites-and-redo-shortcuts",
+          "tile": "Keyboard shortcuts",
+          "title": "Favorites and Redo shortcuts",
+          "body": "On Mac, press `⌥⌘B` to open Favorites. Auto-hide the Island now uses `⇧⌘B`, and Close Window uses `⇧⌘W`.",
+          "note": "On Windows and Linux, `Ctrl+Y` redoes an edit, and `Ctrl+H` opens History.",
+          "media": {
+            "kind": "image",
+            "src": "/feature-captures/favorites-shortcut-v1.53.0.webp",
+            "width": 1440,
+            "height": 900,
+            "alt": "Blanc’s Favorites page on Mac with Art & design selected and four saved sites listed."
+          }
+        }
+      ]
+    },
+    {
       "release": "1.52",
       "highlights": [
         {
@@ -558,7 +596,7 @@
           "body": "Turn on Auto-hide the Island, and the page fills the window to its top edge. The Island slides back when you point at the top edge, rest the pointer near the top, or press `⌘L`.",
           "steps": [
             "Open Settings → General.",
-            "Turn on Auto-hide the Island, or press `⌘⌥B` (`Ctrl+Alt+B` on Windows and Linux)."
+            "Turn on Auto-hide the Island, or press `⇧⌘B` on Mac (`Ctrl+Alt+B` on Windows and Linux)."
           ],
           "note": "It’s off by default.",
           "learnMore": "/features/island",

@@ -1,5 +1,409 @@
 [
   {
+    "tag": "chromium-beta-2.0.0-beta.12",
+    "product": "beta",
+    "platform": "mac",
+    "version": "2.0.0-beta.12",
+    "name": "Blanc Beta 2.0.0-beta.12",
+    "publishedAt": "2026-11-28T18:55:19.000Z",
+    "humanDate": "November 28, 2026",
+    "machineDate": "2026-11-28",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-2.0.0-beta.12",
+    "anchor": "beta-mac-2-0-0-beta-12",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sites without HTTPS still open."
+                  },
+                  {
+                    "type": "text",
+                    "value": " If a site you type doesn't answer over HTTPS, Blanc Beta tries the same address over HTTP once instead of stopping on an error page. Searches never do this."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Settings, tidied."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Descriptions no longer run into the switch or menu beside them, the profile color and avatar picks use Blanc's accent, and dialogs match Blanc's cards in Dark."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "New in this beta",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Move a mini window's tabs to a Space."
+                  },
+                  {
+                    "type": "text",
+                    "value": " The Spaces button beside Open in Blanc moves the mini window's tabs into one of your Spaces and closes it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Settings in a narrow window."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Below 800 pixels wide, the Settings sidebar becomes a rail of section icons."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The refined Sunrise."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Blanc Beta's icon uses the redrawn Sunrise mark."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play. Blanc Beta shows a notice offering to open the site in the regular Blanc."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-windows-159.0.8154.913",
+    "product": "beta",
+    "platform": "windows",
+    "version": "159.0.8154.913",
+    "name": "Blanc Beta 159.0.8154.913 for Windows",
+    "publishedAt": "2026-11-28T15:51:08.000Z",
+    "humanDate": "November 28, 2026",
+    "machineDate": "2026-11-28",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-159.0.8154.913",
+    "anchor": "beta-windows-159-0-8154-913",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "A switch for hardware video decoding."
+              },
+              {
+                "type": "text",
+                "value": " Settings → System has "
+              },
+              {
+                "type": "strong",
+                "value": "Use hardware video decoding"
+              },
+              {
+                "type": "text",
+                "value": ". If videos flicker, turn it off, then quit and reopen Blanc Beta."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Settings, tidied."
+              },
+              {
+                "type": "text",
+                "value": " Descriptions no longer run into the switch or menu beside them, the profile color and avatar picks use Blanc's accent, and dialogs match Blanc's cards in Dark. In a window narrower than 800 pixels, the sidebar becomes a rail of section icons."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "The refined Sunrise."
+              },
+              {
+                "type": "text",
+                "value": " Blanc Beta's icon uses the redrawn Sunrise mark."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Updating."
+              },
+              {
+                "type": "text",
+                "value": " If you have 159.0.8154.910, Blanc Beta updates itself through Blanc's updater; About Blanc Beta checks right away. To install fresh, download "
+              },
+              {
+                "type": "code",
+                "value": "Blanc-Beta-Setup-159.0.8154.913.exe"
+              },
+              {
+                "type": "text",
+                "value": " and run it. Made for x64 Windows PCs and tested on Windows 11."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Not yet."
+              },
+              {
+                "type": "text",
+                "value": " Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-linux-159.0.8154.912",
+    "product": "beta",
+    "platform": "linux",
+    "version": "159.0.8154.912",
+    "name": "Blanc Beta 159.0.8154.912 for Linux",
+    "publishedAt": "2026-11-26T14:18:32.000Z",
+    "humanDate": "November 26, 2026",
+    "machineDate": "2026-11-26",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-159.0.8154.912",
+    "anchor": "beta-linux-159-0-8154-912",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "What's new",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Chromium 159."
+                  },
+                  {
+                    "type": "text",
+                    "value": " This beta moves to Chromium 159 (159.0.8154.33), Chrome's current beta milestone, a few weeks ahead of its stable release on December 8."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "The Spaces menu stays put as it closes."
+                  },
+                  {
+                    "type": "text",
+                    "value": " It used to jump to the left edge of the window while it faded out."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Not in this beta yet",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Protected video"
+                  },
+                  {
+                    "type": "text",
+                    "value": " (such as Netflix or Spotify) doesn't play."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sync"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is included but still being checked against the live service, so don't rely on it yet."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "chromium-beta-windows-159.0.8154.910",
+    "product": "beta",
+    "platform": "windows",
+    "version": "159.0.8154.910",
+    "name": "Blanc Beta 159.0.8154.910 for Windows",
+    "publishedAt": "2026-11-25T22:28:27.000Z",
+    "humanDate": "November 25, 2026",
+    "machineDate": "2026-11-25",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-159.0.8154.910",
+    "anchor": "beta-windows-159-0-8154-910",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Chromium 159."
+              },
+              {
+                "type": "text",
+                "value": " Blanc Beta moves to Chromium 159 (159.0.8154.33), Chrome's current beta milestone, a few weeks ahead of its stable release on December 8."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "The Spaces menu stays put as it closes."
+              },
+              {
+                "type": "text",
+                "value": " It used to jump to the left edge of the window while it faded out."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Updating."
+              },
+              {
+                "type": "text",
+                "value": " If you have 158.0.8127.907, Blanc Beta updates itself through Blanc's updater; About Blanc Beta checks right away. To install fresh, download "
+              },
+              {
+                "type": "code",
+                "value": "Blanc-Beta-Setup-159.0.8154.910.exe"
+              },
+              {
+                "type": "text",
+                "value": " and run it. Made for x64 Windows PCs and tested on Windows 11."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Not yet."
+              },
+              {
+                "type": "text",
+                "value": " Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "chromium-beta-2.0.0-beta.11",
     "product": "beta",
     "platform": "mac",
