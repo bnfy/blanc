@@ -3944,6 +3944,18 @@ disabled by default in Blanc builds. Seen in the owner's VM with a fresh profile
 whose Local State says .903: the signed .904 showed the toast; with `chrome.dll`
 `213bab3c…` placed over it, no toast in two captures 4 s apart.
 
+**Sixth Windows beta public (2026-11-28):** Blanc Beta 159.0.8154.913, GitHub
+pre-release `chromium-beta-windows-159.0.8154.913` at `d77142ae9` (never latest;
+v1.53.0 stayed latest), published 15:51 UTC through `windows-beta-prep.mjs` and
+`windows-release.mjs`, all ten stages: night `20261128-0400` passed 635 suite
+cases with none rerun, the first clean night after the flake fixes (suite
+46129489292, beta install 46129485029, capture 46129487010), signing run
+46160207457 (owner-approved), owner-signed package `926e0386…`, staging gate
+46161452889, Sigstore-signed `SHA256SUMS`, verify-public 46162064035. Candidate
+`windows-x64-5de179e4080bc14b`. Its changes: the hardware video decoding switch
+in Settings → System (0118), the Settings polish (0117, 0119) and the refined
+Sunrise icon (#1773). blanc.day offers 159.0.8154.913.
+
 **Fifth Windows beta public, the first on Chromium 159 (2026-11-25):** Blanc Beta
 159.0.8154.910, GitHub pre-release `chromium-beta-windows-159.0.8154.910` at
 `afd08df8d` (never latest; v1.52.0 stayed latest), published 22:28 UTC through
