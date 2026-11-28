@@ -1,14 +1,14 @@
 {
-  "version": "159.0.8154.910",
-  "build": 910,
-  "tag": "chromium-beta-windows-159.0.8154.910",
-  "published": "2026-11-25",
-  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-159.0.8154.910",
+  "version": "159.0.8154.913",
+  "build": 913,
+  "tag": "chromium-beta-windows-159.0.8154.913",
+  "published": "2026-11-28",
+  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-159.0.8154.913",
   "setup": {
-    "name": "Blanc-Beta-Setup-159.0.8154.910.exe",
-    "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-windows-159.0.8154.910/Blanc-Beta-Setup-159.0.8154.910.exe",
-    "bytes": 10959416,
-    "sha256": "00f8c29ae1f756643d28623e1be760ff6f188fdb7d5f784562f5a12323f0d48e"
+    "name": "Blanc-Beta-Setup-159.0.8154.913.exe",
+    "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-windows-159.0.8154.913/Blanc-Beta-Setup-159.0.8154.913.exe",
+    "bytes": 11012672,
+    "sha256": "be5bb08dffc0b0f0309fcde3651be69b91b9bb6c4bf420e5afc409ddda47a0ae"
   },
   "requirement": "x64 Windows PCs \u00b7 tested on Windows 11",
   "chromium": "159.0.8154.33"

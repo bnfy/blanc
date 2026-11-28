@@ -1,5 +1,106 @@
 [
   {
+    "tag": "chromium-beta-windows-159.0.8154.913",
+    "product": "beta",
+    "platform": "windows",
+    "version": "159.0.8154.913",
+    "name": "Blanc Beta 159.0.8154.913 for Windows",
+    "publishedAt": "2026-11-28T15:51:08.000Z",
+    "humanDate": "November 28, 2026",
+    "machineDate": "2026-11-28",
+    "url": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-windows-159.0.8154.913",
+    "anchor": "beta-windows-159-0-8154-913",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "A switch for hardware video decoding."
+              },
+              {
+                "type": "text",
+                "value": " Settings → System has "
+              },
+              {
+                "type": "strong",
+                "value": "Use hardware video decoding"
+              },
+              {
+                "type": "text",
+                "value": ". If videos flicker, turn it off, then quit and reopen Blanc Beta."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Settings, tidied."
+              },
+              {
+                "type": "text",
+                "value": " Descriptions no longer run into the switch or menu beside them, the profile color and avatar picks use Blanc's accent, and dialogs match Blanc's cards in Dark. In a window narrower than 800 pixels, the sidebar becomes a rail of section icons."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "The refined Sunrise."
+              },
+              {
+                "type": "text",
+                "value": " Blanc Beta's icon uses the redrawn Sunrise mark."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Updating."
+              },
+              {
+                "type": "text",
+                "value": " If you have 159.0.8154.910, Blanc Beta updates itself through Blanc's updater; About Blanc Beta checks right away. To install fresh, download "
+              },
+              {
+                "type": "code",
+                "value": "Blanc-Beta-Setup-159.0.8154.913.exe"
+              },
+              {
+                "type": "text",
+                "value": " and run it. Made for x64 Windows PCs and tested on Windows 11."
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "strong",
+                "value": "Not yet."
+              },
+              {
+                "type": "text",
+                "value": " Protected video (Netflix, Spotify and similar) doesn't play. Some Blanc features still behave differently on Windows."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "chromium-beta-linux-159.0.8154.912",
     "product": "beta",
     "platform": "linux",
