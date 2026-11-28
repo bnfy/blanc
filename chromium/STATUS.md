@@ -24,28 +24,36 @@ hardware stays pending.
   A mini window's Island has shipping's Spaces button beside Open in Blanc,
   and its Spaces menu has shipping's move mode: this profile's Spaces and
   New space…, which file every tab into the Space, close the mini window and
-  bring the Space forward (or open it in a new window). The menu files and
-  their five strings come from `blanc/spaces-menu.json`, now at #1763's merge
-  (870c400de); the button and its styles are anchored edits on the v1.49.1
-  renderer (`tools/island-renderer.mjs`). The move is the host's
-  (`moveMiniWindowToSpace` in `island/host.js`), built on the native batch
-  move it already had: one `spaceMoveTabs` per run of tabs, each run keeping
-  its group, after `batchTabsMenuState`'s `canPlace` says every page can go
-  (all or nothing; a private tab, sound, capture or a pop-up refuses with its
-  reason). An unused start page outside a group stays and closes with the
-  window; a private tab's start page is never treated as unused. Only the
+  bring the Space forward (or open it in a new window at an ordinary
+  window's size, `NewSpaceWindow`'s bounds, since Chromium's window sizer
+  copied the mini window's 760 × 600). The menu files and their five strings
+  come from `blanc/spaces-menu.json`, now at #1763's merge (870c400de), with
+  one edit of their own (`MENU_EDITS`: the editor's tab count, as this
+  payload has no `tabOrder`); the button and its styles are anchored edits on
+  the v1.49.1 renderer (`tools/island-renderer.mjs`). The move is the host's
+  (`moveMiniWindowToSpace` in `island/host.js`) on the native batch move it
+  already had: one `spaceMoveTabs` per run of tabs, each run keeping its
+  group, after `batchTabsMenuState`'s `canPlace` says every page can go (all
+  or nothing; a private tab, sound, capture or a pop-up refuses with its
+  reason); a later run waits out another window's Space write. Only the
   menu's move mode (`move: true`) moves; switching by name stays refused.
-  No patch changes. Evidence on the Mac Studio's BlancPrototype
-  (159.0.8154.33, candidate `macos-566cc77d9f1d893c`, Island files from disk
-  at this commit): `tests/native-mini-move-to-space.mjs` passes 5 of 5
-  (F61-6 to F61-8 through the real button, menu and editor, and the refusal
-  of a move by name); with the build's compiled-in Island files it fails at
-  the missing button (the positive control). `tests/native-mini-windows.mjs`
-  passes 4 of 4 with the same files. `tests/native-spaces-across-profiles.mjs`
-  could not run there this time: it stops at its first "window in front"
-  wait over SSH with the compiled-in files too, so it is unverified, not
-  failed. Not checked by hand; Windows and Linux carry it in their next
-  nightly. Also fixed: `tools/assets.mjs --out` threw on an undefined `spec`.
+  Two differences from shipping: every start page stays behind and closes
+  with the window, used or not (a Space record here holds only web pages;
+  a grouped one leaves its group first), and pinned tabs arrive unpinned, as
+  with every fork Move to Space (the native batch move). No patch changes.
+  Evidence on the Mac Studio's BlancPrototype (159.0.8154.33, rebuilt
+  incrementally with this change, candidate `macos-d823ed3fcd374089`):
+  `tests/native-mini-move-to-space.mjs` passes 5 of 5 with the Island files
+  from disk and compiled in (F61-6 to F61-8 through the real button, menu and
+  editor, a start page in the moved group, the editor's count, the Space
+  window's size, and the refusal of a move by name); the earlier candidate's
+  compiled-in files, without the button, fail it (the positive control).
+  `tests/native-mini-windows.mjs` passes 4 of 4.
+  `tests/native-spaces-across-profiles.mjs` could not run there this time:
+  it stops at its first "window in front" wait over SSH with unchanged files
+  too, so it is unverified, not failed. Not checked by hand; Windows and
+  Linux carry it in their next nightly. Also fixed: `tools/assets.mjs --out`
+  threw on an undefined `spec`.
 - **2026-11-27 — Windows video decoding.** Settings → System now exposes the choice
   previously available under `chrome://flags/#disable-accelerated-video-decode` in
   public Beta 159.0.8154.910. Both controls use the same Local State flag. The
