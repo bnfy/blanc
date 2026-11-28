@@ -5,7 +5,7 @@
   "upstream": "ab2e5d8ad16ca47ad4361c9517225f1ac884d255",
   "upstreamDir": "upstream",
   "sourceMap": "source-map.json",
-  "fileCount": 262,
+  "fileCount": 263,
   "patches": [
     "patches/baseline/0001-foundation-baseline.patch",
     "patches/0002-canonical-layout.patch",
@@ -123,6 +123,7 @@
     "patches/0115-blanc-linux-installer.patch",
     "patches/0116-blanc-linux-update-notifications.patch",
     "patches/0117-blanc-settings-spacing.patch",
-    "patches/0118-windows-video-decoding.patch"
+    "patches/0118-windows-video-decoding.patch",
+    "patches/0119-blanc-settings-rail.patch"
   ]
 }
