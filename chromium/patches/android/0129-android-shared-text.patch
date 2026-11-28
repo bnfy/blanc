@@ -1,15 +1,37 @@
 diff -ruN a/chrome/android/java/src/org/chromium/chrome/browser/IntentHandler.java b/chrome/android/java/src/org/chromium/chrome/browser/IntentHandler.java
 --- a/chrome/android/java/src/org/chromium/chrome/browser/IntentHandler.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/IntentHandler.java
-@@ -37,6 +37,8 @@
+@@ -37,6 +37,9 @@
  import org.chromium.base.IntentUtils;
  import org.chromium.base.Log;
  import org.chromium.base.metrics.RecordHistogram;
++import org.chromium.blanc.address.AddressInput;
 +import org.chromium.blanc.address.SharedText;
 +import org.chromium.blanc.settings.SettingsStore;
  import org.chromium.build.annotations.Contract;
  import org.chromium.build.annotations.NullMarked;
  import org.chromium.build.annotations.Nullable;
+@@ -64,7 +67,6 @@
+ import org.chromium.chrome.browser.profiles.Profile;
+ import org.chromium.chrome.browser.profiles.ProfileManager;
+ import org.chromium.chrome.browser.renderer_host.ChromeNavigationUiData;
+-import org.chromium.chrome.browser.search_engines.TemplateUrlServiceFactory;
+ import org.chromium.chrome.browser.tab.Tab;
+ import org.chromium.chrome.browser.tab.TabId;
+ import org.chromium.chrome.browser.tab.TabIdManager;
+@@ -857,9 +859,9 @@
+                 return url;
+             }
+         }
+-        return TemplateUrlServiceFactory.getForProfile(profile)
+-                .getUrlForVoiceSearchQuery(query)
+-                .getSpec();
++        // Blanc (patch 0129): a spoken query searches with the engine in Blanc's Settings too.
++        return AddressInput.searchUrl(
++                query, new SettingsStore(ContextUtils.getAppSharedPreferences()).searchTemplate());
+     }
+ 
+     /**
 @@ -1386,19 +1388,14 @@
              return urls;
          }

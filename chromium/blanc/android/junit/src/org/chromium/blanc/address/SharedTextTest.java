@@ -54,4 +54,10 @@ public class SharedTextTest {
         assertNull(SharedText.url("tel:+15555550100", KAGI));
         assertNull(SharedText.url("   ", KAGI));
     }
+
+    @Test
+    public void longTextIsCutBeforeItBecomesASearch() {
+        String url = SharedText.url("a".repeat(SharedText.MAX_LENGTH + 500), KAGI);
+        assertEquals("https://kagi.com/search?q=" + "a".repeat(SharedText.MAX_LENGTH), url);
+    }
 }

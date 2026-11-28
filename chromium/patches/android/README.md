@@ -156,7 +156,8 @@ in the lane file in its place. Numbering starts at 0101.
   (`org.chromium.blanc.address.SharedText`, A6 ruling SH1): an address, or a
   search with the engine in Blanc's Settings, never Chromium's autocomplete and
   default engine (Google), and never a link for another app. It needs no native
-  code, so a share that starts Blanc works too.
+  code, so a share that starts Blanc works too. A spoken query handed to Blanc
+  (`RecognizerResultsIntent`) searches with Blanc's engine as well.
 
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or

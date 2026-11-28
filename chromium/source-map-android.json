@@ -14,7 +14,7 @@
     "chrome/android/java/res_base/drawable/ic_launcher_round.xml": "0a7b0fe2ae98d76b45db4c24397a36bf2eff0475882320a8dfd584ae2de9a495",
     "chrome/android/java/src/org/chromium/chrome/browser/AutofillOptionsLauncher.java": "17889006f3fdd6d535bee61080910ca931cb60edb071f876bcad3df69924d5b2",
     "chrome/android/java/src/org/chromium/chrome/browser/ChromeTabbedActivity.java": "0b5f89e9e71128db4e64abc1dd805008cff608958ff1dfcf1f642e70c9f68fc8",
-    "chrome/android/java/src/org/chromium/chrome/browser/IntentHandler.java": "18cca3d16e07a3330fe6b961d1e4fad6f3c10d60d6ad52a3a37049062cb095cc",
+    "chrome/android/java/src/org/chromium/chrome/browser/IntentHandler.java": "c117e2b5eaf66b0c107521182505807fdae35753efb0755ef3a637f40c410f6b",
     "chrome/android/java/src/org/chromium/chrome/browser/SwipeRefreshHandler.java": "e6a753328f030304d1a9c174a90b9d782b6097fb171dcd8dab9a1b55fbc930e7",
     "chrome/android/java/src/org/chromium/chrome/browser/app/notifications/ContextualNotificationPermissionRequesterImpl.java": "90e37ab8993f52e27c15449bb3b97019af83bebeabbd43d55ea9be575a5c33fe",
     "chrome/android/java/src/org/chromium/chrome/browser/background_task_scheduler/ChromeBackgroundTaskFactory.java": "dad3150afcb27c7f1954962c0acf1a4a64b15a6ad8ebbac221ba5a2e95c6ceed",
