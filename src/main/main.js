@@ -74,6 +74,7 @@ const { createDarkWebsitesService } = require('./dark-websites-service');
 const { browserCommandDefinition, createBrowserCommandExecutor, installBrowserShortcuts, matchBrowserShortcut } = require('./browser-shortcuts');
 const { inputMatchesAccelerator, menuAccelerator } = require('./menu-accelerators');
 const { queueTabNavigation, reloadContents } = require('./tab-navigation');
+const { typedHttpsFallback } = require('./typed-https-fallback');
 const { outageReloadTarget } = require('./ublock-recovery');
 const islandProximity = require('./island-proximity');
 const {
@@ -6726,6 +6727,12 @@ function navigateTabToAddress(id, rawText, { shared = false } = {}) {
     return;
   }
   rt().tabsWantingAddressBarFocus.delete(id);
+  // An address from the address bar (a bare domain, an https:// address or a
+  // bang) drops back to HTTP once if HTTPS fails to connect or fails TLS
+  // (typed-https-fallback.js; the fork's typed_https_fallback.h agrees). A
+  // Shared Space tab following another device's navigation never does: nobody
+  // typed that address here.
+  tab.typedHttpsFallback = shared ? null : typedHttpsFallback(bang ? bang.url : rawText, target);
   // A quiet tab navigates in one step: restore() and a navigation are mutually
   // exclusive, so this spends the snapshot and loads the target directly.
   if (tab.asleep) {
