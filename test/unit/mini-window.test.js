@@ -254,8 +254,17 @@ test('the link handoff falls back to a mini window when the setting is on (#1734
   const fallback = main.match(/function externalFallbackRuntime\(preferred, placement\) \{[\s\S]*?\n\}/)[0];
   // Only at the routed step (with a placement) is a new mini window made, so
   // a link a rule claims never leaves an empty one behind.
-  assert.match(fallback, /if \(settings\.getSettings\(\)\.miniWindowForLinks\) return miniLinkRuntime\(\{ create: !!placement \}\) \?\? resolveExternalRuntime\(preferred\);/);
+  assert.match(fallback, /if \(settings\.getSettings\(\)\.miniWindowForLinks\) \{[\s\S]*return miniLinkRuntime\(\{ create: !!placement \}\) \?\? resolveExternalRuntime\(preferred\);/);
   assert.match(fallback, /return resolveExternalRuntime\(preferred\);/);
+  // Local HTML files never go to a mini window (they're not web links).
+  assert.match(fallback, /if \(placement\?\.localFile\) return resolveExternalRuntime\(preferred\);/);
+  // A re-queued link keeps the mini window it started with.
+  assert.match(fallback, /if \(preferred\?\.mini && !preferred\.closing && windowRuntimes\.all\(\)\.includes\(preferred\)\) return preferred;/);
+  assert.match(read('src/main/external-url-handoff.js'), /const placement = \{ background: entry\.background === true, localFile: entry\.localFile === true \};/);
+  // A link added to a mini window that isn't in front restarts its hour.
+  assert.match(main, /createTab: \(url, \{ destination, \.\.\.options \} = \{\}\) => \{\s*const id = createRoutedTab\(url, destination, options\);[\s\S]*?const runtime = rt\(\);\s*if \(runtime\.mini && !runtime\.window\?\.isFocused\(\)\) armMiniWindowIdle\(runtime\);\s*return id;/);
+  // A Dock-closed primary (macOS) still names the profile a mini window opens in.
+  assert.match(main, /const candidates = windowRuntimes\.all\(\)\.filter\(\(runtime\) => !runtime\.mini && !runtime\.resident && \(!runtime\.closing \|\| runtime\.dockClosed\)\);/);
   const link = main.match(/function miniLinkRuntime\(\{ create = false \} = \{\}\) \{[\s\S]*?\n\}/)[0];
   assert.match(link, /miniWindow\.miniWindowForLink\(windowRuntimes\.all\(\), profileId, \(r\) => runtimeFocusSerials\.get\(r\) \?\? 0\)/);
   assert.match(link, /runtime\.mini = true;\s*runtime\.miniForLink = true;/);

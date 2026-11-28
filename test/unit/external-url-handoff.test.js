@@ -395,14 +395,14 @@ test('openRouted opens a decided destination, revealing it only for a foreground
   const placements = [];
 
   handler.openRouted('https://x.test/background', work, { activate: false });
-  assert.deepEqual(placements.at(-1), { background: true }, 'a window it opens is shown without focus');
+  assert.deepEqual(placements.at(-1), { background: true, localFile: false }, 'a window it opens is shown without focus');
   assert.deepEqual(f.created.map((tab) => [tab.url, tab.profileId]), [['https://x.test/background', 'work']]);
   assert.deepEqual(options[0], { destination: work });
   assert.deepEqual(f.activated, []);
   assert.deepEqual(f.revealed, []);
 
   handler.openRouted('https://x.test/foreground', work);
-  assert.deepEqual(placements.at(-1), { background: false });
+  assert.deepEqual(placements.at(-1), { background: false, localFile: false });
   assert.deepEqual(f.created.at(-1), { id: 2, url: 'https://x.test/foreground', profileId: 'work' });
   assert.deepEqual(f.activated, [2]);
   assert.deepEqual(f.revealed, [f.work.window]);
@@ -441,4 +441,9 @@ test('a link routed from inside Blanc leaves a pending reveal for a link from an
   assert.deepEqual(f.created.map((tab) => tab.url), ['https://x.test/', 'https://from-app.test/']);
   assert.deepEqual(f.revealed, [f.work.window, f.primary.window], 'both still come forward');
   f.noListeners();
+});
+
+test('a local file\'s routed step says so in its placement, so it never goes to a mini window (#1734 part 3)', () => {
+  const source = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../src/main/external-url-handoff.js'), 'utf8');
+  assert.match(source, /const placement = \{ background: entry\.background === true, localFile: entry\.localFile === true \};/);
 });

@@ -1660,7 +1660,14 @@ const externalUrlHandoff = createExternalUrlHandoff({
     && runtime.window && !runtime.window.isDestroyed(),
   withRuntime: withWindowRuntime,
   routeFor: linkRouteDestination,
-  createTab: (url, { destination, ...options } = {}) => createRoutedTab(url, destination, options),
+  createTab: (url, { destination, ...options } = {}) => {
+    const id = createRoutedTab(url, destination, options);
+    // A link joining a mini window that isn't in front restarts its hour, so
+    // it doesn't close with a tab nobody has seen (#1734 part 3).
+    const runtime = rt();
+    if (runtime.mini && !runtime.window?.isFocused()) armMiniWindowIdle(runtime);
+    return id;
+  },
   activateTab: (id) => setActiveTab(id),
   revealWindow: (window) => bringExternalWindowToFront(app, window),
 });
@@ -14048,7 +14055,8 @@ function miniWindowPlacement() {
 
 /** The profile a mini window opens in: the last ordinary window's. */
 function miniWindowProfileId() {
-  const candidates = windowRuntimes.all().filter((runtime) => !runtime.mini && !runtime.resident && !runtime.closing);
+  // A primary closed to the Dock (macOS) still names the profile.
+  const candidates = windowRuntimes.all().filter((runtime) => !runtime.mini && !runtime.resident && (!runtime.closing || runtime.dockClosed));
   const recent = [focusedRuntime, ...candidates.sort((a, b) =>
     (runtimeFocusSerials.get(b) ?? 0) - (runtimeFocusSerials.get(a) ?? 0))]
     .find((runtime) => runtime && !runtime.mini && candidates.includes(runtime));
@@ -14062,7 +14070,13 @@ function miniWindowProfileId() {
  * window is made only at the routed step (with a placement), never when the
  * link is first queued, so a link a rule claims leaves none behind. */
 function externalFallbackRuntime(preferred, placement) {
-  if (settings.getSettings().miniWindowForLinks) return miniLinkRuntime({ create: !!placement }) ?? resolveExternalRuntime(preferred);
+  // Local HTML files never go to a mini window (they're not web links).
+  if (placement?.localFile) return resolveExternalRuntime(preferred);
+  if (settings.getSettings().miniWindowForLinks) {
+    // A re-queued link keeps the mini window it started with.
+    if (preferred?.mini && !preferred.closing && windowRuntimes.all().includes(preferred)) return preferred;
+    return miniLinkRuntime({ create: !!placement }) ?? resolveExternalRuntime(preferred);
+  }
   return resolveExternalRuntime(preferred);
 }
 
