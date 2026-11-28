@@ -6726,9 +6726,10 @@ function navigateTabToAddress(id, rawText, { shared = false } = {}) {
     return;
   }
   rt().tabsWantingAddressBarFocus.delete(id);
-  // A bare domain tried over HTTPS drops back to HTTP once if that fails to
-  // connect, as Chrome's HTTPS-Upgrades does (typed-https-fallback.js).
-  tab.typedHttpsFallback = bang ? null : typedHttpsFallback(rawText, target);
+  // An address from the address bar (a bare domain, an https:// address or a
+  // bang) drops back to HTTP once if HTTPS fails to connect or fails TLS
+  // (typed-https-fallback.js; the fork's typed_https_fallback.h agrees).
+  tab.typedHttpsFallback = typedHttpsFallback(bang ? bang.url : rawText, target);
   // A quiet tab navigates in one step: restore() and a navigation are mutually
   // exclusive, so this spends the snapshot and loads the target directly.
   if (tab.asleep) {

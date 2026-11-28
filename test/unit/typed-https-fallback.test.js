@@ -26,6 +26,11 @@ test('an address typed with https:// gets the same fallback', () => {
   });
 });
 
+test("a bang's https address falls back like a typed one", () => {
+  const url = 'https://duckduckgo.com/?q=coffee';
+  assert.deepEqual(typedHttpsFallback(url, url), { httpsUrl: url, httpUrl: 'http://duckduckgo.com/?q=coffee' });
+});
+
 test('local, IP and ported addresses never fall back, as HTTPS-Upgrades leaves them', () => {
   for (const text of ['https://192.168.1.1', 'https://localhost', 'https://router', 'https://printer.local',
     'https://app.test', 'https://example.com:8443', 'https://[::1]', 'nas.local', 'https://box.home.arpa']) {

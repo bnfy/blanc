@@ -6,9 +6,11 @@
 // those through HTTPS-Upgrades, which drops back to HTTP once when the upgraded
 // load fails; Electron has no such interceptor, so Blanc does the same here.
 //
-// Only an address the person typed falls back, bare (keurig.com) or with
-// https:// (owner, November 28, 2026: https://keurig.com should reach the site
-// too). A link, a redirect to another address, and a failure HTTP can't fix (a
+// Only an address from the address bar falls back: bare (keurig.com), typed
+// with https:// (owner, November 28, 2026: https://keurig.com should reach the
+// site too), or a bang's address, because the fork's native navigate can't
+// tell a bang from a typed address. A link, a redirect to another address, and
+// a failure HTTP can't fix (a
 // name that doesn't resolve, no network, a blocked or cancelled load) never
 // do. HSTS still holds: Chromium upgrades an HSTS site's http:// load itself.
 
