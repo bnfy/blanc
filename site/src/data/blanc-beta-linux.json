@@ -1,41 +1,41 @@
 {
-  "version": "159.0.8154.912",
-  "build": 912,
-  "tag": "chromium-beta-linux-159.0.8154.912",
-  "published": "2026-11-26",
-  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-159.0.8154.912",
+  "version": "159.0.8154.915",
+  "build": 915,
+  "tag": "chromium-beta-linux-159.0.8154.915",
+  "published": "2026-11-28",
+  "releaseUrl": "https://github.com/bnfy/blanc/releases/tag/chromium-beta-linux-159.0.8154.915",
   "packages": [
     {
       "arch": "x64",
       "format": "deb",
-      "name": "blanc-beta_159.0.8154.912-1_amd64.deb",
-      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-159.0.8154.912/blanc-beta_159.0.8154.912-1_amd64.deb",
-      "bytes": 156121392,
-      "sha256": "5371f700ce03bac865f5433adcbbd453a6ec522f519932ee7b6314e3b189119f"
+      "name": "blanc-beta_159.0.8154.915-1_amd64.deb",
+      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-159.0.8154.915/blanc-beta_159.0.8154.915-1_amd64.deb",
+      "bytes": 157062560,
+      "sha256": "37964c6f6facb6c50aff3594eeef312e68fa8ba48b2f2c1b5ff30742f6812f22"
     },
     {
       "arch": "x64",
       "format": "rpm",
-      "name": "blanc-beta-159.0.8154.912-1.x86_64.rpm",
-      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-159.0.8154.912/blanc-beta-159.0.8154.912-1.x86_64.rpm",
-      "bytes": 157698345,
-      "sha256": "c956f536f1e09d1018f56689cc048c7761fbcd29e4d28e34c189eb3bec34380f"
+      "name": "blanc-beta-159.0.8154.915-1.x86_64.rpm",
+      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-159.0.8154.915/blanc-beta-159.0.8154.915-1.x86_64.rpm",
+      "bytes": 158649957,
+      "sha256": "9912181216fdd828ff0bf497e41823a8c4d8a8998db3c679c96777b82b9bd07d"
     },
     {
       "arch": "arm64",
       "format": "deb",
-      "name": "blanc-beta_159.0.8154.912-1_arm64.deb",
-      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-159.0.8154.912/blanc-beta_159.0.8154.912-1_arm64.deb",
-      "bytes": 139446896,
-      "sha256": "117557e4e4bbad84abb46df912d55091d90e4b2a51210fb1cd6b9e903729bc61"
+      "name": "blanc-beta_159.0.8154.915-1_arm64.deb",
+      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-159.0.8154.915/blanc-beta_159.0.8154.915-1_arm64.deb",
+      "bytes": 140368104,
+      "sha256": "ff0d2b5c4c409ec7b8f815fe9286854125aa3f17c6aca1ba5b3315dceff889e8"
     },
     {
       "arch": "arm64",
       "format": "rpm",
-      "name": "blanc-beta-159.0.8154.912-1.aarch64.rpm",
-      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-159.0.8154.912/blanc-beta-159.0.8154.912-1.aarch64.rpm",
-      "bytes": 140657873,
-      "sha256": "ebd562bb2bc121929dcacdc3ce5f6e119656b0d5dbc066ac5088bd45e77d972f"
+      "name": "blanc-beta-159.0.8154.915-1.aarch64.rpm",
+      "url": "https://github.com/bnfy/blanc/releases/download/chromium-beta-linux-159.0.8154.915/blanc-beta-159.0.8154.915-1.aarch64.rpm",
+      "bytes": 141604849,
+      "sha256": "2adefae16ed5db48cf06dd0ea27406ac051457f38f4d906af7266c816ca47804"
     }
   ],
   "requirement": "Debian, Ubuntu and Fedora · x64 and arm64",
