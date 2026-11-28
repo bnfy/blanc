@@ -47,7 +47,7 @@ function main(argv) {
   const domain = nodeBounds(xml, {id: 'blanc_island_domain'});
   const shown = /resource-id="[^"]*blanc_island_domain"[^>]*text="([^"]*)"|text="([^"]*)"[^>]*resource-id="[^"]*blanc_island_domain"/.exec(xml);
   const host = shown ? (shown[1] || shown[2]) : '';
-  check('shared words search with Blanc\'s engine', !domain ? ['no Island'] : /duckduckgo\.com/.test(host) ? [] : [`the Island shows "${host}"`]);
+  check('shared words search with Blanc\'s engine', !domain ? ['no Island'] : /^(www\.)?duckduckgo\.com$/.test(host) ? [] : [`the Island shows "${host}"`]);
 
   fs.writeFileSync(path.join(evidence, 'a6-small.json'), JSON.stringify({results, checkedAt: new Date().toISOString()}, null, 2) + '\n');
   for (const r of results) console.log(`${r.problems.length ? 'FAIL' : 'pass'} ${r.case}${r.problems.length ? ': ' + r.problems.join('; ') : ''}`);
