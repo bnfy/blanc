@@ -188,7 +188,7 @@ Rechecked on `emulator-5554` (Android 16, Google APIs x86-64) with the debug bui
 | Passwords (P1) | Done in #1680: autofill on, a Settings row, Google's autofill service answering on the emulator | Bitwarden and Google Password Manager on the Pixel |
 | HTTP sign-in (H1) | Still Chromium's "Sign in" dialog on `httpbin.org/basic-auth` | Refuse it as desktop's patch 0014 does (F20) |
 | Certificate warning (S1) | Still says "Turn on enhanced protection to get Chrome's highest level of security" | Hide that line and check the other strings for "Chrome" |
-| Sharing into Blanc (SH1) | A shared address opens; shared plain words open nothing visible | Route shared words through Blanc's address input and search engine |
+| Sharing into Blanc (SH1) | A shared address opens; shared plain words search Google, as the spike saw (this row first said they opened nothing: the check's shell split the words, so no share reached Blanc) | Route shared words through Blanc's address input and search engine |
 | Codecs (§7) | Not on: `requestMediaKeySystemAccess` with H.264 is unsupported, and no Android args template sets `proprietary_codecs` | A reviewed args change and a rebuild of each output |
 | Widevine (W1, K1) | Unsupported on the emulator, as expected (ClearKey only) | After the codecs: Shaka's Widevine streams and one real service on the Pixel; the owner's licensing call |
 | Passkeys (K6) | `isUserVerifyingPlatformAuthenticatorAvailable()` false with no screen lock; creation was refused by Play services in the spike | Waits on Google's and the providers' allowlists for the Play signing certificate |
