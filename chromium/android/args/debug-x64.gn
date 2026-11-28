@@ -26,3 +26,7 @@ android_channel = "stable"
 chrome_public_manifest_package = "me.bnfy.blanc.dev"
 # No Google API keys: features that need them stay off (design §2).
 use_official_google_api_keys = false
+# MP4, H.264 and AAC, which many sites need for ordinary video and audio, as Chrome, Brave,
+# Edge and Vivaldi ship them (owner, A6 spike §7). Decoding mostly uses Android's own codecs.
+proprietary_codecs = true
+ffmpeg_branding = "Chrome"
