@@ -17,6 +17,8 @@ run() { local name=$1; shift; gate_wants "$name" || return 0; echo "== $name"; i
 adb shell touch /data/local/tmp/blanc-walkthrough-off && adb shell chmod 644 /data/local/tmp/blanc-walkthrough-off
 run walkthrough node "$TREE/chromium/tests/android/walkthrough.mjs" --apk "$APK" --evidence "$EVIDENCE/walkthrough"
 run launch-ping node "$TREE/chromium/tests/android/launch-ping.mjs" --apk "$APK" --evidence "$EVIDENCE/launch-ping"
+# MP4, H.264 and AAC are built in (args/*.gn).
+run codecs node "$TREE/chromium/tests/android/codecs.mjs" --apk "$APK" --evidence "$EVIDENCE/codecs"
 # A5b's Start Page checks, which the A5a gate predates.
 run pages-phone node "$TREE/chromium/tests/android/pages-phone.mjs" --apk "$APK" --evidence "$EVIDENCE/pages-phone"
 run start-shortcuts node "$TREE/chromium/tests/android/start-shortcuts.mjs" --apk "$APK" --evidence "$EVIDENCE/start-shortcuts"
