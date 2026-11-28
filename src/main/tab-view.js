@@ -26,6 +26,7 @@ const {
 } = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
 const { queueTabNavigation, shouldPresentTabLoadFailure } = require('./tab-navigation');
+const { keepsFallback, httpFallbackFor } = require('./typed-https-fallback');
 const { commitEntryMarks, freshCertificateRecord } = require('./certificate-history');
 const { installExternalNavigationHandlers } = require('./external-protocols');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
@@ -478,6 +479,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (isMainFrame) {
       tab.navEpoch++;
       if (!String(url).startsWith('blanc://error')) tab.certificateError = null;
+      if (!isInPlace && !keepsFallback(tab.typedHttpsFallback, url)) tab.typedHttpsFallback = null;
     }
     // Main-frame navigation of a visible pane dismisses a visible fill
     // message about that pane immediately — a decision must not stay
@@ -593,6 +595,19 @@ function wireTabView(tab, view, { owner, adopted }) {
     // blocked the replay itself (src/main/gate-refusals.js).
     if (deps.gateRefusals?.consumeLateFailure(wc.id, validatedURL, errorCode)) {
       traceFailure('gate-refused-late');
+      return;
+    }
+    // A typed bare domain that doesn't answer HTTPS is tried once over HTTP
+    // instead of showing an error page (typed-https-fallback.js).
+    const httpFallback = httpFallbackFor(tab.typedHttpsFallback, { code: errorCode, url: validatedURL });
+    tab.typedHttpsFallback = null;
+    if (httpFallback) {
+      tab.certificateError = null;
+      traceFailure('http-fallback');
+      queueTabNavigation(wc, {
+        isCurrent: () => !tab.sleeping && liveContents(tab) === wc && windowRuntimes.runtimeForTab(id) === getOwner(),
+        run: contents => contents.loadURL(httpFallback),
+      });
       return;
     }
     traceFailure('error-page');
