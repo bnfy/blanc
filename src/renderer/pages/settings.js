@@ -9,6 +9,7 @@
     recentTabOrderAvailable,
     miniWindow,
     languages,
+    downloadFolder,
   } =
     await window.bowserPages.settings.get();
 
@@ -787,6 +788,43 @@
     });
   } else {
     document.getElementById('reuseNewTabSetting')?.remove();
+  }
+
+  // #1780: the folder downloads go to. The page never sends a path: main
+  // opens the folder dialog and answers with { path, name, custom, missing }.
+  const downloadFolderChoose = document.getElementById('downloadFolderChoose');
+  if (downloadFolderChoose && window.bowserPages.settings.chooseDownloadFolder && downloadFolder) {
+    const hint = document.getElementById('downloadFolderHint');
+    const reset = document.getElementById('downloadFolderReset');
+    const render = (folder) => {
+      if (!folder || typeof folder !== 'object') return;
+      hint.textContent = folder.missing
+        ? t('settings.general.downloadFolder.missing', { path: folder.path })
+        : folder.unwritable
+          ? t('settings.general.downloadFolder.unwritable', { path: folder.path })
+          : folder.path;
+      hint.title = folder.path;
+      reset.hidden = folder.custom !== true;
+    };
+    render(downloadFolder);
+    // A drive can be unplugged or plugged back in while Settings is open.
+    const refresh = async () => {
+      if (document.visibilityState !== 'visible' || !window.bowserPages.settings.downloadFolder) return;
+      render(await window.bowserPages.settings.downloadFolder().catch(() => null));
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    downloadFolderChoose.addEventListener('click', async () => {
+      const reply = await window.bowserPages.settings.chooseDownloadFolder().catch(() => null);
+      render(reply?.folder);
+    });
+    reset.addEventListener('click', async () => {
+      const reply = await window.bowserPages.settings.resetDownloadFolder().catch(() => null);
+      render(reply?.folder);
+      downloadFolderChoose.focus();
+    });
+  } else {
+    document.getElementById('downloadFolderSetting')?.remove();
   }
 
   // #1591: show Save As for every download. Off by default.
