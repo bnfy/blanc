@@ -73,6 +73,7 @@
     "chrome/browser/resources/settings/settings_main/settings_main.ts": "917ff21a7845cd49cb65b98b1b0163a0da58e8086746405f19b3f4f4c4ddef7c",
     "chrome/browser/resources/settings/settings_menu/settings_menu.css": "a6c3e0ce0db314a41e3a75467040d84109b214215af32b1d024774101ee5a57c",
     "chrome/browser/resources/settings/settings_menu/settings_menu.html.ts": "66fb8f1779630a4ccfd3633bd992a859b622ac7bff03d796bf30d19337b675ac",
+    "chrome/browser/resources/settings/settings_menu/settings_menu.ts": "19c758f4441970ffa5f528bf59fd295df1456d872041ae573717cd7dd13a4b59",
     "chrome/browser/resources/settings/settings_page/settings_section.css": "a28985e94dd1f3b64b0459b9837c736a00388a47676d1802f59da9aa644755ad",
     "chrome/browser/resources/settings/settings_page/settings_subpage.css": "ad10fb7dc58f5ebd221d3ef4c4a5f689f753fcdff596386a9a47be02d8b59339",
     "chrome/browser/resources/settings/settings_shared_lit.css": "df216604a09a886e3c830acfa97798fbe8a8dd088c053cb9bbb66efb5573f890",
