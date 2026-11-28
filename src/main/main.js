@@ -1648,8 +1648,14 @@ const externalUrlHandoff = createExternalUrlHandoff({
   isReady: () => externalUrlsFlushable,
   isQuitting: () => isQuitting,
   getRuntime: (preferred, destination, placement) => destination
-    ? routedExternalRuntime(destination, preferred, placement) : resolveExternalRuntime(preferred),
-  ensureWindow: (runtime, { background = false } = {}) => createMainWindow(runtime, { ensureStartTab: true, inactive: background }),
+    ? routedExternalRuntime(destination, preferred, placement) : externalFallbackRuntime(preferred, placement),
+  // A mini window made for a link (#1734 part 3) opens without a start tab:
+  // the link is its only tab.
+  ensureWindow: (runtime, { background = false } = {}) => {
+    const fresh = runtime.miniForLink === true;
+    runtime.miniForLink = false;
+    createMainWindow(runtime, { ensureStartTab: !fresh, inactive: background });
+  },
   isWindowReady: (runtime) => runtime.chromeReady && !runtime.closing
     && runtime.window && !runtime.window.isDestroyed(),
   withRuntime: withWindowRuntime,
@@ -14049,6 +14055,27 @@ function miniWindowProfileId() {
   const profileId = recent?.profileId ?? DEFAULT_PROFILE_ID;
   return localProfiles.getLocalProfile(profileId) && !profileDeletions.hasPendingProfileDeletion(profileId)
     ? profileId : DEFAULT_PROFILE_ID;
+}
+
+/** Where a link from another app goes when no rule claims it: a mini window
+ * with the setting on (#1734 part 3), else the ordinary fallback. A new mini
+ * window is made only at the routed step (with a placement), never when the
+ * link is first queued, so a link a rule claims leaves none behind. */
+function externalFallbackRuntime(preferred, placement) {
+  if (settings.getSettings().miniWindowForLinks) return miniLinkRuntime({ create: !!placement }) ?? resolveExternalRuntime(preferred);
+  return resolveExternalRuntime(preferred);
+}
+
+/** The mini window a link joins, or (with `create`) a new mini runtime whose
+ * window the handoff opens without a start tab. */
+function miniLinkRuntime({ create = false } = {}) {
+  const profileId = miniWindowProfileId();
+  const open = miniWindow.miniWindowForLink(windowRuntimes.all(), profileId, (r) => runtimeFocusSerials.get(r) ?? 0);
+  if (open || !create) return open;
+  const runtime = windowRuntimes.createRuntime({ id: createWindowRuntimeId(), profileId });
+  runtime.mini = true;
+  runtime.miniForLink = true;
+  return runtime;
 }
 
 /** Open a mini window: a blank page with the Island's search focused. */
