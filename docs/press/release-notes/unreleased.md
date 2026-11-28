@@ -12,6 +12,10 @@ since then are below as they're recorded.
 
 ## Fixed
 
+- **Sites that answer only without HTTPS open again.** Typing `keurig.com` or
+  `https://keurig.com` showed a connection error, because that site serves
+  its bare address only over plain HTTP to send you to www. Blanc now tries
+  plain HTTP once when a typed address doesn't answer over HTTPS (#1790).
 - **New space… in a mini window counts the tabs that move.** It said
   "0 tabs" every time (#1734).
 
