@@ -17,7 +17,7 @@ import {jsLiteral} from './lib/js-literal.mjs';
 import {checkLedger} from './lib/check-ledger.mjs';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false);fs.mkdirSync(out,{recursive:true});
-const CHECKS=['F61-9','F61-10','F61-11','private'];
+const CHECKS=['F61-9','F61-10','F61-11','held','double-pick','private'];
 const f=new NativeFixture(),w=createWorld(f),result={candidate:config.candidate,checks:[]};
 const passed=checkLedger(result,CHECKS);
 const parent=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-mini-switch-'));
@@ -43,6 +43,7 @@ async function search(mini,text){
  await w.waitFor(()=>inFrame(mini.r,'#overlay',"return !!doc.getElementById('addressInput')&&doc.defaultView.getComputedStyle(doc.getElementById('addressInput')).display!=='none';"),Boolean,'the search panel');
  await inFrame(mini.r,'#overlay',`const input=doc.getElementById('addressInput');input.value=${jsLiteral(text)};input.dispatchEvent(new Event('input',{bubbles:true}));return true;`);
 }
+const listed=mini=>mini.r.cdp.eval('window.BlancPrototypeHost.api.listMiniSwitchTabs()');
 const pickRow=(mini,match)=>w.waitFor(()=>inFrame(mini.r,'#overlay',`const row=[...doc.querySelectorAll('.island-row')].find(r=>{const title=r.querySelector('.row-title')?.textContent??'',sub=r.querySelector('.row-sub')?.textContent??'';return ${match};});if(row)row.click();return !!row;`),Boolean,'the row to pick');
 try{
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:config.diskAssets!==false});
@@ -96,6 +97,45 @@ try{
   assert.ok(kept,'the mini window holding a page stays');
   assert.ok((await snap(kept)).tabs.some(t=>t.url===mini.url));
   passed('F61-11: a Space picked by name is gone to, and a mini window holding a page stays');
+ }
+
+ // Held: a tab in a Space held live arrives with its own id.
+ {
+  const other=await w.call('openNewWindow');
+  const url=f.base+'/held-desk-page';
+  const tabId=await w.call('openTabInWindow',other,url);
+  assert.equal((await w.call('workspaceActionInWindow',other,'save','Desk')).ok,true);
+  assert.equal((await w.call('workspaceActionInWindow',other,'create','Bare')).ok,true);
+  const desk=await spaceId('Desk');
+  const mini=await miniWindow(null);
+  const row=await w.waitFor(async()=>(await listed(mini)).find(r=>r.url===url),Boolean,'the held tab listed');
+  assert.equal(row.key,`t:${tabId}:${desk}`,'listed as a held tab with its id');
+  assert.equal(row.place,'Desk');
+  await search(mini,'held-desk-page');
+  await pickRow(mini,"sub.endsWith(' · Desk')");
+  await gone(mini);
+  await w.waitFor(async()=>{for(const r of await runtimes(w)){const s=await snap(r);if(s.spaceName===desk&&String(s.activeTabId)===String(tabId))return true;}return false;},Boolean,'Desk shown with that very tab selected');
+  passed('held: a tab in a Space held live opens that Space with the same tab selected');
+ }
+
+ // Double pick: two picks at once open the Space once.
+ {
+  const other=await w.call('openNewWindow');
+  const url=f.base+'/twice-notes';
+  await w.call('openTabInWindow',other,url);
+  assert.equal((await w.call('workspaceActionInWindow',other,'save','Twice')).ok,true);
+  await w.call('closeWindowRuntime',other);
+  const twice=await spaceId('Twice');
+  const mini=await miniWindow(null);
+  const row=await w.waitFor(async()=>(await listed(mini)).find(r=>r.url===url),Boolean,'the saved tab listed');
+  const results=await mini.r.cdp.eval(`Promise.all([0,1].map(()=>window.BlancPrototypeHost.api.goToMiniSwitchTab(${jsLiteral(row.key)})))`);
+  assert.deepEqual(results.map(r=>r.ok),[true,true],JSON.stringify(results));
+  await gone(mini);
+  const showing=async()=>{let n=0;for(const r of await runtimes(w))if((await snap(r)).spaceName===twice)n++;return n;};
+  await w.waitFor(showing,n=>n===1,'Twice shown in one window');
+  await new Promise(resolve=>setTimeout(resolve,1500));
+  assert.equal(await showing(),1,'still one window');
+  passed('double-pick: two picks at once open the Space in one window');
  }
 
  // Private: while a private tab is in front, nothing elsewhere is listed.

@@ -441,7 +441,6 @@
   // window, or when it can't say.
   let ownProfileId = null;
   async function spacesAcrossProfiles() {
-    if (snapshot?.miniWindow) return {};
     let across;
     try { across = await request('spaceOtherProfiles'); } catch { return {}; }
     if (!across || typeof across !== 'object') return {};
@@ -552,10 +551,13 @@
       if (options.move === true) return otherProfileTarget(options) ? { ok: false, error: 'busy' } : moveMiniWindowToSpace(id, null);
       // Picked by name (the Quick Switcher, /space): go there, any profile's;
       // nothing moves (#1734 part 2).
-      const target = otherProfileTarget(options);
-      const went = target ? await inOtherProfile('spaceOpenInProfile', [target, id]) : (await showSpace(id)) ? { ok: true, workspaceId: id, action: 'focus' } : { ok: false, error: 'activation-failed' };
-      if (went.ok) await miniSwitchArrived();
-      return went;
+      return miniSwitchOnce(async () => {
+        const target = otherProfileTarget(options);
+        const error = target ? null : await showSpace(id);
+        const went = target ? await inOtherProfile('spaceOpenInProfile', [target, id]) : error ? { ok: false, error } : { ok: true, workspaceId: id, action: 'focus' };
+        if (went.ok) await miniSwitchArrived();
+        return went;
+      });
     }
     // Another profile's Space opens (or comes forward) in a window of that
     // profile; this window's tabs and Space stay as they are.
@@ -760,40 +762,50 @@
   // held live, and in its saved Spaces, never private tabs or start pages.
   // Keys are opaque: t:<tabId>[:<spaceId>] or s:<spaceId>:<index>.
   const miniSwitchListed = (url) => typeof url === 'string' && url !== '' && url !== 'blanc://newtab/' && url !== 'chrome://newtab/';
+  // One native read: windows, held Spaces, the Spaces list and saved records.
+  async function miniSwitchState() {
+    const state = await request('miniSwitchList');
+    const meta = state?.meta ?? {};
+    const exists = (space) => !!meta.items?.[space] && !(meta.deleted ?? []).includes(space);
+    return { ...state, exists, name: (space) => (exists(space) ? meta.items[space].name ?? null : null) };
+  }
   async function listMiniSwitchTabs() {
+    if (!snapshot?.miniWindow) return [];
     await refresh();
     if (!snapshot?.miniWindow || snapshot.tabs.find((tab) => tab.id === snapshot.activeTabId)?.private) return [];
-    const [{ windows = [], records = {} } = {}, meta] = await Promise.all([request('miniSwitchList'), request('spaceMeta')]);
-    const name = (space) => meta.meta?.items?.[space]?.name ?? null;
+    // The panel's other lists must not wait on, or fail with, this one.
+    let state;
+    try { state = await miniSwitchState(); } catch { return []; }
+    const { windows = [], held = [], records = {}, meta = {}, exists, name } = state;
     const shown = new Set(), rows = [];
+    const add = (tab, key, space) => rows.push({ key, title: tab.title || tab.url, url: tab.url, favicon: null, place: space ? name(space) : null });
     for (const window of windows) {
       if (window.space) shown.add(window.space);
       for (const tab of window.tabs ?? []) {
-        if (tab.private || !miniSwitchListed(tab.url)) continue;
-        rows.push({ key: window.space ? `t:${tab.id}:${window.space}` : `t:${tab.id}`, title: tab.title || tab.url, url: tab.url, favicon: null, place: window.space ? name(window.space) : null });
+        if (!tab.private && miniSwitchListed(tab.url)) add(tab, window.space ? `t:${tab.id}:${window.space}` : `t:${tab.id}`, window.space);
       }
     }
-    for (const space of meta.held ?? []) {
+    for (const { space, tabs = [] } of held) {
       shown.add(space);
-      for (const tab of meta.heldTabs?.[space] ?? []) {
-        if (!tab.present || !miniSwitchListed(tab.url)) continue;
-        rows.push({ key: `t:${tab.id}:${space}`, title: tab.url, url: tab.url, favicon: null, place: name(space) });
-      }
+      if (!exists(space)) continue;
+      for (const tab of tabs) if (!tab.private && miniSwitchListed(tab.url)) add(tab, `t:${tab.id}:${space}`, space);
     }
-    for (const space of meta.meta?.order ?? []) {
-      if (shown.has(space) || (meta.meta.deleted ?? []).includes(space)) continue;
+    for (const space of meta.order ?? []) {
+      if (shown.has(space) || !exists(space)) continue;
       (records[space]?.tabs ?? []).forEach((tab, index) => {
-        if (miniSwitchListed(tab.url)) rows.push({ key: `s:${space}:${index}`, title: tab.title || tab.url, url: tab.url, favicon: null, place: name(space) });
+        if (miniSwitchListed(tab.url)) add(tab, `s:${space}:${index}`, space);
       });
     }
     return rows;
   }
-  // Brings a Space's window forward, or opens it in a new window.
+  // Brings a Space's window forward, or opens it in a new window; null when
+  // it shows, else openSpace's error. A Space another window still holds
+  // (one closing) is not opened twice.
   async function showSpace(space) {
     const list = await spaceList();
-    if (!list.meta.items[space] || list.meta.deleted.includes(space)) return false;
-    if (list.elsewhere.has(space) && await request('spaceFocus', [space]) === true) return true;
-    return (await openSpaceElsewhere(space)).ok === true;
+    if (!list.meta.items[space] || list.meta.deleted.includes(space)) return 'not-found';
+    if (list.elsewhere.has(space)) return await request('spaceFocus', [space]) === true ? null : 'activation-failed';
+    return (await openSpaceElsewhere(space)).ok === true ? null : 'busy';
   }
   // After going somewhere: the mini window's Island closes without handing
   // focus back, and an untouched mini window (only a start page) closes.
@@ -803,30 +815,40 @@
     if (!miniMoveRuns(snapshot.tabs).length) request('closeWindow').catch(() => {});
     return { ok: true };
   }
-  async function goToMiniSwitchTab(key) {
+  // One pick at a time: a second click or Enter gets the first one's answer.
+  let miniSwitchGoing = null;
+  function miniSwitchOnce(run) {
+    miniSwitchGoing ??= run().finally(() => { miniSwitchGoing = null; });
+    return miniSwitchGoing;
+  }
+  function goToMiniSwitchTab(key) {
     const gone = { ok: false, error: 'gone' };
-    if (!snapshot?.miniWindow || typeof key !== 'string') return gone;
+    if (!snapshot?.miniWindow || typeof key !== 'string') return Promise.resolve(gone);
     const tab = /^t:([^:]+)(?::([^:]+))?$/.exec(key), saved = /^s:([^:]+):(\d+)$/.exec(key);
-    if (!tab && !saved) return gone;
-    const meta = await request('spaceMeta');
-    const exists = (space) => !!meta.meta?.items?.[space] && !(meta.meta.deleted ?? []).includes(space);
-    if (tab) {
-      const id = nativeId(tab[1]), space = tab[2];
-      if (await request('miniSwitchFocus', [id]) === true) return miniSwitchArrived();
-      // A Space on screen only lost the tab: say so rather than show it.
-      if (!space || !exists(space) || (meta.elsewhere ?? []).includes(space)) return gone;
-      if (!await showSpace(space)) return { ok: false, error: 'busy' };
-      // A held tab arrives in the Space's window with its id.
-      await request('miniSwitchFocus', [id]);
-      return miniSwitchArrived();
-    }
-    const space = saved[1], index = Number(saved[2]);
-    const { records = {} } = await request('miniSwitchList');
-    const url = records[space]?.tabs?.[index]?.url;
-    if (!exists(space) || !miniSwitchListed(url)) return gone;
-    if (!await showSpace(space)) return { ok: false, error: 'busy' };
-    await request('miniSwitchFocusUrl', [space, url, index]);
-    return miniSwitchArrived();
+    if (!tab && !saved) return Promise.resolve(gone);
+    return miniSwitchOnce(async () => {
+      const state = await miniSwitchState();
+      const arrive = async (error) => (error === 'not-found' ? gone : error ? { ok: false, error: 'busy' } : miniSwitchArrived());
+      if (tab) {
+        const id = nativeId(tab[1]), space = tab[2];
+        if (await request('miniSwitchFocus', [id]) === true) return miniSwitchArrived();
+        // A Space on screen only lost the tab: say so rather than show it.
+        if (!space || !state.exists(space) || (state.elsewhere ?? []).includes(space)) return gone;
+        const was = (state.held ?? []).find((entry) => entry.space === space)?.tabs?.find((row) => String(row.id) === String(tab[1]));
+        if (!was) return gone;
+        const error = await showSpace(space);
+        // A held tab arrives in the Space's window with its id; one rebuilt
+        // after a crash is found by its address and place.
+        if (!error && await request('miniSwitchFocus', [id]) !== true) await request('miniSwitchFocusUrl', [space, was.url, was.slot ?? 0]);
+        return arrive(error);
+      }
+      const space = saved[1], index = Number(saved[2]);
+      const url = state.records?.[space]?.tabs?.[index]?.url;
+      if (!state.exists(space) || !miniSwitchListed(url)) return gone;
+      const error = await showSpace(space);
+      if (!error) await request('miniSwitchFocusUrl', [space, url, index]);
+      return arrive(error);
+    });
   }
   async function updateSpace(id, patch = {}) {
     const list = await spaceList();

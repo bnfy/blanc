@@ -1254,6 +1254,15 @@ bool OpenFavoritesTab(BrowserWindowInterface* browser) {
       }, browser->GetWeakPtr(), profile->GetOriginalProfile()->GetWeakPtr()));
   return true;
 }
+// A page's address as the mini window's switcher lists it (#1734 part 2),
+// as the snapshot reads it: a start page as blanc://newtab/, Favorites as
+// blanc://bookmarks/.
+std::string MiniSwitchUrl(content::WebContents* page) {
+  const GURL visible = page->GetVisibleURL();
+  if (visible == GURL("chrome://newtab/") || IsRegularStartPage(page->GetLastCommittedURL()) || IsRegularStartPage(visible))
+    return "blanc://newtab/";
+  return IsFavoritesPage(visible) ? "blanc://bookmarks/" : visible.spec();
+}
 
 // Which sheet page (and section) a chrome:// address is, if any: shipping's
 // utility pages (isUtilityUrl) never open as tabs. chrome://bookmarks opens
@@ -10859,33 +10868,46 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
           args[3].GetString(), SpaceElsewhereReply(id));
       return;
     }
-    // Answers whether a window showing the Space came forward, so the
-    // caller's Island leaves the focus with it only when one did.
     // Switch to tabs elsewhere from a mini window (#1734 part 2): the
     // profile's other ordinary windows (never mini or hold windows) with
-    // their Space and tabs, and the saved Space records, for the host's
-    // listMiniSwitchTabs. Start pages read as blanc://newtab/, as in the
-    // snapshot.
+    // their Space and tabs, its Spaces held live, the Spaces list and the
+    // saved Space records, for the host's listMiniSwitchTabs. Rows read as
+    // in the snapshot: a start page as blanc://newtab/, a renamed tab by its
+    // name. "elsewhere" names every Space another window shows, closing
+    // ones too, as spaceMeta does.
     if (method == "miniSwitchList" && args.empty()) {
-      base::ListValue windows;
+      const auto row = [](content::WebContents* page, int slot) {
+        const auto custom = CustomTabName(page);
+        return base::DictValue().Set("id", sessions::SessionTabHelper::IdForTab(page).id())
+            .Set("title", custom.empty() ? base::UTF16ToUTF8(page->GetTitle()) : custom).Set("url", MiniSwitchUrl(page))
+            .Set("private", blanc::private_tabs::IsPrivateTab(page)).Set("slot", slot);
+      };
+      base::ListValue windows, held, elsewhere;
       for (auto* other : Owner::Live()) {
         auto* other_browser = other->browser.get();
-        if (!other_browser || other == owner || other_browser->GetProfile() != profile || IsMiniWindow(other_browser) ||
-            IsHoldWindow(other_browser) || other_browser->IsDeleteScheduled()) continue;
+        if (!other_browser || other == owner || other_browser->GetProfile() != profile) continue;
+        if (!other->space_name.empty()) elsewhere.Append(other->space_name);
+        if (IsMiniWindow(other_browser) || IsHoldWindow(other_browser) || other_browser->IsDeleteScheduled()) continue;
         base::ListValue rows;
         auto* other_model = other_browser->GetTabStripModel();
-        for (int i = 0; i < other_model->count(); ++i) {
-          auto* page = other_model->GetWebContentsAt(i);
-          const GURL visible = page->GetVisibleURL();
-          const std::string url = visible == GURL("chrome://newtab/") || IsRegularStartPage(page->GetLastCommittedURL())
-              ? "blanc://newtab/" : IsFavoritesPage(visible) ? "blanc://bookmarks/" : visible.spec();
-          rows.Append(base::DictValue().Set("id", sessions::SessionTabHelper::IdForTab(page).id())
-              .Set("title", base::UTF16ToUTF8(page->GetTitle())).Set("url", url)
-              .Set("private", blanc::private_tabs::IsPrivateTab(page)));
-        }
+        for (int i = 0; i < other_model->count(); ++i) rows.Append(row(other_model->GetWebContentsAt(i), i));
         windows.Append(base::DictValue().Set("space", other->space_name).Set("tabs", std::move(rows)));
       }
-      auto listed = base::DictValue().Set("windows", std::move(windows));
+      if (auto* hold = SpaceHold::Get(profile->GetOriginalProfile())) {
+        for (const auto& space : hold->spaces()) {
+          base::ListValue rows;
+          int slot = 0;
+          for (const auto& tab : space.tabs) {
+            // The held tab's own id: a page rebuilt after a crash gets a new
+            // one, so the host falls back to the address and slot.
+            if (auto* page = hold->Contents(tab)) rows.Append(row(page, slot).Set("id", tab.id));
+            ++slot;
+          }
+          held.Append(base::DictValue().Set("space", space.name).Set("tabs", std::move(rows)));
+        }
+      }
+      auto listed = base::DictValue().Set("windows", std::move(windows)).Set("held", std::move(held))
+          .Set("elsewhere", std::move(elsewhere)).Set("meta", profile->GetPrefs()->GetDict(kSpacesMetaPref).Clone());
       auto* regular = profile->GetOriginalProfile();
       SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
           base::BindOnce(&SpaceDisk, regular->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "sharedRecords", "", base::DictValue()),
@@ -10926,7 +10948,7 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
         auto* other_model = other_browser->GetTabStripModel();
         int best = -1;
         for (int i = 0; i < other_model->count(); ++i)
-          if (other_model->GetWebContentsAt(i)->GetVisibleURL().spec() == args[1].GetString() &&
+          if (MiniSwitchUrl(other_model->GetWebContentsAt(i)) == args[1].GetString() &&
               (best < 0 || std::abs(i - args[2].GetInt()) < std::abs(best - args[2].GetInt()))) best = i;
         if (best >= 0) other_model->ActivateTabAt(best);
         auto* window = other_browser->GetWindow();
@@ -10936,6 +10958,8 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       }
       reply(true, base::Value(false)); return;
     }
+    // Answers whether a window showing the Space came forward, so the
+    // caller's Island leaves the focus with it only when one did.
     if (method == "spaceFocus" && args.size() == 1 && args[0].is_string()) {
       reply(true, base::Value(FocusSpaceWindow(profile, args[0].GetString()))); return;
     }
