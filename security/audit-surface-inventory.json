@@ -65,7 +65,7 @@
     },
     {
       "file": "cloudflare/ping-worker/src/dl.js",
-      "sha256": "95464507abeee301ad089be7736ef320999e59539570b663de2f62f7e92fcf0c",
+      "sha256": "ebf69422b870d8336dda2bcfe97babc48d662c7d5e879f93e2ff487b0a673658",
       "literalChannels": [],
       "role": "privileged implementation or service"
     },
@@ -208,7 +208,7 @@
     },
     {
       "file": "src/main/downloads.js",
-      "sha256": "d2c94537d8db49739396e41f5857bd5f655d0ab765c4b25f0b146253e78c5375",
+      "sha256": "b27c526c5f238391f8384c8fbc58cd1ce713f0ba4682ef383be5cfd8ff4084d6",
       "literalChannels": [
         "input-event",
         "updated",
@@ -272,7 +272,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "104a6429617aec5ff48f3d9c2d45ec3c2b0dce6f52c2a9767095ab5ba98412f4",
+      "sha256": "46cdb51f46b5a31559a46570f6cfd400f16ad08a7aa0d46982c8f75ddf9cf60b",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -323,6 +323,8 @@
         "chrome:island-state",
         "chrome:layout",
         "chrome:mini-keep",
+        "chrome:mini-switch-go",
+        "chrome:mini-switch-tabs",
         "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
@@ -535,7 +537,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "3a226a6da649d611d7d20199423cb4331c1ca500418794c0006d99e9e9303325",
+      "sha256": "eaf0313d19f5e2093a31d31a2306b4b509f9416f5ec7f09242d4220394b44b85",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -596,6 +598,9 @@
         "pages:profiles:remove",
         "pages:profiles:rename",
         "pages:settings:check-for-updates",
+        "pages:settings:download-folder",
+        "pages:settings:download-folder:choose",
+        "pages:settings:download-folder:reset",
         "pages:settings:drm-restart",
         "pages:settings:drm-status",
         "pages:settings:get",
@@ -702,7 +707,7 @@
     },
     {
       "file": "src/main/preload.js",
-      "sha256": "afcb0f7d2d969c10259416e87e3b85cb5677fd184b6074edd0a6f4f124f3983c",
+      "sha256": "f4f275a9bbfd7b1ce889070447cc5d7d69880a5201ed0146b1d517597de67b1b",
       "literalChannels": [
         "bang-icons:changed",
         "bangs:changed",
@@ -741,6 +746,8 @@
         "chrome:island-state",
         "chrome:layout",
         "chrome:mini-keep",
+        "chrome:mini-switch-go",
+        "chrome:mini-switch-tabs",
         "chrome:new-group",
         "chrome:onepassword-fill",
         "chrome:open-capture",
@@ -1017,7 +1024,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "4f9d2ffa4b55bd96529f2f71e82195b49a17f67e49c0bbbfa992bd730c43c558",
+      "sha256": "8bb5d1bd1c070b572f7031e06a788f65498a004b1cc2ca85b28b265f2ca8743f",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1081,6 +1088,9 @@
         "pages:profiles:rename",
         "pages:settings:appearance",
         "pages:settings:check-for-updates",
+        "pages:settings:download-folder",
+        "pages:settings:download-folder:choose",
+        "pages:settings:download-folder:reset",
         "pages:settings:drm-restart",
         "pages:settings:drm-status",
         "pages:settings:get",
@@ -1189,7 +1199,7 @@
     },
     {
       "file": "src/main/tab-view.js",
-      "sha256": "e09b2ccf5ac8693b98a86120c8fc6bed6866b746c9fbcac04f3c0d5cea62d32b",
+      "sha256": "5655641e87df51575f12cbe9d53313b822fd25688d461f16607b58609f071297",
       "literalChannels": [
         "audio-state-changed",
         "before-input-event",

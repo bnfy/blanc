@@ -25,11 +25,13 @@ const LANGUAGES = ['en', 'de', 'es', 'fr', 'it', 'pt-BR'];
 test('pin: #1642\'s menu files come from their own commit, the rest from the renderer release', () => {
   assert.ok(fs.existsSync(menuFile), 'blanc/spaces-menu.json records the Spaces menu pin');
   const record = menu();
-  assert.equal(record.commit, 'f91530b22eff409b0e5cd72acdc0c01206777dd3');
+  // #1763's merge (#1734): the menu's move mode for a mini window.
+  assert.equal(record.commit, '870c400deee96f1a25c2ba8bc0edb5227ae9c583');
   assert.deepEqual(record.files, ['workspace-ui.js', 'overlay.js']);
   assert.deepEqual(record.messages, ['ws.row.titleProfile', 'ws.row.titleProfileShown', 'ws.row.openInProfile',
     'ws.profile.unreadable', 'ws.editor.profile', 'ws.editor.profileDisabled', 'ws.editor.helpOtherProfile',
-    'ws.switcher.profileLabel', 'ws.error.profileUnavailable']);
+    'ws.switcher.profileLabel', 'ws.error.profileUnavailable',
+    'mini.moveToSpace.label', 'mini.moveToSpace.title', 'mini.moveToSpace.menu', 'ws.moveMode.header', 'ws.error.miniUnmovable']);
   assert.ok(ancestor(record.commit, 'HEAD'), `${record.commit} is in this branch`);
   // Moving the renderer past #1642 makes this pin (and the three styles.css
   // edits that bring #1642's rules) redundant: delete them then.
@@ -37,7 +39,7 @@ test('pin: #1642\'s menu files come from their own commit, the rest from the ren
     'the renderer release now carries #1642: delete blanc/spaces-menu.json and the styles.css edits for #1642');
   const pinned = generate(renderer.ref);
   const release = generate(renderer.ref, FILES, null);
-  const fromMenu = generate(record.commit, record.files, null);
+  const fromMenu = generate(record.commit, record.files, record); // with the pin's own edits (MENU_EDITS)
   for (const file of FILES) {
     if (record.files.includes(file)) {
       assert.equal(pinned[file], fromMenu[file], `${file} comes from the menu pin`);
@@ -52,6 +54,8 @@ test('strings: every message the menu files name resolves in all six languages',
   const keys = new Set();
   for (const file of ['workspace-ui.js', 'overlay.js'])
     for (const match of read(`blanc/island/${file}`).matchAll(/\bt\('([A-Za-z0-9_.]+)'\s*[,)]/g)) keys.add(match[1]);
+  // #1734's button beside Open in Blanc names its two in index.html.
+  for (const match of read('blanc/island/index.html').matchAll(/data-i18n-(?:tooltip|aria-label)="(mini\.moveToSpace\.[a-z]+)"/g)) keys.add(match[1]);
   for (const key of menu().messages) assert.ok(keys.has(key), `${key} is used by the menu`);
   const source = read('blanc/island/strings.js');
   for (const language of LANGUAGES) {

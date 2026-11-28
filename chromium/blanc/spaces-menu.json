@@ -1,6 +1,6 @@
 {
-  "note": "The Spaces menu across profiles (bnfy/blanc#1642, with #1658's two fixes), pinned apart from the Island renderer: tools/island-renderer.mjs takes these files from this commit, and tools/interface-strings.mjs these messages, in every language. Delete this record, and the three styles.css edits for #1642, once blanc/island-renderer.json's release carries #1642.",
-  "commit": "f91530b22eff409b0e5cd72acdc0c01206777dd3",
+  "note": "The Spaces menu across profiles (bnfy/blanc#1642, with #1658's two fixes, and #1734's move mode for a mini window from #1763's merge), pinned apart from the Island renderer: tools/island-renderer.mjs takes these files from this commit, and tools/interface-strings.mjs these messages, in every language. Delete this record, and the three styles.css edits for #1642, once blanc/island-renderer.json's release carries #1642.",
+  "commit": "870c400deee96f1a25c2ba8bc0edb5227ae9c583",
   "files": [
     "workspace-ui.js",
     "overlay.js"
@@ -14,6 +14,11 @@
     "ws.editor.profileDisabled",
     "ws.editor.helpOtherProfile",
     "ws.switcher.profileLabel",
-    "ws.error.profileUnavailable"
+    "ws.error.profileUnavailable",
+    "mini.moveToSpace.label",
+    "mini.moveToSpace.title",
+    "mini.moveToSpace.menu",
+    "ws.moveMode.header",
+    "ws.error.miniUnmovable"
   ]
 }

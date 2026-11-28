@@ -114,7 +114,8 @@ test('the page\'s window-open handler and context menu ask before opening a tab'
 
 test('a background routed link shows a window it must open without focusing it', () => {
   const main = read('src/main/main.js');
-  assert.match(main, /ensureWindow: \(runtime, \{ background = false \} = \{\}\) => createMainWindow\(runtime, \{ ensureStartTab: true, inactive: background \}\),/);
+  // A mini window made for a link opens without a start tab (#1734 part 3).
+  assert.match(main, /ensureWindow: \(runtime, \{ background = false \} = \{\}\) => \{[\s\S]*?createMainWindow\(runtime, \{ ensureStartTab: !fresh, inactive: background \}\);/);
   assert.match(main, /openSpace: \(target\) => openSpaceInProfile\(target, \{ background \}\)\.runtime \?\? null,\s*openProfileWindow: \(profileId\) => newRoutedProfileRuntime\(profileId, \{ background \}\),/);
   assert.match(main, /createMainWindow\(target, \{ inactive: background \}\);/);
   assert.match(main, /createMainWindow\(runtime, \{ ensureStartTab: false, inactive: background \}\);/);

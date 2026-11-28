@@ -1,0 +1,200 @@
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+index 67c0438..8b17fa3 100644
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -227,6 +227,9 @@ function blancTokens(p: BlancPalette): Record<string, string> {
+     // Shipping's sheet cards: a hairline border, 14px corners, a faint lift.
+     '--cr-card-shadow': `0 0 0 1px ${p.border}, 0 1px 2px rgba(18, 16, 11, 0.04)`,
+     '--cr-card-border-radius': '14px',
++    // Dialogs are Blanc's cards too, not Chromium's cool gray in Dark.
++    '--cr-dialog-background-color': p.raised,
++    '--cr-dialog-border-radius': '14px',
+     // Buttons and fields in the palette, not Chromium's blue.
+     '--color-button-foreground': p.text,
+     '--color-button-border': p.border,
+diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.css b/chrome/browser/resources/settings/settings_menu/settings_menu.css
+index ca2778c..06592db 100644
+--- a/chrome/browser/resources/settings/settings_menu/settings_menu.css
++++ b/chrome/browser/resources/settings/settings_menu/settings_menu.css
+@@ -141,3 +141,29 @@
+   transition-delay: 0ms;
+   opacity: 0;
+ }
++
++/* Blanc (2026-11-27, owner): the collapsed sidebar is a rail of icons. Each
++ * item's title (settings_menu.ts) is its name on hover and for assistive
++ * technology, so the hidden label isn't announced twice. */
++:host([collapsed]) .cr-nav-menu-item {
++  justify-content: center;
++  margin-bottom: 2px;
++  margin-inline: 12px;
++  padding-inline: 0;
++  width: 40px;
++}
++
++:host([collapsed]) .cr-nav-menu-item cr-icon {
++  display: block;
++  height: 20px;
++  margin: 0;
++  width: 20px;
++}
++
++:host([collapsed]) .cr-nav-menu-item .icon-external {
++  display: none;
++}
++
++:host([collapsed]) .menu-label {
++  display: none;
++}
+diff --git a/chrome/browser/resources/settings/settings_menu/settings_menu.ts b/chrome/browser/resources/settings/settings_menu/settings_menu.ts
+index 3d6f848..f8a43fe 100644
+--- a/chrome/browser/resources/settings/settings_menu/settings_menu.ts
++++ b/chrome/browser/resources/settings/settings_menu/settings_menu.ts
+@@ -19,6 +19,7 @@ import '../internal/icons.html.js';
+ import type {CrMenuSelectorElement} from 'chrome://resources/cr_elements/cr_menu_selector/cr_menu_selector.js';
+ import {assert} from 'chrome://resources/js/assert.js';
+ import {CrLitElement} from 'chrome://resources/lit/v3_0/lit.rollup.js';
++import type {PropertyValues} from 'chrome://resources/lit/v3_0/lit.rollup.js';
+ 
+ import {loadTimeData} from '../i18n_setup.js';
+ import type {MetricsBrowserProxy} from '../metrics_browser_proxy.js';
+@@ -107,6 +108,21 @@ export class SettingsMenuElement extends SettingsMenuElementBase {
+     }
+   }
+ 
++  override updated(changedProperties: PropertyValues<this>) {
++    super.updated(changedProperties);
++    // Blanc (2026-11-27): the rail shows each section's name on hover.
++    if (changedProperties.has('collapsed')) {
++      for (const item of this.shadowRoot.querySelectorAll<HTMLElement>(
++               'a.cr-nav-menu-item')) {
++        item.dataset['blancTitle'] ??= item.title;
++        const label = item.querySelector('.menu-label')?.textContent?.trim();
++        const own = item.dataset['blancTitle'];
++        item.title = this.collapsed && label ?
++            (own ? `${label} (${own})` : label) : own;
++      }
++    }
++  }
++
+   protected shouldHideMenuItem_(visibility: boolean|object|undefined): boolean {
+     return visibility === false;
+   }
+diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.css b/chrome/browser/resources/settings/settings_ui/settings_ui.css
+index 0e99b0f..aebc1a5 100644
+--- a/chrome/browser/resources/settings/settings_ui/settings_ui.css
++++ b/chrome/browser/resources/settings/settings_ui/settings_ui.css
+@@ -194,3 +194,33 @@ cr-toolbar:not([narrow]) ~ #container #main {
+     padding: 0 3px;
+   }
+ }
++
++/* Blanc (2026-11-27, owner): below 800px the sidebar is a rail of section
++ * icons, and the search field spans the sheet above it and the page. */
++:host([blanc-rail]) {
++  --settings-menu-width: 64px;
++}
++
++:host([blanc-rail]) cr-toolbar:not([narrow]) {
++  --cr-toolbar-left-spacer-width: 0;
++  padding-inline: 12px 26px;
++  width: 100%;
++}
++
++:host([blanc-rail]) cr-toolbar:not([narrow]) ~ #container {
++  margin-top: 52px;
++}
++
++:host([blanc-rail]) cr-toolbar:not([narrow]) ~ #container #left {
++  padding-top: 0;
++}
++
++:host([blanc-rail]) #left[collapsed] settings-menu {
++  overflow-x: hidden;
++  width: var(--settings-menu-width);
++}
++
++/* The rail scrolls without a gutter, so its icons stay centered. */
++:host([blanc-rail]) #left[collapsed] settings-menu::-webkit-scrollbar {
++  width: 0;
++}
+diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts b/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts
+index 9557750..2762c18 100644
+--- a/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts
++++ b/chrome/browser/resources/settings/settings_ui/settings_ui.html.ts
+@@ -16,7 +16,7 @@ export function getHtml(this: SettingsUiElement) {
+     menu-label="$i18n{menuButtonLabel}"
+     @search-changed="${this.onSearchChanged_}" role="banner"
+     ?narrow="${this.narrow_}" @narrow-changed="${this.onToolbarNarrowChanged_}"
+-    narrow-threshold="600" ?show-menu="${this.getLeftMenuHidden_()}">
++    narrow-threshold="0" ?show-menu="${this.getLeftMenuHidden_()}">
+ </cr-toolbar>
+ ${this.isSettingsSearch2026Enabled_ ? html`
+   <settings-search-dropdown .query="${this.lastSearchQuery_}">
+diff --git a/chrome/browser/resources/settings/settings_ui/settings_ui.ts b/chrome/browser/resources/settings/settings_ui/settings_ui.ts
+index b00e525..c5aa0a5 100644
+--- a/chrome/browser/resources/settings/settings_ui/settings_ui.ts
++++ b/chrome/browser/resources/settings/settings_ui/settings_ui.ts
+@@ -81,6 +81,7 @@ export class SettingsUiElement extends SettingsUiElementBase {
+       lastSearchQuery_: {type: String},
+       isSettingsRefresh2026_: {type: Boolean},
+       isSettingsSearch2026Enabled_: {type: Boolean},
++      blancRail_: {type: Boolean, reflect: true, attribute: 'blanc-rail'},
+     };
+   }
+ 
+@@ -92,6 +93,15 @@ export class SettingsUiElement extends SettingsUiElementBase {
+   protected accessor isSettingsSearch2026Enabled_: boolean =
+       loadTimeData.getBoolean('enableSettingsSearch2026');
+ 
++  // Blanc (2026-11-27, owner): below 800px the sidebar becomes a rail of
++  // section icons instead of Chromium's drawer (narrow-threshold is 0).
++  protected accessor blancRail_: boolean = false;
++  private blancRailQuery_: MediaQueryList =
++      window.matchMedia('(max-width: 799px)');
++  private blancRailListener_ = (e: MediaQueryListEvent) => {
++    this.blancRail_ = e.matches;
++  };
++
+   private activeTimer_: ActiveTimer|null = null;
+ 
+   private searchMetricsRecorder_: SearchMetricsRecorder =
+@@ -114,6 +124,8 @@ export class SettingsUiElement extends SettingsUiElementBase {
+       ColorChangeUpdater.forDocument().start();
+     }
+     document.documentElement.classList.remove('loading');
++    this.blancRail_ = this.blancRailQuery_.matches;
++    this.blancRailQuery_.addEventListener('change', this.blancRailListener_);
+ 
+     // Preload bold Roboto so it doesn't load and flicker the first time used.
+     document.fonts.load('bold 12px Roboto');
+@@ -130,6 +142,7 @@ export class SettingsUiElement extends SettingsUiElementBase {
+ 
+   override disconnectedCallback() {
+     super.disconnectedCallback();
++    this.blancRailQuery_.removeEventListener('change', this.blancRailListener_);
+ 
+     Router.getInstance().resetRouteForTesting();
+     resetGlobalScrollTargetForTesting();
+@@ -317,7 +330,7 @@ export class SettingsUiElement extends SettingsUiElementBase {
+   }
+ 
+   protected getLeftMenuCollapsed_(): boolean {
+-    return this.narrow_ && this.isSettingsRefresh2026_;
++    return (this.narrow_ && this.isSettingsRefresh2026_) || this.blancRail_;
+   }
+ 
+   protected onToolbarNarrowChanged_(e: CustomEvent<{value: boolean}>) {
+diff --git a/chrome/browser/ui/webui/settings/settings_ui.cc b/chrome/browser/ui/webui/settings/settings_ui.cc
+index 7af7b11..4b4da2f 100644
+--- a/chrome/browser/ui/webui/settings/settings_ui.cc
++++ b/chrome/browser/ui/webui/settings/settings_ui.cc
+@@ -293,7 +293,7 @@ SettingsUI::SettingsUI(content::WebUI* web_ui)
+   html_source->AddString("blancSyncTitle", u"Sync");
+   html_source->AddString("blancSyncOffTitle", u"Sync your Blanc");
+   html_source->AddString("blancSyncTurnOn", u"Turn on Sync");
+-  html_source->AddString("blancSyncHaveCode", u"Already sync on another device?");
++  html_source->AddString("blancSyncHaveCode", u"Already syncing on another device?");
+   html_source->AddString("blancSyncAddCode", u"Add this device with a code");
+   html_source->AddString("blancSyncOtherWays", u"Other ways");
+   html_source->AddString("blancSyncUsePassphrase", u"Use a sync name and passphrase");

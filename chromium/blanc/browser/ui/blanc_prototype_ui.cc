@@ -15,6 +15,11 @@
 #include "content/public/browser/service_process_host.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "build/build_config.h"
+#if BUILDFLAG(IS_WIN)
+#include "chrome/browser/about_flags.h"
+#include "components/webui/flags/flags_ui_pref_names.h"
+#include "components/webui/flags/pref_service_flags_storage.h"
+#endif
 #include "content/public/browser/host_zoom_map.h"
 #include "chrome/browser/ui/zoom/chrome_zoom_level_prefs.h"
 #include "components/zoom/zoom_controller.h"
@@ -10866,7 +10871,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       pending.kind = "open";
       pending.id = args[0].GetString();
       pending.done = base::BindOnce(&Handler::SpaceOpenedElsewhere, weak_factory_.GetWeakPtr(), id);
-      if (!NewSpaceWindow(profile, std::move(pending))) reply(false, base::Value("A new window can't open now."));
+      // From a mini window (#1734) the Space opens at an ordinary window's
+      // size on its display, as Open in Blanc grows it; Chromium's window
+      // sizer would copy the mini window's.
+      std::optional<gfx::Rect> bounds;
+      if (IsMiniWindow(browser))
+        bounds = MiniBounds(display::Screen::Get()->GetDisplayMatching(browser->GetWindow()->GetBounds()).work_area(), true);
+      if (!NewSpaceWindow(profile, std::move(pending), bounds)) reply(false, base::Value("A new window can't open now."));
       return;
     }
     // Asked once by every new window's Island: "" or the Space it exists for,

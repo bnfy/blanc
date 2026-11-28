@@ -14,6 +14,7 @@ import {matchStep,beforeHooks} from './steps.mjs';
 import {avoidRealPointer} from './lib/real-pointer.mjs';
 import {prepareSyncFixture} from './fork-steps/sync.mjs';
 import {aggregateCases} from './results.mjs';
+import {recordSpacesEvidence,spacesEvidence,spacesFailure} from './lib/spaces-evidence.mjs';
 import {macosForkExclusions} from './macos-fork-exclusions.mjs';
 import {windowsForkExclusions} from './windows-fork-exclusions.mjs';
 import {matchesLinuxCandidate} from '../linux/candidate.mjs';
@@ -100,6 +101,7 @@ async function runCase(matches,steps,tags=[]){
    await waitFor(()=>fixture.host.eval("matchMedia('(prefers-color-scheme: light)').matches"),Boolean,'fixture light theme to render');
   });
   world.bindShippingContext();
+  await phase('stepSetup',()=>recordSpacesEvidence(world));
   entry.executed=true;entry.steps=[];
   // Hover-open cases: a real pointer resting inside the test window makes
   // Chromium report it leaving as the panel opens (lib/real-pointer.mjs), so
@@ -121,7 +123,8 @@ async function runCase(matches,steps,tags=[]){
   if(error.code!=='BLANC_ENVIRONMENT_STOP'&&fixture.host)await nativeCall(fixture.host,'setIslandAutoHide',[false]).catch(()=>{})
    .then(()=>assertRendering(e=>fixture.host.eval(e))).catch(stop=>{if(stop.code==='BLANC_ENVIRONMENT_STOP')error=stop;});
   if(error.code==='BLANC_ENVIRONMENT_STOP'){entry.stop=error;}
-  else{entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}}
+  else{entry.result=error.code==='BLANC_ADAPTER_UNDEFINED'?'undefined':'fail';entry.error=String(error.message||error);
+   if(entry.result==='fail'&&spacesFailure(entry.error))entry.spacesMenu=await spacesEvidence(world);if(fs.existsSync(fixture.directory||''))fs.writeFileSync(path.join(fixture.directory,'error.txt'),String(error.stack||error));}}
  finally{
   await phase('teardown',async()=>{
   world.releaseIndex?.();
@@ -176,7 +179,7 @@ for(const scenario of inventory.scenarios){
      try{result=await measuredAttempt(timing,()=>runCase(matches.slice(0,runnable),test.steps,scenario.tags));}
      catch(error){timing.stop={code:error.code??null,message:error.message};throw error;}
      finally{timing.totalMs=performance.now()-started;timing.result=result?.result==='pass'&&runnable<matches.length?'undefined':result?.result??(timing.stop?.code==='BLANC_ENVIRONMENT_STOP'?'environment-stop':'run-error');timings.push(timing);writeTimings();}
-     if(attempt===2){entry.retried=true;entry.firstAttempt={result:entry.result,error:entry.error};delete entry.error;}
+     if(attempt===2){entry.retried=true;entry.firstAttempt={result:entry.result,error:entry.error,...(entry.spacesMenu&&{spacesMenu:entry.spacesMenu})};delete entry.error;delete entry.spacesMenu;}
      Object.assign(entry,result);
      if(runnable<matches.length&&entry.result==='pass'){entry.result='undefined';entry.prefixPassed=true;}
      if(entry.result!=='fail')break;

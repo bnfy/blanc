@@ -1,0 +1,104 @@
+diff --git a/chrome/browser/resources/settings/blanc_settings_proxy.ts b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+--- a/chrome/browser/resources/settings/blanc_settings_proxy.ts
++++ b/chrome/browser/resources/settings/blanc_settings_proxy.ts
+@@ -33,6 +33,9 @@
+   theme: string;
+   pageZoom: number;
+   usagePing: boolean;
++  // <if expr="is_win">
++  hardwareVideoDecoding: boolean;
++  // </if>
+ }
+ 
+ export interface BlancResult {
+@@ -64,6 +67,10 @@
+ }
+ 
+ export const blancSettings = {
++  // <if expr="is_win">
++  setHardwareVideoDecoding: (on: boolean) =>
++      sendWithPromise<boolean>('blancSetHardwareVideoDecoding', on ? 'on' : 'off'),
++  // </if>
+   // N16: the trust receipt and Diagnostics in About.
+   trustReceipt: () => sendWithPromise<BlancTrustReceipt>('blancTrustReceipt'),
+   diagnosticsReport: () => sendWithPromise<string>('blancDiagnosticsReport'),
+diff --git a/chrome/browser/resources/settings/system_page/system_page.html.ts b/chrome/browser/resources/settings/system_page/system_page.html.ts
+--- a/chrome/browser/resources/settings/system_page/system_page.html.ts
++++ b/chrome/browser/resources/settings/system_page/system_page.html.ts
+@@ -28,6 +28,18 @@
+     ` : ''}
+   </settings-toggle-button>
+ <if expr="is_win">
++  <div class="hr"></div>
++  <div class="cr-row">
++    <div class="flex cr-row-text">
++      <label id="blancVideoDecodingLabel" for="blancVideoDecoding">$i18n{blancVideoDecoding}</label>
++      <div id="blancVideoDecodingHint" class="secondary">$i18n{blancVideoDecodingHint}</div>
++    </div>
++    <cr-toggle id="blancVideoDecoding" aria-labelledby="blancVideoDecodingLabel"
++        aria-describedby="blancVideoDecodingHint"
++        ?disabled="${this.blancVideoDecoding_ === undefined || this.blancVideoSaving_}"
++        ?checked="${this.blancVideoDecoding_ === true}"
++        @change="${this.onBlancVideoDecodingChange_}"></cr-toggle>
++  </div>
+   ${this.showProcessIsolationSetting_ ? html`
+     <div class="hr"></div>
+     <settings-toggle-button id="isolationState"
+diff --git a/chrome/browser/resources/settings/system_page/system_page.ts b/chrome/browser/resources/settings/system_page/system_page.ts
+--- a/chrome/browser/resources/settings/system_page/system_page.ts
++++ b/chrome/browser/resources/settings/system_page/system_page.ts
+@@ -15,6 +15,13 @@
+ import '../controls/settings_toggle_button.js';
+ import '../relaunch_confirmation_dialog.js';
+ import '../settings_page/settings_section.js';
++
++// <if expr="is_win">
++import 'chrome://resources/cr_elements/cr_toggle/cr_toggle.js';
++import type {CrToggleElement} from 'chrome://resources/cr_elements/cr_toggle/cr_toggle.js';
++import {blancSettings} from '../blanc_settings_proxy.js';
++import type {BlancSettingsState} from '../blanc_settings_proxy.js';
++// </if>
+ 
+ import {PrefService} from '/shared/settings/prefs2/pref_service.js';
+ import {PrefServiceObserverMixinLit} from '/shared/settings/prefs2/pref_service_observer_mixin_lit.js';
+@@ -82,6 +89,8 @@
+       showFeatureNotificationsSetting_: {type: Boolean},
+       // </if>
+       // <if expr="is_win">
++      blancVideoDecoding_: {type: Boolean},
++      blancVideoSaving_: {type: Boolean},
+       showProcessIsolationSetting_: {type: Boolean},
+       // </if>
+ 
+@@ -103,6 +112,19 @@
+       loadTimeData.getBoolean('showFeatureNotificationsSetting');
+   // </if>
+   // <if expr="is_win">
++  protected accessor blancVideoDecoding_: boolean|undefined;
++  protected accessor blancVideoSaving_: boolean = false;
++  protected async onBlancVideoDecodingChange_(event: CustomEvent<boolean>) {
++    const toggle = event.currentTarget as CrToggleElement;
++    this.blancVideoSaving_ = true;
++    try {
++      this.blancVideoDecoding_ = await blancSettings.setHardwareVideoDecoding(event.detail);
++    } finally {
++      toggle.checked = this.blancVideoDecoding_ === true;
++      this.blancVideoSaving_ = false;
++    }
++  }
++
+   protected accessor showProcessIsolationSetting_: boolean =
+       loadTimeData.getBoolean('showProcessIsolationSetting');
+   private processIsolationEnabledAtStartup_: boolean|undefined;
+@@ -133,6 +155,11 @@
+     });
+ 
+     // <if expr="is_win">
++    const showVideoDecoding = (state: BlancSettingsState) => {
++      this.blancVideoDecoding_ = state.hardwareVideoDecoding;
++    };
++    this.addWebUiListener('blanc-settings-changed', showVideoDecoding);
++    void blancSettings.get().then(showVideoDecoding);
+     PrefService.getInstance().whenInitialized().then(() => {
+       this.processIsolationEnabledAtStartup_ =
+           PrefService.getInstance()

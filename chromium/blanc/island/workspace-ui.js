@@ -38,6 +38,7 @@
     popup: 'ws.decision.blocked.popup',
   };
   const errors = {
+    unmovable: t('ws.error.miniUnmovable'),
     'duplicate-name': t('ws.error.duplicateName'),
     'invalid-name': t('ws.error.invalidName'),
     'invalid-color': t('ws.error.invalidColor'),
@@ -103,6 +104,10 @@
     let invoker = trigger;
     let drag = null;
     let suppressClick = false;
+    // Opened from a mini window (#1734): choosing a Space moves the window's
+    // tabs there, so the menu lists only this profile's and edits nothing.
+    let moveMode = false;
+    let moveTabCount = 0;
     let updateTimer = null;
     let pendingPatch = null;
     // Live edits write in order; each link resolves true when its write saved.
@@ -218,7 +223,7 @@
       if (state.pending) return;
       generation += 1;
       const identity = Identity.defaultsFor(data.items);
-      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link'].includes(start), thisProfile, tabId, tabTitle, original, error: '', touched: false, picker: false };
+      state = { kind: 'new', draft: { name, ...identity }, start: start ?? (current() ? 'empty' : 'window'), fixedStart: !!original || ['tab', 'tabs', 'link', 'mini'].includes(start), thisProfile, tabId, tabTitle, original, error: '', touched: false, picker: false };
       open();
     }
     function beginEdit(workspace) {
@@ -336,6 +341,10 @@
             ? t('ws.error.savedNotMoved', { name: data.items.find((item) => item.id === result.workspaceId)?.name ?? '' })
             : errors[result.error] };
           render();
+        } else if (result?.error === 'moved-partly') {
+          // A mini window's move that stopped partway (#1734): the rest stay.
+          state = { kind: 'list', error: t('ws.error.movedPartly', { name: action?.name ?? '', count: result.movedCount ?? 0 }) };
+          if (!opened) open(); else render();
         } else if (['unsaved-scratch', 'protected-pages'].includes(result?.error) && action) {
           state = { kind: 'decision', action, result, error: '' }; open();
         } else {
@@ -378,6 +387,8 @@
       if (problem) { state.error = errors[problem]; renderEditorError(); popup.querySelector('#workspaceName')?.focus(); return; }
       const name = state.draft.name.trim().replace(/\s+/g, ' ');
       const identity = { color: state.draft.color, symbol: state.draft.symbol };
+      // A mini window's tabs go to the new Space through create-blank (#1734).
+      if (state.start === 'mini') { openAction({ kind: 'create', name, identity }, { move: true }); return; }
       if (['tab', 'tabs', 'link'].includes(state.start)) {
         const isTabs = state.start === 'tabs';
         const isLink = state.start === 'link';
@@ -408,10 +419,12 @@
       const row = el('div', 'workspace-row ws-row'); row.dataset.workspaceId = workspace.id; row.dataset.index = String(index);
       const main = button('', `open:${workspace.id}`, () => {
         if (suppressClick) { suppressClick = false; return; }
-        openAction({ kind: 'open', id: workspace.id, name: workspace.name });
+        openAction({ kind: 'open', id: workspace.id, name: workspace.name }, moveMode ? { move: true } : {});
       }, 'ws-row-main' + (workspace.active ? ' on' : ''));
       main.dataset.current = String(workspace.active);
-      const context = t(workspace.active ? 'ws.row.current' : workspace.openElsewhere ? 'ws.row.showWindow' : workspace.resident ? 'ws.row.retained' : 'ws.row.open');
+      // In move mode every row moves the window's tabs there (#1734).
+      const showsWindow = workspace.openElsewhere && !moveMode;
+      const context = moveMode ? t('mini.moveToSpace.menu') : t(workspace.active ? 'ws.row.current' : workspace.openElsewhere ? 'ws.row.showWindow' : workspace.resident ? 'ws.row.retained' : 'ws.row.open');
       main.title = t('ws.row.title', { name: workspace.name, context, count: workspace.tabCount });
       main.setAttribute('aria-label', main.title);
       if (workspace.active) main.setAttribute('aria-current', 'true');
@@ -419,7 +432,8 @@
       // name keeps the row's width beside the count or Show window.
       let label = dataEl('span', 'ws-row-name', workspace.name);
       if(workspace.sharedSync){const mark=dataEl('span','ws-sync-mark',t('sharedSpaces.'+({full:'fullState',unavailable:'unavailableState'}[workspace.sharedSync.state]??workspace.sharedSync.state),{time:new Date(workspace.sharedSync.lastSyncedAt??0).toLocaleString()}));mark.setAttribute('role','status');if(workspace.sharedSync.reason)mark.title=t(workspace.sharedSync.reason==='tombstones'?'sharedSpaces.tombstones':'sharedSpaces.capacity');const text=el('span','ws-row-text');text.append(label,mark);label=text;}
-      main.append(tile(workspace), label, el('span', 'ws-row-count', workspace.openElsewhere ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      main.append(tile(workspace), label, el('span', 'ws-row-count', showsWindow ? t('ws.row.showWindow') : number.format(workspace.tabCount)));
+      if (moveMode) { row.append(main); return row; }
       main.addEventListener('keydown', (event) => {
         if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
         event.preventDefault(); event.stopPropagation();
@@ -503,9 +517,11 @@
       if(data.sharedSync){nodes.push(el('p','ws-sync-status',t('sharedSpaces.count',data.sharedSync)));if(data.sharedSync.busy)nodes.push(el('p','ws-sync-status',t('sharedSpaces.busy')));else if(data.sharedSync.slowed)nodes.push(el('p','ws-sync-status',t('sharedSpaces.slowed')));}
       if(data.recoveryNotice){nodes.push(el('p','ws-sync-status',t('sharedSpaces.recoveryNote')));nodes.push(button(t('sharedSpaces.cancel'),'dismiss-recovery',()=>run(()=>api.updateWorkspace('',{ackRecovery:true}),()=>{})));}
       // Other profiles with something to show: Spaces, or a file that can't be read.
-      const others = (data.otherProfiles ?? []).filter((profile) => profile.items?.length || UNREADABLE.includes(profile.status));
+      // Tabs can't change profile, so moving lists only this profile's Spaces.
+      const others = moveMode ? [] : (data.otherProfiles ?? []).filter((profile) => profile.items?.length || UNREADABLE.includes(profile.status));
       // Headings only when two groups show; one profile looks exactly as before.
       const heading = (name) => nodes.push(dataEl('p', 'ws-profile-heading', name));
+      if (moveMode) nodes.push(el('p', 'ws-profile-heading', t('ws.moveMode.header')));
       if (others.length) heading(data.profileName ?? '');
       if (!data.items.length) nodes.push(el('p', 'ws-empty', t('ws.list.emptyHint')));
       data.items.forEach((workspace, index) => nodes.push(spaceRow(workspace, index)));
@@ -521,7 +537,7 @@
         nodes.push(row);
       }
       // F45: anyone starting from nothing can bring Spaces over from Arc.
-      if (!data.items.length && !others.length) {
+      if (!data.items.length && !others.length && !moveMode) {
         const arc = button(t('ws.list.importArc'), 'import-arc', () => { close({ force: true }); api.openPage('tab-import'); });
         arc.prepend(glyph('import')); nodes.push(arc);
       }
@@ -532,9 +548,11 @@
     function renderCommands() {
       const nodes = [];
       if (!errors[data.status]) {
-        const add = button(t('ws.new'), 'new', () => beginNew()); add.prepend(glyph('plus')); nodes.push(add);
+        const add = button(t('ws.new'), 'new', () => moveMode
+          ? beginNew({ start: 'mini', thisProfile: true, tabTitle: t('tabsMenu.header', { count: moveTabCount }) })
+          : beginNew()); add.prepend(glyph('plus')); nodes.push(add);
       }
-      if (data.deleted?.length) {
+      if (data.deleted?.length && !moveMode) {
         const recent = button(t('ws.list.recentlyDeleted', { count: data.deleted.length }), 'recently-deleted', () => { state = { kind: 'recovery' }; render(); }, 'ws-cmd quiet');
         recent.prepend(glyph('recover')); nodes.push(recent);
       }
@@ -619,8 +637,8 @@
       }
       form.append(head, ident, status, colorLabel, swatches, pickerSlot, symbolLabel, symbols);
 
-      if (isNew && ['tab', 'tabs', 'link'].includes(state.start)) {
-        form.append(el('p', 'ws-label', t(state.start === 'link' ? 'ws.new.withLink' : state.start === 'tabs' ? 'ws.new.withTabs' : 'ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
+      if (isNew && ['tab', 'tabs', 'link', 'mini'].includes(state.start)) {
+        form.append(el('p', 'ws-label', t(state.start === 'link' ? 'ws.new.withLink' : ['tabs', 'mini'].includes(state.start) ? 'ws.new.withTabs' : 'ws.new.withTab')), dataEl('p', 'ws-help', state.tabTitle));
       }
       if (isNew && !state.fixedStart) {
         const seg = el('div', 'ws-segmented'); seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', t('ws.editor.startWith'));
@@ -842,6 +860,14 @@
         else if (kind === 'delete') { open(); removeNow(workspace); }
       },
       toggle() { opened ? close() : open(); },
+      setMoveMode(on, { tabCount = 0 } = {}) {
+        moveTabCount = tabCount;
+        if (moveMode === !!on) return;
+        moveMode = !!on;
+        // Open in Blanc while New space… is open: that editor moved tabs.
+        if (!moveMode && state.kind === 'new' && state.start === 'mini' && !state.pending) state = { kind: 'list' };
+        if (!state.pending && state.kind === 'list') render();
+      },
       switchTo(workspace) { openAction({ kind: 'open', id: workspace.id, name: workspace.name, ...(workspace.profileId ? { profileId: workspace.profileId } : {}) }); },
       command(name) { const existing = data.items.find((w) => w.name.toLowerCase() === name.toLowerCase()); if (existing) this.switchTo(existing); else beginNew({ name, thisProfile: true }); },
       get opened() { return opened; }, get editing() { return state.kind !== 'list'; },

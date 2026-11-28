@@ -248,14 +248,12 @@ Patron still unlocks no browser features.
 **Mail hero (`/mail`, owner, November 24, 2026):** centred copy, one primary
 action (Reserve your address while `mail-reservations.json` says `open`, the
 waitlist once it closes) with the waitlist as a quiet `<details>` link, then the
-real app: `<MailShot name="hero-light">`, captioned "Preview build · sample
-mail". The image is the Mail repository's `native/scripts/capture-public-shots.sh
-main` capture (the light scene) of its demo corpus (2200px, kept as taken in
-`public/mail/screens/`, its 1100px copy from `scripts/build-display-images.mjs`).
-It is the Mail pages' only screenshot (`test/unit/site-mail-screens.test.js`).
-Retake it whenever the app's visible UI changes, update `heroShot`'s alt text
-in `mail.astro`, and record it in `docs/website-mail-hero-2026-11-24.md` (or a
-newer ledger). The gold envelope closes the page above "Get Blanc Mail at launch."
+real app. The hero pairs the owner's November 28 dark Mac capture with the
+iPhone Inbox QA capture. At desktop widths, the iPhone tilts slightly over
+the right edge of the Mac window. The screenshots stack upright on phones.
+`MailShot` gives the pair one "Preview builds" caption.
+`scripts/build-display-images.mjs` produces the 1100px Mac and 640px iPhone
+display copies. The gold envelope closes the page above "Get Blanc Mail at launch."
 and its one light sweep starts when it first scrolls into view (`data-lit`, set
 by the page's envelope script). The bar's "Mail" word is the lighter Text-cut
 outline (owner, November 24, 2026) and its URL carries `?v=` plus the SVG's

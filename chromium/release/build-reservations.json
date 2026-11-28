@@ -41,6 +41,54 @@
           "linux"
         ],
         "purpose": "release"
+      },
+      {
+        "build": 910,
+        "sourceCommit": "afd08df8d8cc4566ba384a1b3399154571f6839a",
+        "platforms": [
+          "windows"
+        ],
+        "purpose": "release"
+      },
+      {
+        "build": 911,
+        "sourceCommit": "afd08df8d8cc4566ba384a1b3399154571f6839a",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "proof"
+      },
+      {
+        "build": 912,
+        "sourceCommit": "afd08df8d8cc4566ba384a1b3399154571f6839a",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "release"
+      },
+      {
+        "build": 913,
+        "sourceCommit": "d77142ae9d248c6f53093df040fb3f637f5f5169",
+        "platforms": [
+          "windows"
+        ],
+        "purpose": "release"
+      },
+      {
+        "build": 914,
+        "sourceCommit": "e8b2939b4f7620b69a5ec45d922e8b2f398098d7",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "proof"
+      },
+      {
+        "build": 915,
+        "sourceCommit": "e8b2939b4f7620b69a5ec45d922e8b2f398098d7",
+        "platforms": [
+          "linux"
+        ],
+        "purpose": "release"
       }
     ]
   }

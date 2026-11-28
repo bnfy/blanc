@@ -1083,7 +1083,13 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_reuse_new_tab_label">Passa a una nuova scheda non usata</string>
     <string name="settings_general_reuse_new_tab_hint">Nuova scheda passa a una nuova scheda di questa finestra che non hai ancora usato, invece di aprirne un’altra. Nuova scheda privata fa lo stesso con le schede private.</string>
     <string name="settings_general_ask_where_to_save_label">Chiedi dove salvare ogni file</string>
-    <string name="settings_general_ask_where_to_save_hint">Se è disattivato, i download vanno direttamente nella cartella Download e un file con lo stesso nome riceve un numero.</string>
+    <string name="settings_general_ask_where_to_save_hint">Se è disattivato, i download vanno direttamente nella cartella qui sopra e un file con lo stesso nome riceve un numero.</string>
+    <string name="settings_general_download_folder_label">Salva i file in</string>
+    <string name="settings_general_download_folder_change">Cambia…</string>
+    <string name="settings_general_download_folder_reset">Usa Download</string>
+    <string name="settings_general_download_folder_choose_title">Scegli dove salvare i download</string>
+    <string name="settings_general_download_folder_missing">Al momento %1$s non si trova, quindi i download chiedono dove salvare finché non torna o non scegli un’altra cartella.</string>
+    <string name="settings_general_download_folder_unwritable">Blanc non può salvare in %1$s, quindi i download chiedono dove salvare finché non sarà possibile o non scegli un’altra cartella.</string>
     <string name="settings_general_tab_switch_order_recent">Nell’ordine in cui le hai usate</string>
     <string name="settings_general_tab_switch_order_list">Nell’ordine dell’elenco delle schede</string>
     <string name="settings_general_tab_archive_label">Archivia le schede inattive</string>
@@ -2790,6 +2796,9 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="mini_move_to_space_label">Sposta nello Space: sposta le schede di questa minifinestra in uno Space</string>
     <string name="mini_move_to_space_title">Sposta le schede di questa minifinestra in uno Space</string>
     <string name="mini_move_to_space_menu">Sposta nello Space</string>
+    <string name="mini_switch_another_window">Un\'altra finestra</string>
+    <string name="mini_switch_gone">Quella scheda non è più aperta.</string>
+    <string name="mini_switch_busy">Blanc non è riuscito ad aprire quello Space in questo momento. Riprova.</string>
     <string name="ws_move_mode_header">Sposta questa finestra in…</string>
     <string name="ws_error_mini_unmovable">Una scheda privata, o una pagina che riproduce audio, usa la fotocamera o il microfono, condivide lo schermo o mostra un pop-up, non può essere spostata in uno Space. Chiudila o interrompila e riprova.</string>
     <string name="mini_open_in_blanc_label">Apri in Blanc: tieni questa minifinestra come una normale finestra di Blanc</string>
@@ -2801,6 +2810,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Spazio</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Spazio</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Maiusc+Spazio</string>
+    <string name="settings_general_mini_window_links_label">Apri i link di altre app in una minifinestra</string>
+    <string name="settings_general_mini_window_links_hint">I link che corrispondono a una regola vanno comunque dove dice la regola.</string>
     <string name="shared_spaces_switch_android">Mantieni Spaces e gruppi sincronizzati su questo telefono</string>
     <string name="shared_spaces_switch_line_android">Le schede dei tuoi Spaces condivisi vengono sincronizzate da questo telefono.</string>
     <string name="shared_spaces_save_this_phone">Salva Questo telefono come Space</string>

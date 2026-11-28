@@ -182,5 +182,21 @@
     "fr": "Vos données sont là, mais Sync n’a pas pu être configuré. Réessayez pour configurer Sync.",
     "it": "I tuoi dati sono qui, ma non è stato possibile configurare Sync. Riprova per configurare Sync.",
     "pt-BR": "Seus dados estão aqui, mas não foi possível configurar o Sync. Tente de novo para configurar o Sync."
+  },
+  "settings.videoDecoding.label": {
+    "en": "Use hardware video decoding",
+    "de": "Hardwarebeschleunigte Videodekodierung verwenden",
+    "es": "Usar decodificación de vídeo por hardware",
+    "fr": "Utiliser le décodage vidéo matériel",
+    "it": "Usa la decodifica video hardware",
+    "pt-BR": "Usar decodificação de vídeo por hardware"
+  },
+  "settings.videoDecoding.hint": {
+    "en": "If videos flicker, turn this off. Quit and reopen Blanc to apply the change.",
+    "de": "Wenn Videos flackern, schalte diese Option aus. Beende Blanc und öffne es erneut, um die Änderung zu übernehmen.",
+    "es": "Si los vídeos parpadean, desactiva esta opción. Cierra Blanc y vuelve a abrirlo para aplicar el cambio.",
+    "fr": "Si les vidéos scintillent, désactivez cette option. Quittez Blanc et rouvrez-le pour appliquer la modification.",
+    "it": "Se i video sfarfallano, disattiva questa opzione. Chiudi e riapri Blanc per applicare la modifica.",
+    "pt-BR": "Se os vídeos piscarem, desative esta opção. Feche e abra o Blanc novamente para aplicar a alteração."
   }
 }

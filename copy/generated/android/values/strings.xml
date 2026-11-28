@@ -1051,7 +1051,13 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_reuse_new_tab_label">Switch to an unused new tab</string>
     <string name="settings_general_reuse_new_tab_hint">New Tab goes to a new tab in this window that you haven\'t used yet, instead of opening another. New Private Tab does the same for private tabs.</string>
     <string name="settings_general_ask_where_to_save_label">Ask where to save each file</string>
-    <string name="settings_general_ask_where_to_save_hint">When this is off, downloads go straight to your Downloads folder, and a file with the same name gets a number added.</string>
+    <string name="settings_general_ask_where_to_save_hint">When this is off, downloads go straight to the folder above, and a file with the same name gets a number added.</string>
+    <string name="settings_general_download_folder_label">Save files to</string>
+    <string name="settings_general_download_folder_change">Change…</string>
+    <string name="settings_general_download_folder_reset">Use Downloads</string>
+    <string name="settings_general_download_folder_choose_title">Choose where to save downloads</string>
+    <string name="settings_general_download_folder_missing">%1$s can\'t be found right now, so downloads ask where to save until it\'s back or you choose another folder.</string>
+    <string name="settings_general_download_folder_unwritable">Blanc can\'t save to %1$s, so downloads ask where to save until it can or you choose another folder.</string>
     <string name="settings_general_tab_switch_order_recent">In the order you used them</string>
     <string name="settings_general_tab_switch_order_list">In the order of the tab list</string>
     <string name="settings_general_tab_archive_label">Archive inactive tabs</string>
@@ -1410,7 +1416,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_sync_off_title">Sync your Blanc</string>
     <string name="settings_sync_off_body">Favorites, settings and, if you choose, open tabs, end-to-end encrypted.</string>
     <string name="settings_sync_off_turn_on">Turn on Sync</string>
-    <string name="settings_sync_off_have_code">Already sync on another device?</string>
+    <string name="settings_sync_off_have_code">Already syncing on another device?</string>
     <string name="settings_sync_off_add_with_code">Add this device with a code</string>
     <string name="settings_sync_off_other_ways">Other ways</string>
     <string name="settings_sync_off_use_passphrase">Use a sync name and passphrase</string>
@@ -1430,7 +1436,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_sync_sheet_start_body_generic">This turns on Sync for this computer. You won’t need a name or passphrase.</string>
     <string name="settings_sync_sheet_continue">Continue</string>
     <string name="settings_sync_sheet_making_code">Making a code…</string>
-    <string name="settings_sync_sheet_already_sync">Already sync on another computer?</string>
+    <string name="settings_sync_sheet_already_sync">Already syncing on another computer?</string>
     <string name="settings_sync_sheet_add_this_first">Add this Mac with a code first</string>
     <string name="settings_sync_sheet_add_this_first_generic">Add this computer with a code first</string>
     <string name="settings_sync_recovery_prompt_title">Keep a way back in</string>
@@ -2707,6 +2713,9 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="mini_move_to_space_label">Move to Space — move this mini window\'s tabs to a Space</string>
     <string name="mini_move_to_space_title">Move this mini window\'s tabs to a Space</string>
     <string name="mini_move_to_space_menu">Move to Space</string>
+    <string name="mini_switch_another_window">Another window</string>
+    <string name="mini_switch_gone">That tab isn\'t open anymore.</string>
+    <string name="mini_switch_busy">Blanc couldn\'t open that Space just now. Try again.</string>
     <string name="ws_move_mode_header">Move this window to…</string>
     <string name="ws_error_mini_unmovable">A private tab, or a page that\'s playing sound, using the camera or microphone, sharing the screen or showing a pop-up, can\'t move to a space. Close or stop it, then try again.</string>
     <string name="mini_open_in_blanc_label">Open in Blanc — keep this mini window as an ordinary Blanc window</string>
@@ -2718,6 +2727,8 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Spacebar</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Ctrl+Alt+Spacebar</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Ctrl+Shift+Spacebar</string>
+    <string name="settings_general_mini_window_links_label">Open links from other apps in a mini window</string>
+    <string name="settings_general_mini_window_links_hint">Links that match a rule still go where the rule says.</string>
     <string name="shared_spaces_switch_android">Keep Spaces and groups in sync on this phone</string>
     <string name="shared_spaces_switch_line_android">Tabs in your shared Spaces are synced from this phone.</string>
     <string name="shared_spaces_save_this_phone">Save This Phone as a Space</string>

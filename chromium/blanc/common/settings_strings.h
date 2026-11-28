@@ -14,7 +14,7 @@ struct String {
   std::string_view name;
   std::u16string_view value;
 };
-inline constexpr std::array<String, 231> kStrings_en = {{
+inline constexpr std::array<String, 233> kStrings_en = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Favorites"},
     {"blancProfileImportHistory", u"History"},
@@ -228,6 +228,8 @@ inline constexpr std::array<String, 231> kStrings_en = {{
     {"blancLanguageHint", u"Translations are machine-generated."},
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Relaunch to apply"},
+    {"blancVideoDecoding", u"Use hardware video decoding"},
+    {"blancVideoDecodingHint", u"If videos flicker, turn this off. Quit and reopen Blanc to apply the change."},
     {"blancProfileImportTitle", u"Bring your data from the released Blanc app"},
     {"blancProfileImportHint", u"Copies favorites, history, Spaces, open tabs, settings and Sync from the released Blanc app on this Mac. Its own data is left as it is."},
     {"blancProfileImportStart", u"Import"},
@@ -247,7 +249,7 @@ inline constexpr std::array<String, 231> kStrings_en = {{
     {"blancProfileImportLeftBehind", u"Not imported: website sign-ins, the downloads list and a few settings. You'll need to sign in to websites again."},
     {"blancProfileImportSyncFailed", u"Your data is here, but Sync couldn't be set up. Try again to set up Sync."},
 }};
-inline constexpr std::array<String, 231> kStrings_de = {{
+inline constexpr std::array<String, 233> kStrings_de = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Favoriten"},
     {"blancProfileImportHistory", u"Verlauf"},
@@ -461,6 +463,8 @@ inline constexpr std::array<String, 231> kStrings_de = {{
     {"blancLanguageHint", u"Übersetzungen werden maschinell erstellt."},
     {"blancLanguageSystem", u"System ({language})"},
     {"blancLanguageRelaunch", u"Zum Übernehmen neu starten"},
+    {"blancVideoDecoding", u"Hardwarebeschleunigte Videodekodierung verwenden"},
+    {"blancVideoDecodingHint", u"Wenn Videos flackern, schalte diese Option aus. Beende Blanc und öffne es erneut, um die Änderung zu übernehmen."},
     {"blancProfileImportTitle", u"Daten aus der veröffentlichten Blanc-App übernehmen"},
     {"blancProfileImportHint", u"Kopiert Favoriten, Verlauf, Spaces, geöffnete Tabs, Einstellungen und Sync aus der veröffentlichten Blanc-App auf diesem Mac. Deren eigene Daten bleiben unverändert."},
     {"blancProfileImportStart", u"Importieren"},
@@ -480,7 +484,7 @@ inline constexpr std::array<String, 231> kStrings_de = {{
     {"blancProfileImportLeftBehind", u"Nicht importiert: Website-Anmeldungen, die Download-Liste und einige Einstellungen. Du musst dich bei Websites erneut anmelden."},
     {"blancProfileImportSyncFailed", u"Deine Daten sind da, aber Sync konnte nicht eingerichtet werden. Versuche es erneut, um Sync einzurichten."},
 }};
-inline constexpr std::array<String, 231> kStrings_es = {{
+inline constexpr std::array<String, 233> kStrings_es = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Favoritos"},
     {"blancProfileImportHistory", u"Historial"},
@@ -694,6 +698,8 @@ inline constexpr std::array<String, 231> kStrings_es = {{
     {"blancLanguageHint", u"Las traducciones se generan automáticamente."},
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
+    {"blancVideoDecoding", u"Usar decodificación de vídeo por hardware"},
+    {"blancVideoDecodingHint", u"Si los vídeos parpadean, desactiva esta opción. Cierra Blanc y vuelve a abrirlo para aplicar el cambio."},
     {"blancProfileImportTitle", u"Traer tus datos de la app Blanc publicada"},
     {"blancProfileImportHint", u"Copia favoritos, historial, Spaces, pestañas abiertas, ajustes y Sync de la app Blanc publicada en este Mac. Sus propios datos no cambian."},
     {"blancProfileImportStart", u"Importar"},
@@ -713,7 +719,7 @@ inline constexpr std::array<String, 231> kStrings_es = {{
     {"blancProfileImportLeftBehind", u"No se importaron: los inicios de sesión en sitios web, la lista de descargas y algunos ajustes. Tendrás que volver a iniciar sesión en los sitios web."},
     {"blancProfileImportSyncFailed", u"Tus datos ya están aquí, pero no se pudo configurar Sync. Vuelve a intentarlo para configurar Sync."},
 }};
-inline constexpr std::array<String, 231> kStrings_fr = {{
+inline constexpr std::array<String, 233> kStrings_fr = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Favoris"},
     {"blancProfileImportHistory", u"Historique"},
@@ -927,6 +933,8 @@ inline constexpr std::array<String, 231> kStrings_fr = {{
     {"blancLanguageHint", u"Les traductions sont générées automatiquement."},
     {"blancLanguageSystem", u"Système ({language})"},
     {"blancLanguageRelaunch", u"Redémarrer pour appliquer"},
+    {"blancVideoDecoding", u"Utiliser le décodage vidéo matériel"},
+    {"blancVideoDecodingHint", u"Si les vidéos scintillent, désactivez cette option. Quittez Blanc et rouvrez-le pour appliquer la modification."},
     {"blancProfileImportTitle", u"Importer vos données depuis l'app Blanc publiée"},
     {"blancProfileImportHint", u"Copie les favoris, l'historique, les Spaces, les onglets ouverts, les réglages et Sync depuis l'app Blanc publiée sur ce Mac. Ses propres données restent intactes."},
     {"blancProfileImportStart", u"Importer"},
@@ -946,7 +954,7 @@ inline constexpr std::array<String, 231> kStrings_fr = {{
     {"blancProfileImportLeftBehind", u"Non importés : les connexions aux sites web, la liste des téléchargements et quelques réglages. Vous devrez vous reconnecter aux sites web."},
     {"blancProfileImportSyncFailed", u"Vos données sont là, mais Sync n’a pas pu être configuré. Réessayez pour configurer Sync."},
 }};
-inline constexpr std::array<String, 231> kStrings_it = {{
+inline constexpr std::array<String, 233> kStrings_it = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Preferiti"},
     {"blancProfileImportHistory", u"Cronologia"},
@@ -1160,6 +1168,8 @@ inline constexpr std::array<String, 231> kStrings_it = {{
     {"blancLanguageHint", u"Le traduzioni sono generate automaticamente."},
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Riavvia per applicare"},
+    {"blancVideoDecoding", u"Usa la decodifica video hardware"},
+    {"blancVideoDecodingHint", u"Se i video sfarfallano, disattiva questa opzione. Chiudi e riapri Blanc per applicare la modifica."},
     {"blancProfileImportTitle", u"Porta i tuoi dati dall'app Blanc pubblicata"},
     {"blancProfileImportHint", u"Copia preferiti, cronologia, Spaces, schede aperte, impostazioni e Sync dall'app Blanc pubblicata su questo Mac. I suoi dati restano come sono."},
     {"blancProfileImportStart", u"Importa"},
@@ -1179,7 +1189,7 @@ inline constexpr std::array<String, 231> kStrings_it = {{
     {"blancProfileImportLeftBehind", u"Non importati: gli accessi ai siti web, l’elenco dei download e alcune impostazioni. Dovrai accedere di nuovo ai siti web."},
     {"blancProfileImportSyncFailed", u"I tuoi dati sono qui, ma non è stato possibile configurare Sync. Riprova per configurare Sync."},
 }};
-inline constexpr std::array<String, 231> kStrings_pt_BR = {{
+inline constexpr std::array<String, 233> kStrings_pt_BR = {{
     {"blancProfileImportPersonal", u"Personal"},
     {"blancProfileImportFavorites", u"Favoritos"},
     {"blancProfileImportHistory", u"Histórico"},
@@ -1393,6 +1403,8 @@ inline constexpr std::array<String, 231> kStrings_pt_BR = {{
     {"blancLanguageHint", u"As traduções são geradas automaticamente."},
     {"blancLanguageSystem", u"Sistema ({language})"},
     {"blancLanguageRelaunch", u"Reiniciar para aplicar"},
+    {"blancVideoDecoding", u"Usar decodificação de vídeo por hardware"},
+    {"blancVideoDecodingHint", u"Se os vídeos piscarem, desative esta opção. Feche e abra o Blanc novamente para aplicar a alteração."},
     {"blancProfileImportTitle", u"Trazer seus dados do app Blanc lançado"},
     {"blancProfileImportHint", u"Copia favoritos, histórico, Spaces, abas abertas, ajustes e Sync do app Blanc lançado neste Mac. Os dados dele ficam como estão."},
     {"blancProfileImportStart", u"Importar"},

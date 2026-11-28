@@ -1051,7 +1051,13 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_reuse_new_tab_label">Zu einem unbenutzten neuen Tab wechseln</string>
     <string name="settings_general_reuse_new_tab_hint">„Neuer Tab“ wechselt zu einem neuen Tab in diesem Fenster, den du noch nicht benutzt hast, statt einen weiteren zu öffnen. „Neuer privater Tab“ macht dasselbe für private Tabs.</string>
     <string name="settings_general_ask_where_to_save_label">Für jede Datei fragen, wo sie gespeichert wird</string>
-    <string name="settings_general_ask_where_to_save_hint">Wenn das aus ist, landen Downloads direkt in deinem Ordner „Downloads“, und eine Datei mit demselben Namen bekommt eine Nummer angehängt.</string>
+    <string name="settings_general_ask_where_to_save_hint">Wenn das aus ist, landen Downloads direkt im Ordner oben, und eine Datei mit demselben Namen bekommt eine Nummer angehängt.</string>
+    <string name="settings_general_download_folder_label">Dateien speichern in</string>
+    <string name="settings_general_download_folder_change">Ändern…</string>
+    <string name="settings_general_download_folder_reset">Downloads verwenden</string>
+    <string name="settings_general_download_folder_choose_title">Wähle, wo Downloads gespeichert werden</string>
+    <string name="settings_general_download_folder_missing">%1$s ist gerade nicht zu finden. Bis der Ordner wieder da ist oder du einen anderen wählst, fragen Downloads, wo sie gespeichert werden.</string>
+    <string name="settings_general_download_folder_unwritable">Blanc kann nicht in %1$s speichern. Bis das wieder geht oder du einen anderen Ordner wählst, fragen Downloads, wo sie gespeichert werden.</string>
     <string name="settings_general_tab_switch_order_recent">In der Reihenfolge der Nutzung</string>
     <string name="settings_general_tab_switch_order_list">In der Reihenfolge der Tab-Liste</string>
     <string name="settings_general_tab_archive_label">Inaktive Tabs archivieren</string>
@@ -2707,6 +2713,9 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="mini_move_to_space_label">In Space verschieben – die Tabs dieses Mini-Fensters in einen Space verschieben</string>
     <string name="mini_move_to_space_title">Die Tabs dieses Mini-Fensters in einen Space verschieben</string>
     <string name="mini_move_to_space_menu">In Space verschieben</string>
+    <string name="mini_switch_another_window">Anderes Fenster</string>
+    <string name="mini_switch_gone">Dieser Tab ist nicht mehr geöffnet.</string>
+    <string name="mini_switch_busy">Blanc konnte diesen Space gerade nicht öffnen. Versuche es erneut.</string>
     <string name="ws_move_mode_header">Dieses Fenster verschieben nach …</string>
     <string name="ws_error_mini_unmovable">Ein privater Tab oder eine Seite, die Ton abspielt, Kamera oder Mikrofon nutzt, den Bildschirm teilt oder ein Pop-up zeigt, kann nicht in einen Space verschoben werden. Schließe oder beende sie und versuche es erneut.</string>
     <string name="mini_open_in_blanc_label">In Blanc öffnen – dieses Mini-Fenster als normales Blanc-Fenster behalten</string>
@@ -2718,6 +2727,8 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space_mac">⌃⌥Leertaste</string>
     <string name="settings_general_mini_window_shortcut_ctrl_alt_space">Strg+Alt+Leertaste</string>
     <string name="settings_general_mini_window_shortcut_ctrl_shift_space">Strg+Umschalt+Leertaste</string>
+    <string name="settings_general_mini_window_links_label">Links aus anderen Apps in einem Mini-Fenster öffnen</string>
+    <string name="settings_general_mini_window_links_hint">Links, die zu einer Regel passen, gehen weiterhin dorthin, wo die Regel sie hinschickt.</string>
     <string name="shared_spaces_switch_android">Spaces und Gruppen auf diesem Telefon synchron halten</string>
     <string name="shared_spaces_switch_line_android">Tabs in deinen geteilten Spaces werden von diesem Telefon synchronisiert.</string>
     <string name="shared_spaces_save_this_phone">Dieses Telefon als Space sichern</string>

@@ -102,3 +102,28 @@ test('every tab is watched for the click that lets one download skip Save As', (
   assert.match(tabView, /const \{ trackDownloadGestures \} = require\('\.\/downloads'\);/);
   assert.match(tabView, /function wireTabView\([\s\S]{0,1500}trackDownloadGestures\(wc\);/);
 });
+
+// #1780: the folder downloads go to.
+test('the download folder starts as the system Downloads folder', (t) => {
+  assert.equal(freshProfile(t, 'folder-new').getSettings().downloadFolder, '');
+  assert.equal(freshProfile(t, 'folder-bad', { downloadFolder: 'relative/x' }).getSettings().downloadFolder, '');
+});
+
+test('a page cannot name the download folder; only setDownloadFolder() writes it', (t) => {
+  const settings = freshProfile(t, 'folder-set');
+  const chosen = path.join(os.tmpdir(), 'Chosen Downloads');
+  settings.setSettings({ downloadFolder: chosen });
+  assert.equal(settings.getSettings().downloadFolder, '');
+  assert.equal(settings.setDownloadFolder(chosen, path.join(os.homedir(), 'Downloads')), chosen);
+  assert.equal(settings.getSettings().downloadFolder, chosen);
+  // Choosing the system folder again stores the default.
+  const system = path.join(os.homedir(), 'Downloads');
+  assert.equal(settings.setDownloadFolder(system, system), '');
+});
+
+test('the download folder is device-local and kept from the page', () => {
+  const settings = read('src/main/settings.js');
+  assert.doesNotMatch(settings.match(/const SYNCED_KEYS = \[([^\]]*)\]/)[1], /downloadFolder/);
+  assert.ok(JSON.parse(read('settings-schema/schema.json')).internalDefaults.includes('downloadFolder'));
+  assert.match(read('src/main/pages.js'), /downloadFolder: _downloadFolder,/);
+});

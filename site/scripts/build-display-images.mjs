@@ -55,10 +55,10 @@ const jobs = [
   // capture-public-shots.sh (scene rule-editor, bnfy/blanc-mail#147): a 1100px
   // copy for MailShot's srcset; the 1400px capture stays as taken.
   { source: 'mail/screens/rule-editor.webp', output: 'mail/screens/rule-editor-1100.webp', width: 1100 },
-  // The Mail page hero (November 24, 2026): the light window from
-  // capture-public-shots.sh, 2200px as taken, with an 1100px copy for phones
-  // and narrow windows.
+  // The earlier light Mac capture and the current dark Mac and iPhone previews.
   { source: 'mail/screens/hero-light.webp', output: 'mail/screens/hero-light-1100.webp', width: 1100 },
+  { source: 'mail/screens/hero-dark.webp', output: 'mail/screens/hero-dark-1100.webp', width: 1100 },
+  { source: 'mail/screens/iphone-inbox.webp', output: 'mail/screens/iphone-inbox-640.webp', width: 640 },
   // Address setup dialogs rendered on transparency, shown at up to 512 CSS pixels.
   ...['address-offer', 'address-choose', 'address-ready'].map(name => ({
     source: `mail/teasers/${name}.webp`,

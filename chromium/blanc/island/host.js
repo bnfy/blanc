@@ -428,8 +428,9 @@
   const SPACE_SCRATCH = '__scratch__';
   const SPACE_LIMIT = 25;
   let spacesBound = '';
+  // A mini window reads the list too: its Spaces menu moves its tabs into one
+  // (#1734). Saving or switching the mini window itself stays refused.
   const spaceList = async () => {
-    if (snapshot?.miniWindow) return {meta:{order:[],items:{},deleted:[]},elsewhere:new Set(),held:new Set()};
     const { meta, elsewhere, held } = await request('spaceMeta');
     return { meta: { order: [], items: {}, deleted: [], ...meta }, elsewhere: new Set(elsewhere), held: new Set(held) };
   };
@@ -545,6 +546,9 @@
     return spaceResult({ workspaceId: id, action: 'swap' });
   }
   async function openSpace(id, options = {}) {
+    // A mini window switches to no Space; only its menu's move mode (`move`)
+    // files its tabs into one of this profile's (#1734).
+    if (snapshot?.miniWindow) return options.move === true && !otherProfileTarget(options) ? moveMiniWindowToSpace(id, null) : { ok: false, error: 'busy' };
     // Another profile's Space opens (or comes forward) in a window of that
     // profile; this window's tabs and Space stay as they are.
     const target = otherProfileTarget(options);
@@ -614,6 +618,7 @@
     return spaceResult(shown);
   }
   async function createBlankSpace(rawName, options = {}) {
+    if (snapshot?.miniWindow) return options.move === true && !otherProfileTarget(options) ? moveMiniWindowToSpace(null, { name: rawName, color: options.color, symbol: options.symbol }) : { ok: false, error: 'busy' };
     // Another profile's new Space is made by a window of that profile
     // (openPendingSpace there); this window stays as it is.
     const target = otherProfileTarget(options);
@@ -656,6 +661,91 @@
     const opened = newWindow ? await openSpaceElsewhere(id) : await swapToSpace(id);
     // The saved Space stays findable, so a retry can't fail as a duplicate.
     return opened.ok ? { ...opened, workspaceId: id } : { ok: false, error: 'saved-not-opened', cause: opened.error, detail: opened.detail, workspaceId: id };
+  }
+  // Move to Space from a mini window (#1734, shipping's moveMiniWindowToSpace):
+  // the runs of tabs it moves, in order, each with its group (Chromium's
+  // groups are contiguous). A start page stays and closes with the window,
+  // used or not: a Space's record here holds only web pages, so one would
+  // refuse the whole move (shipping keeps a used one; the fork can't).
+  const stayingStartPage = tab => !tab.private && tab.url === 'blanc://newtab/';
+  function miniMoveRuns(tabs) {
+    const runs = [];
+    for (const tab of tabs) {
+      const groupId = tab.groupId ?? null;
+      // A private tab's start page also reads as blanc://newtab/; it is never
+      // left behind to close with the window (canPlace refuses it instead).
+      if (stayingStartPage(tab)) continue;
+      const last = runs.at(-1);
+      if (last && last.groupId === groupId) last.ids.push(tab.id);
+      else runs.push({ ids: [tab.id], groupId });
+    }
+    return runs;
+  }
+  // Every run joins the Space (or a new one, `creation`) through the native
+  // batch move, then the Space comes forward and the mini window closes. All
+  // or nothing: one page that can't go to a Space stops it (canPlace). The
+  // Spaces menu renders a failure itself.
+  async function moveMiniWindowToSpace(id, creation) {
+    await refresh();
+    let runs = miniMoveRuns(snapshot.tabs);
+    const ids = runs.flatMap(run => run.ids);
+    if (!ids.length) return { ok: false, error: 'busy', movedCount: 0 };
+    const state = await request('batchTabsMenuState', [ids.map(nativeId)]);
+    if (!state?.canPlace) return { ok: false, error: 'unmovable', movedCount: 0 };
+    const list = await spaceList();
+    let target = id, checked = null;
+    if (creation) {
+      checked = checkSpaceName(list, creation.name);
+      if (checked.error) return { ok: false, error: checked.error };
+      if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit' };
+      target = crypto.randomUUID();
+    } else if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found', movedCount: 0 };
+    // A group moves only with all its members, so a start page in one leaves
+    // the group, now that nothing can refuse the move before it starts (the
+    // same tabs move either way: miniMoveRuns leaves every start page out).
+    const grouped = snapshot.tabs.filter(tab => tab.groupId && stayingStartPage(tab));
+    for (const tab of grouped) await request('setTabGroup', [nativeId(tab.id), null]);
+    if (grouped.length) { await refresh(); runs = miniMoveRuns(snapshot.tabs); }
+    let moved = 0, tabCount = 0, failure = null;
+    for (const [index, run] of runs.entries()) {
+      const create = !!creation && index === 0;
+      const move = () => request('spaceMoveTabs', [run.ids.map(nativeId), target, create, ...(run.groupId ? [run.groupId] : [])]);
+      let result = await move();
+      // Another window's Space write (an autosave, a switch) can land between
+      // two runs; a later run waits it out rather than leaving tabs behind.
+      for (let attempt = 0; index > 0 && attempt < 10 && !result.ok && !result.movedCount && ['busy', 'refused'].includes(result.error); attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        result = await move();
+      }
+      moved += result.movedCount ?? 0;
+      if (result.tabCount) tabCount = result.tabCount;
+      // A new Space is listed once its record is saved, so it stays findable.
+      if (create && result.saved) {
+        const fresh = await spaceList();
+        fresh.meta.items[target] = { name: checked.name, ...spaceIdentity(fresh, creation), tabCount };
+        fresh.meta.order.push(target);
+        await request('spaceMetaSave', [fresh.meta]);
+      }
+      if (!result.ok) {
+        // A new Space saved before anything moved is listed, so the editor
+        // must not invite a retry that can only be a duplicate name.
+        failure = create && result.saved && !moved ? 'saved-not-moved'
+          : ({ refused: 'busy', 'prepare-failed': 'activation-failed' }[result.error] ?? result.error);
+        break;
+      }
+    }
+    const after = await spaceList();
+    if (after.meta.items[target] && tabCount) after.meta.items[target].tabCount = tabCount;
+    await writeSpaces(after);
+    await refresh();
+    if (failure) return { ok: false, error: moved ? 'moved-partly' : failure, movedCount: moved, ...(after.meta.items[target] ? { workspaceId: target } : {}) };
+    const focused = after.elsewhere.has(target) && await request('spaceFocus', [target]) === true;
+    if (!focused) {
+      const opened = await openSpaceElsewhere(target);
+      if (!opened.ok) return { ok: false, error: 'saved-not-opened', workspaceId: target, movedCount: moved };
+    }
+    await request('closeWindow');
+    return { ok: true, workspaceId: target, movedCount: moved, action: 'focus' };
   }
   async function updateSpace(id, patch = {}) {
     const list = await spaceList();
@@ -1163,6 +1253,7 @@
       // Island hands focus to this window's page again.
       if (lastWindowActive === false && snapshot.windowActive === true) focusLeftWindow = false;
       lastWindowActive = snapshot.windowActive;
+      snapshot.miniWindowCanMove = !!snapshot.miniWindow && miniMoveRuns(snapshot.tabs).length > 0;
       if (snapshot.miniWindow && !miniSearchOpened) {
         miniSearchOpened = true;
         setTimeout(() => window.BlancPrototypeHost.open(true), 50);

@@ -168,6 +168,20 @@ function chooseSavePath(item, requester) {
   }
 }
 
+// #1780: Save As opens in the folder chosen in Settings, when there is one
+// and it's there (a retry passes the folder its file was going to).
+// Otherwise Electron's own default (the system's Downloads).
+function openSaveDialogIn(item, preferred) {
+  if (typeof item.setSaveDialogOptions !== 'function') return;
+  try {
+    const folder = preferred || (typeof savePolicy?.dialogFolder === 'function' ? savePolicy.dialogFolder() : '');
+    if (!folder || !fs.statSync(folder).isDirectory()) return;
+    item.setSaveDialogOptions({ defaultPath: path.join(folder, path.basename(item.getFilename() || '')) });
+  } catch {
+    // A folder that's gone or unreadable: the dialog's own default.
+  }
+}
+
 const THROTTLE_MS = 250;
 let lastBroadcast = 0;
 let broadcastTimer = null;
@@ -252,6 +266,8 @@ function setupDownloads(
         item.setSavePath(savePath);
         record.filename = path.basename(savePath);
       }
+      // Save As for a retry opens where the file was going, not in Settings' folder.
+      entry.dialogFolder = path.dirname(retry.path);
     } else {
       const savePath = asked ? null : chooseSavePath(item, requestingWebContents);
       if (savePath) {
@@ -264,6 +280,7 @@ function setupDownloads(
     }
     // Saved without asking: under way now. Save As waits for its answer.
     if (item.getSavePath()) notifyActivity(entry, 'started');
+    else openSaveDialogIn(item, entry.dialogFolder);
 
     item.on('updated', (_e, state) => withLocalProfile(profileId, () => {
       record.state = state; // 'progressing' | 'interrupted'
