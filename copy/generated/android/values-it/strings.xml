@@ -2796,6 +2796,8 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="mini_move_to_space_label">Sposta nello Space: sposta le schede di questa minifinestra in uno Space</string>
     <string name="mini_move_to_space_title">Sposta le schede di questa minifinestra in uno Space</string>
     <string name="mini_move_to_space_menu">Sposta nello Space</string>
+    <string name="mini_switch_another_window">Un\'altra finestra</string>
+    <string name="mini_switch_gone">Quella scheda non è più aperta.</string>
     <string name="ws_move_mode_header">Sposta questa finestra in…</string>
     <string name="ws_error_mini_unmovable">Una scheda privata, o una pagina che riproduce audio, usa la fotocamera o il microfono, condivide lo schermo o mostra un pop-up, non può essere spostata in uno Space. Chiudila o interrompila e riprova.</string>
     <string name="mini_open_in_blanc_label">Apri in Blanc: tieni questa minifinestra come una normale finestra di Blanc</string>

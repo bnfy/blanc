@@ -169,6 +169,11 @@
   let historyEntries = [];
   // F52: the profile's archived tabs (projected rows; never private).
   let archivedEntries = [];
+  // A mini window's switcher also lists the profile's tabs elsewhere (#1734
+  // part 2): other windows and Spaces set aside; a pick that finds its tab
+  // gone leaves a notice until the input changes.
+  let elsewhereTabs = [];
+  let elsewhereNotice = '';
   // Spec D6: the one-time first-archive notice ({count}), or null.
   let archiveNotice = null;
   // Other devices' tab snapshots (tab sync). Renderer-local fold state —
@@ -1876,19 +1881,17 @@
 
   function switcherResults(query) {
     const results = [];
-    // A mini window holds no Space and switches to none (#1734): its Spaces
-    // button moves it instead, so typing a Space's name offers no Space here.
-    const spaceResults = state.miniWindow !== true;
     // Spaces rank with groups: typing a space's name switches to it. The
-    // current space is already here, so it never appears.
-    for (const w of spaceResults ? wsWorkspaces : []) {
+    // current space is already here, so it never appears. In a mini window
+    // a Space picked here is gone to; nothing moves (#1734 part 2).
+    for (const w of wsWorkspaces) {
       if (w.active) continue;
       const s = matchScore(query, w.name);
       if (s) results.push({ kind: 'space', title: w.name, sub: blancI18n.t('result.groupCount', { count: w.tabCount }), workspace: w, score: s + 0.3 });
     }
     // Other profiles' Spaces open in a window of their profile; they rank
     // just below this profile's.
-    for (const profile of spaceResults ? wsOtherProfiles : []) {
+    for (const profile of wsOtherProfiles) {
       for (const w of profile.items ?? []) {
         const s = matchScore(query, w.name);
         if (s) results.push({ kind: 'space', title: w.name, sub: blancI18n.t('ws.switcher.profileLabel', { profile: profile.name }), workspace: { ...w, profileId: profile.id, profileName: profile.name }, score: s + 0.2 });
@@ -1908,6 +1911,22 @@
       // and rail). The switcher sub is just the tab's domain.
       const sub = tabDomain(t);
       if (s) results.push({ kind: 'tab', title: t.title || blancI18n.t('tab.untitled'), sub, tab: t, score: s + 0.2 });
+    }
+    // A mini window's tabs elsewhere (#1734 part 2) rank just below its own
+    // tabs and above Favorites, saying which Space or window holds them.
+    if (state.miniWindow === true) {
+      for (const e of elsewhereTabs) {
+        const s = matchScore(query, matchableText(e.title, e.url));
+        if (s) results.push({
+          kind: 'elsewhere',
+          title: e.title,
+          sub: `${hostOfUrl(e.url)} · ${e.place ?? blancI18n.t('mini.switch.anotherWindow')}`,
+          url: e.url,
+          tab: { url: e.url, favicon: e.favicon },
+          key: e.key,
+          score: s + 0.15,
+        });
+      }
     }
     for (const f of favorites) {
       const s = matchScore(query, matchableText(f.title, f.url));
@@ -1950,7 +1969,7 @@
     return results
       .sort((a, b) => b.score - a.score)
       .filter((r) => {
-        const key = r.kind === 'tab' ? `tab:${r.tab.id}` : r.kind === 'group' ? `group:${r.group.id}` : r.kind === 'space' ? `space:${r.workspace.profileId ?? ''}:${r.workspace.id}` : r.url;
+        const key = r.kind === 'tab' ? `tab:${r.tab.id}` : r.kind === 'group' ? `group:${r.group.id}` : r.kind === 'space' ? `space:${r.workspace.profileId ?? ''}:${r.workspace.id}` : r.kind === 'elsewhere' ? `elsewhere:${r.key}` : r.url;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -2020,6 +2039,7 @@
     if (result.kind === 'group') return `group:${result.group.id}`;
     if (result.kind === 'space') return result.workspace.profileId ? `space:${result.workspace.profileId}:${result.workspace.id}` : `space:${result.workspace.id}`;
     if (result.kind === 'tab') return `tab:${result.tab.id}`;
+    if (result.kind === 'elsewhere') return `elsewhere:${result.key}`;
     if (result.kind === 'search') return `search:${result.query.toLowerCase()}`;
     if (result.kind === 'bang') return `bang:${result.code}:${result.query}`;
     if (result.kind === 'bangPick') return `bangPick:${result.code}`;
@@ -2036,6 +2056,17 @@
     if (result.kind === 'bang') {
       if (state.activeTabId) window.browserAPI.navigate(state.activeTabId, result.text);
       window.browserAPI.closeOverlay();
+      return;
+    }
+    // A tab elsewhere (#1734 part 2): main brings its window forward or opens
+    // its Space; the panel waits, and stays with a notice if it has gone.
+    if (result.kind === 'elsewhere') {
+      Promise.resolve(window.browserAPI.goToMiniSwitchTab(result.key)).then((reply) => {
+        if (reply?.ok) { window.browserAPI.closeOverlay(); return; }
+        elsewhereTabs = elsewhereTabs.filter((e) => e.key !== result.key);
+        elsewhereNotice = blancI18n.t('mini.switch.gone');
+        renderList();
+      }, () => {});
       return;
     }
     if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
@@ -2658,6 +2689,11 @@
           ? visibleResults.map((r, i) => resultRow(r, i === activeIndex, i === enterIndex))
           : [emptyRow(blancI18n.t('list.noMatches'))])
       );
+      if (elsewhereNotice) {
+        const notice = emptyRow(elsewhereNotice);
+        notice.classList.add('command-notice');
+        islandList.prepend(notice);
+      }
     } else {
       selectedResultIndex = -1;
       const pinned = state.tabs.filter((t) => t.pinned && !t.groupId);
@@ -3875,6 +3911,7 @@
     renderList();
   });
   addressInput.addEventListener('input', (e) => {
+    elsewhereNotice = '';
     // Typing switches the list out of its resting mode: end any drag first.
     islandDrag.cancel();
     siteInfoOpen = false;
@@ -4032,7 +4069,7 @@
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice, sentList] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice, sentList, elsewhereList] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
@@ -4041,7 +4078,9 @@
       window.browserAPI.archiveList(),
       window.browserAPI.archiveNotice(),
       window.browserAPI.listSentToThisDevice(),
+      state.miniWindow === true ? window.browserAPI.listMiniSwitchTabs() : [],
     ]);
+    elsewhereTabs = Array.isArray(elsewhereList) ? elsewhereList : [];
     favorites = favoritesList;
     historyEntries = historyList;
     archivedEntries = Array.isArray(archivedList) ? archivedList : [];
