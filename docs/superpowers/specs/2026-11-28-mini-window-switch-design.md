@@ -1,6 +1,6 @@
 # Mini Window: switch to tabs and Spaces (#1734, part 2)
 
-**Status:** design, approach chosen; not built.
+**Status:** shipping Blanc (Electron) implemented on `claude/mini-window-switch`, not in a public release; the fork follows on `chromium/next`.
 **Asked for:** #1734 item 2, from Koen's feedback on #1138. The global
 shortcut opens a mini window with its search focused: "When I press the
 shortcut and start typing a website or space, I immediately can." The mini

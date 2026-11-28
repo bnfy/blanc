@@ -136,9 +136,8 @@ Then("the mini window's Spaces menu says a page can't move, and nothing moved", 
   assert.ok(runtime.tabs.some((tab) => tab.id === this.miniPageId), 'its page stays');
   const urls = await this.call('workspaceAction', 'saved-urls', this.savedSpaceId);
   assert.ok(!urls.includes(this.miniPageUrl), 'nothing reached Reading');
-  // Switching by name is still refused in a mini window: only the menu moves.
-  const refused = await this.call('miniWindowOverlay', this.miniWindowId, `window.browserAPI.openWorkspace(${JSON.stringify(this.savedSpaceId)}, {})`);
-  assert.equal(refused?.ok, false);
+  // A Space picked by name now goes there without moving anything (#1734
+  // part 2, D4); F61-11 covers that.
 });
 
 When('I close that private tab in the mini window', async function () {
@@ -225,4 +224,77 @@ Then('that page is still in a group named {string} there', async function (name)
   const group = shown.groups.find((candidate) => candidate.name === name);
   assert.ok(group, `a group named ${name}: ${JSON.stringify(shown.groups)}`);
   assert.equal(shown.tabs.find((tab) => tab.id === this.miniPageId).groupId, group.id);
+});
+
+// Switch to tabs and Spaces (#1734 part 2): the mini window's own search.
+Given('another window showing the fixture page {string}', async function (name) {
+  this.otherWindowId = await this.call('openNewWindow');
+  this.elsewhereUrl = this.fixtureUrl(name);
+  this.elsewhereTabId = await this.call('openTabInWindow', this.otherWindowId, this.elsewhereUrl);
+  // Leave a different tab active there, so selecting the page is observable.
+  await this.call('openTabInWindow', this.otherWindowId, this.fixtureUrl('mini-window-other'));
+});
+
+Given('a saved space named {string} holding the fixture page {string}, open in no window', async function (space, name) {
+  const other = await this.call('openNewWindow');
+  this.elsewhereUrl = this.fixtureUrl(name);
+  await this.call('openTabInWindow', other, this.elsewhereUrl);
+  await this.call('openTabInWindow', other, this.fixtureUrl('reading-other'));
+  const saved = await this.call('workspaceActionInWindow', other, 'save', space);
+  assert.equal(saved.ok, true);
+  await this.call('closeWindowRuntime', other);
+  this.savedSpaceId = saved.workspace.id;
+});
+
+async function searchMini(world, text) {
+  await waitForValue(() => world.call('miniWindowOverlay', world.miniWindowId, "!!document.getElementById('addressInput')"), Boolean, 'the mini window\'s search');
+  await world.call('miniWindowOverlay', world.miniWindowId, `(() => {
+    const input = document.getElementById('addressInput');
+    input.value = ${JSON.stringify(text)};
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    return true;
+  })()`);
+}
+
+When('I search the mini window for {string} and pick the row in {string}', async function (text, place) {
+  await searchMini(this, text);
+  const picked = await waitForValue(() => this.call('miniWindowOverlay', this.miniWindowId, `(() => {
+    const row = [...document.querySelectorAll('.island-row')].find((r) => (r.querySelector('.row-sub')?.textContent ?? '').endsWith(${JSON.stringify(' · ' + place)}));
+    if (row) row.click();
+    return !!row;
+  })()`), Boolean, `a row in ${place}`);
+  assert.equal(picked, true);
+});
+
+When('I search the mini window for {string} and pick the Space {string}', async function (text, space) {
+  await searchMini(this, text);
+  const picked = await waitForValue(() => this.call('miniWindowOverlay', this.miniWindowId, `(() => {
+    const row = [...document.querySelectorAll('.island-row')].find((r) => r.querySelector('.row-title')?.textContent === ${JSON.stringify(space)} && !(r.querySelector('.row-sub')?.textContent ?? '').includes(' · '));
+    if (row) row.click();
+    return !!row;
+  })()`), Boolean, `the Space ${space}`);
+  assert.equal(picked, true);
+});
+
+Then('that other window has that page selected', async function () {
+  await waitForValue(async () => (await this.call('windowRuntimes')).find((r) => r.id === this.otherWindowId),
+    (runtime) => runtime?.activeTabId === this.elsewhereTabId, 'the page selected in its window');
+});
+
+Then('a window shows {string} with that page selected', async function (name) {
+  const id = (await this.call('workspaceAction', 'list')).items.find((w) => w.name === name)?.id;
+  await waitForValue(async () => (await this.call('windowRuntimes')).find((r) => r.workspaceId === id && r.attached && !r.resident),
+    (runtime) => runtime && runtime.tabs.find((t) => t.id === runtime.activeTabId)?.url === this.elsewhereUrl, `${name} with the page selected`);
+});
+
+Then('a window shows {string}', async function (name) {
+  const id = (await this.call('workspaceAction', 'list')).items.find((w) => w.name === name)?.id;
+  await waitForValue(async () => (await this.call('windowRuntimes')).some((r) => r.workspaceId === id && r.attached && !r.resident && !r.mini),
+    Boolean, `a window showing ${name}`);
+});
+
+Then('the mini window is still open with its page', async function () {
+  const runtime = (await this.call('windowRuntimes')).find((r) => r.id === this.miniWindowId && r.mini);
+  assert.ok(runtime?.attached, 'the mini window stays');
+  assert.ok(runtime.tabs.some((t) => t.url === this.miniPageUrl), 'with its page');
 });

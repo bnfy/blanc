@@ -3,12 +3,27 @@
 v1.53.0 is the current public release ([notes](v1.53.0.md)). Changes merged
 since then are below as they're recorded.
 
+## Added
+
+- **Switch to tabs and Spaces from a mini window.** Type in a mini window's
+  search to find tabs in your other windows and in your Spaces, and your
+  Spaces themselves. Pick one and Blanc takes you there; a mini window you
+  hadn't used yet closes behind you (#1734).
+
+## Fixed
+
+- **New space… in a mini window counts the tabs that move.** It said
+  "0 tabs" every time (#1734).
+
 ## Still open from 1.53
 
 - **Move a mini window to a Space** (#1734) by hand in a packaged build, with
   a real mouse: the Island's Spaces button, the move-mode menu, and File →
   Move to Space ▸. Acceptance covers moving to a saved Space, to one on
   screen, to a new Space, and the private-tab refusal.
+- **Switch to tabs and Spaces from a mini window** (#1734) by hand in a
+  packaged build: a tab in another window, a tab in a Space set aside, and a
+  Space by name. Acceptance covers all three.
 
 - **Opening local HTML files on Linux** (#1630) by hand from a file manager's
   Open With (GNOME Files and Dolphin) with the AppImage, at launch and while
