@@ -10,6 +10,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const { createGateRefusals, ERR_BLOCKED_BY_CLIENT, WINDOW_MS, MAX_PER_CONTENTS } = require('../../src/main/gate-refusals');
+const { httpFallbackFor } = require('../../src/main/typed-https-fallback');
 const A = 'https://castlabs.github.io/wv-vmp-lab/';
 const B = 'https://example.test/next';
 const BLOCKED = ERR_BLOCKED_BY_CLIENT;
@@ -30,7 +31,7 @@ function harness() {
   const wc = { id: 4, session: {} };
   const tab = { navEpoch: 1, sleeping: false, private: false, certificateError: null, view: { webContents: wc } };
   const sandbox = {
-    tab, wc, id: 't1', URLSearchParams,
+    tab, wc, id: 't1', URLSearchParams, httpFallbackFor,
     noteWakeSuppressed: () => false,
     isStartupGateActive: () => state.gateActive,
     startupQueuedNavigations: queued,
@@ -242,4 +243,31 @@ test('tab-view counts only new-document main-frame starts for gate-refusal attri
   // Commits never feed attribution.
   const commit = source.slice(source.indexOf("wc.on('did-navigate'"), source.indexOf("wc.on('did-navigate-in-page'"));
   assert.doesNotMatch(commit, /noteNavigationStart/);
+});
+
+test('a typed bare domain that refuses HTTPS loads over HTTP once instead of an error page', () => {
+  const h = harness();
+  h.state.gateActive = false;
+  const loads = [];
+  const contents = { loadURL: url => loads.push(url) };
+  h.tab.typedHttpsFallback = { httpsUrl: 'https://keurig.com', httpUrl: 'http://keurig.com/' };
+  h.tab.certificateError = { url: 'https://keurig.com/' };
+  h.fail(-102, 'https://keurig.com/');
+  h.shown.forEach(run => run(contents));
+  assert.deepEqual(loads, ['http://keurig.com/']);
+  assert.deepEqual(h.outcomes, ['http-fallback']);
+  assert.equal(h.tab.typedHttpsFallback, null);
+  assert.equal(h.tab.certificateError, null);
+  // The HTTP attempt failing too gets the ordinary error page.
+  h.fail(-102, 'http://keurig.com/');
+  assert.deepEqual(h.outcomes, ['http-fallback', 'error-page']);
+});
+
+test('a failure HTTP cannot fix keeps the error page and spends the fallback', () => {
+  const h = harness();
+  h.state.gateActive = false;
+  h.tab.typedHttpsFallback = { httpsUrl: 'https://keurig.com', httpUrl: 'http://keurig.com/' };
+  h.fail(-105, 'https://keurig.com/');
+  assert.deepEqual(h.outcomes, ['error-page']);
+  assert.equal(h.tab.typedHttpsFallback, null);
 });
