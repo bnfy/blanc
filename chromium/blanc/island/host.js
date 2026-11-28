@@ -687,12 +687,7 @@
   // Spaces menu renders a failure itself.
   async function moveMiniWindowToSpace(id, creation) {
     await refresh();
-    // A group moves only with all its members, so a start page in one leaves
-    // the group first.
-    const grouped = snapshot.tabs.filter(tab => tab.groupId && stayingStartPage(tab));
-    for (const tab of grouped) await request('setTabGroup', [nativeId(tab.id), null]);
-    if (grouped.length) await refresh();
-    const runs = miniMoveRuns(snapshot.tabs);
+    let runs = miniMoveRuns(snapshot.tabs);
     const ids = runs.flatMap(run => run.ids);
     if (!ids.length) return { ok: false, error: 'busy', movedCount: 0 };
     const state = await request('batchTabsMenuState', [ids.map(nativeId)]);
@@ -705,6 +700,12 @@
       if (list.meta.order.length >= SPACE_LIMIT) return { ok: false, error: 'limit' };
       target = crypto.randomUUID();
     } else if (!list.meta.items[id] || list.meta.deleted.includes(id)) return { ok: false, error: 'not-found', movedCount: 0 };
+    // A group moves only with all its members, so a start page in one leaves
+    // the group, now that nothing can refuse the move before it starts (the
+    // same tabs move either way: miniMoveRuns leaves every start page out).
+    const grouped = snapshot.tabs.filter(tab => tab.groupId && stayingStartPage(tab));
+    for (const tab of grouped) await request('setTabGroup', [nativeId(tab.id), null]);
+    if (grouped.length) { await refresh(); runs = miniMoveRuns(snapshot.tabs); }
     let moved = 0, tabCount = 0, failure = null;
     for (const [index, run] of runs.entries()) {
       const create = !!creation && index === 0;

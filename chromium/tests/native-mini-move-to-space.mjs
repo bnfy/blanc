@@ -93,6 +93,10 @@ try{
  // F61-7: a private tab refuses with its reason; then New space… with the page.
  const elsewhere=await savedSpace('Elsewhere');
  const seven=await miniWithPage('mini-move-later');
+ // A grouped start page beside the page: a refused move must leave it there.
+ const sevenBlank=await w.call('openTabInWindow',seven.id,'chrome://newtab/');
+ for(const id of [seven.tabId,sevenBlank])await seven.r.cdp.eval(`window.BlancPrototypeHost.api.groupTabByName(${jsLiteral(String(id))},'Notes')`);
+ await w.waitFor(async()=>(await snap(seven.r)).tabs.filter(t=>t.groupId).length===2,Boolean,'both tabs in Notes');
  const privateId=await w.call('openTabInWindow',seven.id,'chrome://newtab/',{private:true});
  await openMoveMenu(seven);
  assert.equal(await chooseRow(seven,'Elsewhere'),true);
@@ -100,6 +104,10 @@ try{
  assert.match(reason,/private tab/);
  assert.ok(await byNativeWindow(seven.native),'the mini window stays');
  assert.ok((await snap(seven.r)).tabs.some(t=>t.url===seven.url),'its page stays');
+ {
+  const s=await snap(seven.r),notes=s.groups.find(g=>g.name==='Notes');
+  assert.ok(notes&&s.tabs.find(t=>String(t.id)===String(sevenBlank))?.groupId===notes.id,'the refused move left the start page in its group');
+ }
  assert.ok(elsewhere.id,'Elsewhere was offered');
  passed('F61-7 refusal: a private tab stops the move with its reason; nothing moves and the window stays');
  assert.equal(await w.call('closeTabInWindow',seven.id,privateId),true);

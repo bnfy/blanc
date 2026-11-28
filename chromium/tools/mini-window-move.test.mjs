@@ -86,8 +86,12 @@ test('the move is all or nothing, writes the new Space after its first run, then
   assert.match(move, /if \(!state\?\.canPlace\) return \{ ok: false, error: 'unmovable', movedCount: 0 \};/);
   assert.match(move, /request\('spaceMoveTabs', \[run\.ids\.map\(nativeId\), target, create, \.\.\.\(run\.groupId \? \[run\.groupId\] : \[\]\)\]\)/);
   assert.match(move, /error: moved \? 'moved-partly' : /);
-  // Grouped start pages leave their group before the runs are read.
+  // Grouped start pages leave their group only once every check has passed,
+  // so a refused move leaves the window as it was.
   assert.match(move, /request\('setTabGroup', \[nativeId\(tab\.id\), null\]\)/);
+  const ungroup = move.indexOf("request('setTabGroup'");
+  for (const check of ["request('batchTabsMenuState'", 'checkSpaceName(', "error: 'not-found'"])
+    assert.ok(move.indexOf(check) < ungroup, `${check} runs before the ungroup`);
   // A later run waits out another window's Space write instead of stopping.
   assert.match(move, /for \(let attempt = 0; index > 0 && attempt < 10 && !result\.ok && !result\.movedCount && \['busy', 'refused'\]\.includes\(result\.error\); attempt\+\+\)/);
   // A new Space saved before anything moved is reported as saved, not failed.
