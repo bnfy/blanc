@@ -2882,4 +2882,6 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     </plurals>
     <string name="start_devices_fewer">Afficher moins</string>
     <string name="start_mahjong_play">Jouer à Blanc Mahjong</string>
+    <string name="settings_general_hardware_video_decoding_label">Utiliser le décodage vidéo matériel</string>
+    <string name="settings_general_hardware_video_decoding_hint">Si les vidéos scintillent, désactivez cette option. Quittez Blanc et rouvrez-le pour appliquer la modification.</string>
 </resources>

@@ -2882,4 +2882,6 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     </plurals>
     <string name="start_devices_fewer">Mostrar menos</string>
     <string name="start_mahjong_play">Jugar a Blanc Mahjong</string>
+    <string name="settings_general_hardware_video_decoding_label">Usar decodificación de vídeo por hardware</string>
+    <string name="settings_general_hardware_video_decoding_hint">Si los vídeos parpadean, desactiva esta opción. Cierra Blanc y vuelve a abrirlo para aplicar el cambio.</string>
 </resources>

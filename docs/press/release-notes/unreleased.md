@@ -16,6 +16,9 @@ since then are below as they're recorded.
 
 ## Fixed
 
+- **Flickering videos on Windows.** If videos flicker, turn off **Use hardware
+  video decoding** in Settings → General → Browsing, then quit and reopen
+  Blanc. The choice stays on this PC.
 - **Sites that answer only without HTTPS open again.** Typing `keurig.com` or
   `https://keurig.com` showed a connection error, because that site serves
   its bare address only over plain HTTP to send you to www. Blanc now tries

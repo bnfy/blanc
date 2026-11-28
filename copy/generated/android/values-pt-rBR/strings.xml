@@ -2882,4 +2882,6 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     </plurals>
     <string name="start_devices_fewer">Mostrar menos</string>
     <string name="start_mahjong_play">Jogar Blanc Mahjong</string>
+    <string name="settings_general_hardware_video_decoding_label">Usar decodificação de vídeo por hardware</string>
+    <string name="settings_general_hardware_video_decoding_hint">Se os vídeos piscarem, desative esta opção. Feche e abra o Blanc novamente para aplicar a alteração.</string>
 </resources>

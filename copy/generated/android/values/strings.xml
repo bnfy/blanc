@@ -2795,4 +2795,6 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     </plurals>
     <string name="start_devices_fewer">Show fewer</string>
     <string name="start_mahjong_play">Play Blanc Mahjong</string>
+    <string name="settings_general_hardware_video_decoding_label">Use hardware video decoding</string>
+    <string name="settings_general_hardware_video_decoding_hint">If videos flicker, turn this off. Quit and reopen Blanc to apply the change.</string>
 </resources>

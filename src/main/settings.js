@@ -271,6 +271,8 @@ const DEFAULTS = {
   // #1591: show Save As for every download. Off by default, so downloads go
   // straight to the Downloads folder. Device-local.
   askWhereToSave: false,
+  // Device-local. Windows reads this once before Chromium starts its GPU process.
+  hardwareVideoDecoding: true,
   // #1780: the folder downloads go to, '' for the system's Downloads folder.
   // Device-local (a path means nothing on another device), never in
   // SYNCED_KEYS, written ONLY by setDownloadFolder() (download-folder.js).
@@ -595,6 +597,7 @@ function getSettings() {
   data.newtabWidgets = normalizeWidgets(data.newtabWidgets);
   if (typeof data.linkRoutesInApp !== 'boolean') data.linkRoutesInApp = DEFAULTS.linkRoutesInApp;
   if (typeof data.reuseNewTab !== 'boolean') data.reuseNewTab = DEFAULTS.reuseNewTab;
+  if (typeof data.hardwareVideoDecoding !== 'boolean') data.hardwareVideoDecoding = DEFAULTS.hardwareVideoDecoding;
   if (typeof data.askWhereToSave !== 'boolean') data.askWhereToSave = DEFAULTS.askWhereToSave;
   data.downloadFolder = normalizeDownloadFolder(data.downloadFolder, null);
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
@@ -728,6 +731,7 @@ function sanitize(partial) {
   if (typeof partial.islandTabIcons === 'boolean') clean.islandTabIcons = partial.islandTabIcons;
   if (typeof partial.linkRoutesInApp === 'boolean') clean.linkRoutesInApp = partial.linkRoutesInApp;
   if (typeof partial.reuseNewTab === 'boolean') clean.reuseNewTab = partial.reuseNewTab;
+  if (typeof partial.hardwareVideoDecoding === 'boolean') clean.hardwareVideoDecoding = partial.hardwareVideoDecoding;
   if (typeof partial.askWhereToSave === 'boolean') clean.askWhereToSave = partial.askWhereToSave;
   if (typeof partial.launchSunrise === 'boolean') clean.launchSunrise = partial.launchSunrise;
   if (typeof partial.searchPriorityResults === 'boolean') clean.searchPriorityResults = partial.searchPriorityResults;

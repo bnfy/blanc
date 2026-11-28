@@ -114234,6 +114234,90 @@
           }
         }
       }
+    },
+    "settings.general.hardwareVideoDecoding.label": {
+      "comment": "Windows video playback setting in Settings → General → Browsing.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use hardware video decoding"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hardwarebeschleunigte Videodekodierung verwenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar decodificación de vídeo por hardware"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser le décodage vidéo matériel"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa la decodifica video hardware"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar decodificação de vídeo por hardware"
+          }
+        }
+      }
+    },
+    "settings.general.hardwareVideoDecoding.hint": {
+      "comment": "Windows video playback setting in Settings → General → Browsing.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If videos flicker, turn this off. Quit and reopen Blanc to apply the change."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn Videos flackern, schalte diese Option aus. Beende Blanc und öffne es erneut, um die Änderung zu übernehmen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si los vídeos parpadean, desactiva esta opción. Cierra Blanc y vuelve a abrirlo para aplicar el cambio."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si les vidéos scintillent, désactivez cette option. Quittez Blanc et rouvrez-le pour appliquer la modification."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se i video sfarfallano, disattiva questa opzione. Chiudi e riapri Blanc per applicare la modifica."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se os vídeos piscarem, desative esta opção. Feche e abra o Blanc novamente para aplicar a alteração."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

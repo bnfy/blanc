@@ -1583,6 +1583,9 @@ if (!ownsInstanceLock) {
 } else {
   // Blanc holds the user-data lock now, so no other instance owns orphan temps.
   if (!acceptanceTestMode) enableTempSweep();
+  if (process.platform === 'win32' && settings.getSettings().hardwareVideoDecoding === false) {
+    app.commandLine.appendSwitch('disable-accelerated-video-decode');
+  }
   diagnostics.start();
   app.on('second-instance', (_e, commandLine) => {
     const runtime = resolveExternalRuntime();

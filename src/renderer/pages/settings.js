@@ -880,6 +880,26 @@
     document.getElementById('miniWindowSetting')?.remove();
   }
 
+  if (appInfo?.platform === 'win32' && supports('hardwareVideoDecoding')) {
+    const toggle = document.getElementById('hardwareVideoDecoding');
+    toggle.checked = settings.hardwareVideoDecoding !== false;
+    document.getElementById('hardwareVideoDecodingSetting').hidden = false;
+    toggle.addEventListener('change', async () => {
+      toggle.disabled = true;
+      const requested = toggle.checked;
+      try {
+        const saved = await window.bowserPages.settings.set({ hardwareVideoDecoding: requested });
+        toggle.checked = saved.hardwareVideoDecoding !== false;
+      } catch {
+        toggle.checked = !requested;
+      } finally {
+        toggle.disabled = false;
+      }
+    });
+  } else {
+    document.getElementById('hardwareVideoDecodingSetting')?.remove();
+  }
+
   // #1734 part 3: links from other apps open in a mini window. Off by default.
   if (supports('miniWindowForLinks')) {
     const miniWindowForLinks = document.getElementById('miniWindowForLinks');

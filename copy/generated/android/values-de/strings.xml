@@ -2795,4 +2795,6 @@ Versuche es erneut mit „%2$s“ oder installiere Blanc neu von blanc.day.</str
     </plurals>
     <string name="start_devices_fewer">Weniger anzeigen</string>
     <string name="start_mahjong_play">Blanc Mahjong spielen</string>
+    <string name="settings_general_hardware_video_decoding_label">Hardwarebeschleunigte Videodekodierung verwenden</string>
+    <string name="settings_general_hardware_video_decoding_hint">Wenn Videos flackern, schalte diese Option aus. Beende Blanc und öffne es erneut, um die Änderung zu übernehmen.</string>
 </resources>
