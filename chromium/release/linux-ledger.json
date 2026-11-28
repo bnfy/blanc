@@ -195,6 +195,71 @@
       "checksumsSigstoreSha256": "63f33d2e4c6ce49e4a36cd386f8407bcdc1f78fc096956ae22cee85026cb6a3c",
       "publishedAt": "2026-11-26T14:18:32Z",
       "note": "First Linux beta on Chromium 159 (159.0.8154.33, Chrome's beta milestone, before its December 8 stable), and the Spaces menu stays put as it closes. VM hand check 911 -> 912: apt and PackageKit offered 912, Restart to update relaunched into it. The sign stage needed c609f1cdc (the repository fixture's apt resolving loopback while the runner forces IPv4); verify-public's first run (45837770153) failed only removing a smoke profile still being written, fixed in 2f6c07ece."
+    },
+    {
+      "build": 914,
+      "version": "159.0.8154.914",
+      "date": "2026-11-28",
+      "sourceCommit": "83a118d5b5a589a91675b1b09105faa046da9093",
+      "proofOnly": true,
+      "purpose": "proof",
+      "candidates": {
+        "x64": {
+          "id": "linux-x64-28ec4725ade7f36e",
+          "tarSha256": "508673b6ddac54d7ea42dd4aa785eabe29ddad01704706a0980bf75984029d43"
+        },
+        "arm64": {
+          "id": "linux-arm64-fea6531aff69c6aa",
+          "tarSha256": "6c1bed3c8c8fa8db13795bffccd276ca6be5e1eed91e96d996730448afa6d141"
+        }
+      },
+      "packages": {
+        "blanc-beta_159.0.8154.914-1_amd64.deb": "4848e65651a37f573f1838eacbe97aaf174403d6c992147af1eb1324435b70fa",
+        "blanc-beta-159.0.8154.914-1.x86_64.rpm": "ccc6bb20621ee6868ad578e10703ee7392849778ad088c3a08356ee2881b3cd7",
+        "blanc-beta_159.0.8154.914-1_arm64.deb": "e2ab388e2880abf9a4c3a18430083614cfe990ffddee74e3c72f98a006f6ea31",
+        "blanc-beta-159.0.8154.914-1.aarch64.rpm": "aa78c1c7f82b7ac007c08c300c4a19b88497791b9d6ab07533f330d4a2906e29"
+      },
+      "buildCheckRuns": {
+        "x64": 46175142990,
+        "arm64": 46175484128
+      },
+      "note": "Proof-only N-1 for 915's update proof and VM hand check; never published."
+    },
+    {
+      "build": 915,
+      "version": "159.0.8154.915",
+      "tag": "chromium-beta-linux-159.0.8154.915",
+      "date": "2026-11-28",
+      "sourceCommit": "83a118d5b5a589a91675b1b09105faa046da9093",
+      "chromiumVersion": "159.0.8154.33",
+      "candidates": {
+        "x64": {
+          "id": "linux-x64-7af9b4db587d99d4",
+          "tarSha256": "a3daef643df79c9572345acc51b4953b9a83cdcd90a05b604272ff45d66cc4f4"
+        },
+        "arm64": {
+          "id": "linux-arm64-77d974b9f8bc429f",
+          "tarSha256": "e51936a8c936c22a4c0d3263a7bf91945b17e0d63694cf1e9afe0c1adb90c82b"
+        }
+      },
+      "packages": {
+        "blanc-beta_159.0.8154.915-1_amd64.deb": "37964c6f6facb6c50aff3594eeef312e68fa8ba48b2f2c1b5ff30742f6812f22",
+        "blanc-beta-159.0.8154.915-1.x86_64.rpm": "9912181216fdd828ff0bf497e41823a8c4d8a8998db3c679c96777b82b9bd07d",
+        "blanc-beta_159.0.8154.915-1_arm64.deb": "ff0d2b5c4c409ec7b8f815fe9286854125aa3f17c6aca1ba5b3315dceff889e8",
+        "blanc-beta-159.0.8154.915-1.aarch64.rpm": "2adefae16ed5db48cf06dd0ea27406ac051457f38f4d906af7266c816ca47804"
+      },
+      "buildCheckRuns": {
+        "x64": 46175749251,
+        "arm64": 46176009226
+      },
+      "repositoryGeneration": 915,
+      "repositoryDigest": "02775a9bf8347286bdce5dc3019220f227853653ef587e8059c982e159897fbf",
+      "updateProofRun": 46178005554,
+      "repoLifecycleRun": 46178301423,
+      "verifyPublicRun": 46180961512,
+      "checksumsSigstoreSha256": "7dd54e29283fc9100071dbad43b4b86e40bd8ba0582376b66459747dce7745d8",
+      "publishedAt": "2026-11-28T19:23:35Z",
+      "note": "Open With (or a file manager) opens a local HTML file in a tab instead of an empty New Tab (patch 0120, #1630); a typed address that doesn't answer HTTPS falls back to HTTP once; the Settings polish (0117, 0119) and the refined Sunrise. VM hand check 914 -> 915: apt offered 915 from staging, Restart to update relaunched into it, and a local page opened into the running 915 as a tab with its scripts, image and a real click working. Two build breaks in the typed-HTTPS change were fixed first (e8b2939b4, 83a118d5b), so the claims moved from 7744b2bb0. The first draft run stopped on a draft read-back before GitHub listed it; the resumed stage finished it."
     }
   ]
 }

@@ -92,3 +92,26 @@ reads, and the repository's DEP-11 catalog is unchanged since 909) and screen sh
 to the portal or capture code since 909).
 
 Screens: `chromium/reports/l3-hand-check-912/`.
+
+## 915: Open With opens local pages (November 28, 2026)
+
+The same VM, by real kernel input (`vin.py`) with read-only captures, for release
+`chromium-beta-linux-159.0.8154.915` (Chromium 159.0.8154.33, source `83a118d5b`): `B-1` is 914
+(`blanc-beta_159.0.8154.914-1_arm64.deb`, SHA-256
+`e2ab388e2880abf9a4c3a18430083614cfe990ffddee74e3c72f98a006f6ea31`, the hash in the owner-signed
+approval, verified in the VM), staging generation 915, digest
+`02775a9bf8347286bdce5dc3019220f227853653ef587e8059c982e159897fbf`.
+
+| # | Check | Result |
+|---|---|---|
+| 1 | Install 914, staging source | Pass. 914 installed; apt verified staging's `InRelease` and offered 915. |
+| 2 | Restart to update | Pass. With 914 running, apt installed 915 from staging; the Island showed **Restart to update**; a real click relaunched Blanc (started 14:00:55 before, 14:02:05 after) into 915 with no update button. |
+| 3 | Open With into the running browser (#1630, patch 0120) | Pass. `blanc-beta --user-data-dir=<the same profile> <file>/index.html` opened the page as a second tab of the same browser process, no new window. Inline and neighboring scripts ran and the neighboring image loaded; a module script and `fetch()` of a neighboring file did not (Chromium's `file://` rules). A real click on the page's button worked on the second try (the first focused the page). |
+| 4 | Dock, keyring | Pass. One Sunrise icon before and after; no keyring prompt. |
+| 5 | Restore | Staging list removed, `apt-get purge blanc-beta`, test profile and page deleted; the VM's existing `~/.config/blanc-beta` was never used. |
+
+The VM's clock had to be set again after resuming: apt refused staging's `Release` as not yet
+valid until it was. `prlctl exec` passes `bash -c '…'` arguments unquoted, so run steps from
+script files in the shared folder.
+
+Screens: `chromium/reports/l3-hand-check-915/`.

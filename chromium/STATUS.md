@@ -4276,6 +4276,17 @@ verify-public 45839063871 passed on all six legs (its first run, 45837770153, fa
 a smoke profile still being written, fixed in `2f6c07ece`). Production pkg.blanc.day is on
 generation 912; latest stayed v1.52.0. Ledger: `chromium/release/linux-ledger.json`.
 
+**Blanc Beta for Linux 159.0.8154.915 is public (November 28, 2026)**, published at 19:23 UTC from
+`83a118d5b` with 914 as its proof-only N-1. It carries patch 0120 (#1630): Open With, or a file
+manager, opens a local HTML file in a tab instead of an empty New Tab. Two build breaks in the new
+typed-HTTPS fallback were fixed before it built (`e8b2939b4`, `83a118d5b`, `<stddef.h>` under C++
+modules), so the 914/915 claims moved from `7744b2bb0`. Update proof 46178005554 and repository
+lifecycle 46178301423 passed, the VM hand check moved 914 to 915 through Restart to update and
+opened a local page into the running browser (`chromium/linux/hand-checks-l3.md`), and verify-public
+46180961512 passed on all six legs. The first draft run stopped reading back a draft GitHub hadn't
+listed yet; the resumed stage finished it. Production pkg.blanc.day is on generation 915; latest
+stayed v1.53.0. Ledger: `chromium/release/linux-ledger.json`.
+
 ## Android
 Betas and stable on Play, once production exists: `docs/android/channels.md` (nightly, weekly beta, four-weekly stable, security releases).
 
