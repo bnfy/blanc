@@ -205,6 +205,7 @@ const siteMutes = createSiteMutes();
 const { shouldSamplePageTint, isPageTintSignal } = require('./page-tint-policy');
 const { createPageTintController } = require('./page-tint-controller');
 const { validFavicon } = require('./bookmark-validate');
+const { resolveDownloadFolder, normalizeDownloadFolder } = require('./download-folder');
 const {
   setupDownloads,
   setDownloadRequesterCheck,
@@ -16005,10 +16006,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setDownloadRequesterCheck((wc) => runtimeForPageWebContents(wc)?.resident !== true);
   setDownloadActivityObserver(peekIslandForDownload);
   // #1591: unless the person asked to choose, downloads save straight to the
-  // Downloads folder under a free name.
+  // download folder under a free name: the system's Downloads folder, or the
+  // one chosen in Settings (#1780), where Save As also opens.
   setDownloadSavePolicy({
     askWhereToSave: () => settings.getSettings().askWhereToSave === true,
-    folder: () => app.getPath('downloads'),
+    folder: () => resolveDownloadFolder(settings.getSettings().downloadFolder, app.getPath('downloads')),
+    dialogFolder: () => normalizeDownloadFolder(settings.getSettings().downloadFolder, app.getPath('downloads')),
   });
   setupDownloads(ses, broadcastDownloadsActivity, {
     private: false,

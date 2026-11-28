@@ -280,6 +280,8 @@ if (window.location.protocol === 'blanc:') {
         language: (code, restart) => invoke('pages:settings:language', code, restart),
         linkTargets: () => invoke('pages:settings:link-targets'),
         setLinkRoutes: (routes) => invoke('pages:settings:link-routes:set', routes),
+        chooseDownloadFolder: () => invoke('pages:settings:download-folder:choose'),
+        resetDownloadFolder: () => invoke('pages:settings:download-folder:reset'),
         onAppearance: (callback) => {
           ipcRenderer.on('pages:settings:appearance', (_event, status) => callback(status));
         },

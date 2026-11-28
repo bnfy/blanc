@@ -208,7 +208,7 @@
     },
     {
       "file": "src/main/downloads.js",
-      "sha256": "d2c94537d8db49739396e41f5857bd5f655d0ab765c4b25f0b146253e78c5375",
+      "sha256": "6ed4a0c5b32b664ed0bc35b6148147c068469db1ab3c84c065c308bcefae8eae",
       "literalChannels": [
         "input-event",
         "updated",
@@ -272,7 +272,7 @@
     },
     {
       "file": "src/main/main.js",
-      "sha256": "104a6429617aec5ff48f3d9c2d45ec3c2b0dce6f52c2a9767095ab5ba98412f4",
+      "sha256": "11850943f5bdea06dfa5338ca5448f6b51b6e74de694336635d11fca201d2190",
       "literalChannels": [
         "activate",
         "bang-icons:changed",
@@ -535,7 +535,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "3a226a6da649d611d7d20199423cb4331c1ca500418794c0006d99e9e9303325",
+      "sha256": "ca20a47e889a9280f78747377603577e92b262cca857eb188400d3cee60db4b4",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -596,6 +596,8 @@
         "pages:profiles:remove",
         "pages:profiles:rename",
         "pages:settings:check-for-updates",
+        "pages:settings:download-folder:choose",
+        "pages:settings:download-folder:reset",
         "pages:settings:drm-restart",
         "pages:settings:drm-status",
         "pages:settings:get",
@@ -1017,7 +1019,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "4f9d2ffa4b55bd96529f2f71e82195b49a17f67e49c0bbbfa992bd730c43c558",
+      "sha256": "3091417104ac62c46ab782af33b8fc6c5f103d383397f2398c124bd71f60ae6d",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1081,6 +1083,8 @@
         "pages:profiles:rename",
         "pages:settings:appearance",
         "pages:settings:check-for-updates",
+        "pages:settings:download-folder:choose",
+        "pages:settings:download-folder:reset",
         "pages:settings:drm-restart",
         "pages:settings:drm-status",
         "pages:settings:get",

@@ -24,6 +24,7 @@ const { DEFAULT_MAPPING, mappingOrDefault, validMapping } = require('./mouse-ges
 const { normalizeDeviceNames, setDeviceNameEntry, mergeDeviceNames, deviceNamesEqual } = require('./device-names');
 const { normalizeLinkRoutes, validateLinkRoutes } = require('./link-routes');
 const { normalizeWidgets, migrateFromLayout } = require('./start-widgets');
+const { normalizeDownloadFolder } = require('./download-folder');
 const {
   isValidSearchTemplate,
   searchUrlFromTemplate,
@@ -270,6 +271,10 @@ const DEFAULTS = {
   // #1591: show Save As for every download. Off by default, so downloads go
   // straight to the Downloads folder. Device-local.
   askWhereToSave: false,
+  // #1780: the folder downloads go to, '' for the system's Downloads folder.
+  // Device-local (a path means nothing on another device), never in
+  // SYNCED_KEYS, written ONLY by setDownloadFolder() (download-folder.js).
+  downloadFolder: '',
   // Palette of the internal pages; device-local, not Profile Synced.
   surfaceStyle: 'sunrise',
   // Floating Glance: the card's remembered size and place, as fractions of
@@ -588,6 +593,7 @@ function getSettings() {
   if (typeof data.linkRoutesInApp !== 'boolean') data.linkRoutesInApp = DEFAULTS.linkRoutesInApp;
   if (typeof data.reuseNewTab !== 'boolean') data.reuseNewTab = DEFAULTS.reuseNewTab;
   if (typeof data.askWhereToSave !== 'boolean') data.askWhereToSave = DEFAULTS.askWhereToSave;
+  data.downloadFolder = normalizeDownloadFolder(data.downloadFolder, null);
   if (typeof data.darkWebsites !== 'boolean') data.darkWebsites = DEFAULTS.darkWebsites;
   data.darkWebsitesExceptions = normalizeHostnameList(data.darkWebsitesExceptions);
   if (typeof data.newtabDynamicWallpaper !== 'boolean') data.newtabDynamicWallpaper = false;
@@ -951,6 +957,17 @@ function setLinkRoutes(routes) {
   return { ok: true, routes: structuredClone(result.routes) };
 }
 
+/** The download folder's private write path (#1780); setSettings()'s
+ * whitelist has no downloadFolder, so a page can't name a path. Main passes a
+ * folder the person picked in a dialog, or '' for the system's Downloads
+ * folder. Returns the stored value. */
+function setDownloadFolder(folder, systemFolder) {
+  const next = normalizeDownloadFolder(folder, systemFolder);
+  ensureStore().update((data) => { data.downloadFolder = next; });
+  for (const fn of listeners) fn(getSettings());
+  return next;
+}
+
 /** The Start Page's widgets, cleaned (start-widgets.js). */
 function getNewtabWidgets() {
   return normalizeWidgets(ensureStore().data.newtabWidgets);
@@ -1199,6 +1216,7 @@ module.exports = {
   setUiLanguage,
   setGlanceFrame,
   setLinkRoutes,
+  setDownloadFolder,
   getNewtabWidgets,
   setNewtabWidgets,
   isPatronActive,

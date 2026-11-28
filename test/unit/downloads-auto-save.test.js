@@ -50,6 +50,7 @@ class FakeItem extends EventEmitter {
   getReceivedBytes() { return 0; }
   getSavePath() { return this.savePath; }
   setSavePath(p) { this.savePath = p; }
+  setSaveDialogOptions(options) { this.dialogOptions = options; }
   canResume() { return false; }
   resume() {}
   cancel() { this.cancelled += 1; this.emit('done', {}, 'cancelled'); }
@@ -366,4 +367,33 @@ test('main hears once that a download is under way, and when it completes', () =
   } finally {
     downloads.setDownloadActivityObserver(null);
   }
+});
+
+// #1780: Save As opens in the folder chosen in Settings.
+test('asking on: Save As opens in the chosen folder', () => {
+  const chosen = fs.mkdtempSync(path.join(userData, 'Chosen-'));
+  downloads.setDownloadSavePolicy({ askWhereToSave: () => true, folder: () => chosen, dialogFolder: () => chosen });
+  const item = start('report.pdf');
+  assert.equal(item.savePath, '');
+  assert.deepEqual(item.dialogOptions, { defaultPath: path.join(chosen, 'report.pdf') });
+  item.emit('done', {}, 'cancelled');
+});
+
+test('a chosen folder that is gone: Save As keeps its own default', () => {
+  const gone = path.join(userData, 'unplugged-drive');
+  downloads.setDownloadSavePolicy({ askWhereToSave: () => false, folder: () => gone, dialogFolder: () => gone });
+  const item = start('report.pdf');
+  // Never another folder unasked: the dialog, with no default of ours.
+  assert.equal(item.savePath, '');
+  assert.equal(item.dialogOptions, undefined);
+  assert.equal(fs.existsSync(gone), false);
+  item.emit('done', {}, 'cancelled');
+});
+
+test('saved without asking: no dialog options', () => {
+  downloads.setDownloadSavePolicy({ askWhereToSave: () => false, folder: () => dir, dialogFolder: () => dir });
+  const item = start('quiet.zip');
+  assert.equal(item.savePath, path.join(dir, 'quiet.zip'));
+  assert.equal(item.dialogOptions, undefined);
+  item.emit('done', {}, 'completed');
 });

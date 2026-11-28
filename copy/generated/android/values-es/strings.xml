@@ -1083,7 +1083,12 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="settings_general_reuse_new_tab_label">Ir a una pestaña nueva sin usar</string>
     <string name="settings_general_reuse_new_tab_hint">Nueva pestaña va a una pestaña nueva de esta ventana que aún no has usado, en lugar de abrir otra. Nueva pestaña privada hace lo mismo con las pestañas privadas.</string>
     <string name="settings_general_ask_where_to_save_label">Preguntar dónde guardar cada archivo</string>
-    <string name="settings_general_ask_where_to_save_hint">Si está desactivado, las descargas van directamente a tu carpeta Descargas, y un archivo con el mismo nombre recibe un número.</string>
+    <string name="settings_general_ask_where_to_save_hint">Si está desactivado, las descargas van directamente a la carpeta de arriba, y un archivo con el mismo nombre recibe un número.</string>
+    <string name="settings_general_download_folder_label">Guardar archivos en</string>
+    <string name="settings_general_download_folder_change">Cambiar…</string>
+    <string name="settings_general_download_folder_reset">Usar Descargas</string>
+    <string name="settings_general_download_folder_choose_title">Elige dónde guardar las descargas</string>
+    <string name="settings_general_download_folder_missing">No se encuentra %1$s ahora mismo, así que las descargas preguntan dónde guardarse hasta que vuelva o elijas otra carpeta.</string>
     <string name="settings_general_tab_switch_order_recent">En el orden en que las usaste</string>
     <string name="settings_general_tab_switch_order_list">En el orden de la lista de pestañas</string>
     <string name="settings_general_tab_archive_label">Archivar las pestañas inactivas</string>

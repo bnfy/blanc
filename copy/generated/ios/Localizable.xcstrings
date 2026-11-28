@@ -42644,37 +42644,247 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When this is off, downloads go straight to your Downloads folder, and a file with the same name gets a number added."
+            "value": "When this is off, downloads go straight to the folder above, and a file with the same name gets a number added."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wenn das aus ist, landen Downloads direkt in deinem Ordner „Downloads“, und eine Datei mit demselben Namen bekommt eine Nummer angehängt."
+            "value": "Wenn das aus ist, landen Downloads direkt im Ordner oben, und eine Datei mit demselben Namen bekommt eine Nummer angehängt."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Si está desactivado, las descargas van directamente a tu carpeta Descargas, y un archivo con el mismo nombre recibe un número."
+            "value": "Si está desactivado, las descargas van directamente a la carpeta de arriba, y un archivo con el mismo nombre recibe un número."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lorsque cette option est désactivée, les téléchargements vont directement dans votre dossier Téléchargements, et un fichier portant le même nom reçoit un numéro."
+            "value": "Lorsque cette option est désactivée, les téléchargements vont directement dans le dossier ci-dessus, et un fichier portant le même nom reçoit un numéro."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se è disattivato, i download vanno direttamente nella cartella Download e un file con lo stesso nome riceve un numero."
+            "value": "Se è disattivato, i download vanno direttamente nella cartella qui sopra e un file con lo stesso nome riceve un numero."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quando está desativado, os downloads vão direto para a sua pasta Downloads, e um arquivo com o mesmo nome recebe um número."
+            "value": "Quando está desativado, os downloads vão direto para a pasta acima, e um arquivo com o mesmo nome recebe um número."
+          }
+        }
+      }
+    },
+    "settings.general.downloadFolder.label": {
+      "comment": "Settings → General → Browsing: label of the row showing the folder downloads go to (#1780), with Change… and Use Downloads buttons. The row's hint is the folder's path.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save files to"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateien speichern in"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar archivos en"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer les fichiers dans"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva i file in"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar arquivos em"
+          }
+        }
+      }
+    },
+    "settings.general.downloadFolder.change": {
+      "comment": "Settings → General → Browsing, Save files to: button that opens a folder dialog to choose where downloads go.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ändern…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alterar…"
+          }
+        }
+      }
+    },
+    "settings.general.downloadFolder.reset": {
+      "comment": "Settings → General → Browsing, Save files to: button shown when another folder is chosen; sends downloads to the system's Downloads folder again. Use the folder's name on that platform in this language.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Downloads"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloads verwenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar Descargas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser Téléchargements"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa Download"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar Downloads"
+          }
+        }
+      }
+    },
+    "settings.general.downloadFolder.chooseTitle": {
+      "comment": "Title of the folder dialog opened by Settings → Save files to → Change….",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose where to save downloads"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle, wo Downloads gespeichert werden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige dónde guardar las descargas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez où enregistrer les téléchargements"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli dove salvare i download"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha onde salvar os downloads"
+          }
+        }
+      }
+    },
+    "settings.general.downloadFolder.missing": {
+      "comment": "Settings → General → Browsing: hint under Save files to when the chosen folder is missing (an unplugged drive, a deleted folder). {path} is the folder's path.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ can't be found right now, so downloads ask where to save until it's back or you choose another folder."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ist gerade nicht zu finden. Bis der Ordner wieder da ist oder du einen anderen wählst, fragen Downloads, wo sie gespeichert werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encuentra %1$@ ahora mismo, así que las descargas preguntan dónde guardarse hasta que vuelva o elijas otra carpeta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ est introuvable pour le moment : les téléchargements demandent où les enregistrer jusqu’à ce qu’il revienne ou que vous choisissiez un autre dossier."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al momento %1$@ non si trova, quindi i download chiedono dove salvare finché non torna o non scegli un’altra cartella."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não é possível encontrar %1$@ agora, então os downloads perguntam onde salvar até que ela volte ou você escolha outra pasta."
           }
         }
       }

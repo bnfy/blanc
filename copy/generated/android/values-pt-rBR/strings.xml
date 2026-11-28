@@ -1083,7 +1083,12 @@ Você pode tentar de novo com “%2$s” ou reinstalar a partir de blanc.day.</s
     <string name="settings_general_reuse_new_tab_label">Ir para uma nova aba não usada</string>
     <string name="settings_general_reuse_new_tab_hint">Nova aba vai para uma nova aba desta janela que você ainda não usou, em vez de abrir outra. Nova aba privada faz o mesmo com as abas privadas.</string>
     <string name="settings_general_ask_where_to_save_label">Perguntar onde salvar cada arquivo</string>
-    <string name="settings_general_ask_where_to_save_hint">Quando está desativado, os downloads vão direto para a sua pasta Downloads, e um arquivo com o mesmo nome recebe um número.</string>
+    <string name="settings_general_ask_where_to_save_hint">Quando está desativado, os downloads vão direto para a pasta acima, e um arquivo com o mesmo nome recebe um número.</string>
+    <string name="settings_general_download_folder_label">Salvar arquivos em</string>
+    <string name="settings_general_download_folder_change">Alterar…</string>
+    <string name="settings_general_download_folder_reset">Usar Downloads</string>
+    <string name="settings_general_download_folder_choose_title">Escolha onde salvar os downloads</string>
+    <string name="settings_general_download_folder_missing">Não é possível encontrar %1$s agora, então os downloads perguntam onde salvar até que ela volte ou você escolha outra pasta.</string>
     <string name="settings_general_tab_switch_order_recent">Na ordem em que você as usou</string>
     <string name="settings_general_tab_switch_order_list">Na ordem da lista de abas</string>
     <string name="settings_general_tab_archive_label">Arquivar abas inativas</string>

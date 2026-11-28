@@ -168,6 +168,19 @@ function chooseSavePath(item, requester) {
   }
 }
 
+// #1780: Save As opens in the folder chosen in Settings, when there is one
+// and it's there. Otherwise Electron's own default (the system's Downloads).
+function openSaveDialogIn(item) {
+  if (!savePolicy || typeof savePolicy.dialogFolder !== 'function' || typeof item.setSaveDialogOptions !== 'function') return;
+  try {
+    const folder = savePolicy.dialogFolder();
+    if (!folder || !fs.statSync(folder).isDirectory()) return;
+    item.setSaveDialogOptions({ defaultPath: path.join(folder, path.basename(item.getFilename() || '')) });
+  } catch {
+    // A folder that's gone or unreadable: the dialog's own default.
+  }
+}
+
 const THROTTLE_MS = 250;
 let lastBroadcast = 0;
 let broadcastTimer = null;
@@ -264,6 +277,7 @@ function setupDownloads(
     }
     // Saved without asking: under way now. Save As waits for its answer.
     if (item.getSavePath()) notifyActivity(entry, 'started');
+    else openSaveDialogIn(item);
 
     item.on('updated', (_e, state) => withLocalProfile(profileId, () => {
       record.state = state; // 'progressing' | 'interrupted'
