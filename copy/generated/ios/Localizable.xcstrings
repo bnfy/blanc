@@ -42638,7 +42638,7 @@
       }
     },
     "settings.general.askWhereToSave.hint": {
-      "comment": "Settings → General → Browsing: hint under Ask where to save each file. Downloads is the name of the system's Downloads folder; use the folder's name on that platform in this language.",
+      "comment": "Settings → General → Browsing: hint under Ask where to save each file. \"The folder above\" is the folder shown in the Save files to row just above this switch.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -42885,6 +42885,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Não é possível encontrar %1$@ agora, então os downloads perguntam onde salvar até que ela volte ou você escolha outra pasta."
+          }
+        }
+      }
+    },
+    "settings.general.downloadFolder.unwritable": {
+      "comment": "Settings → General → Browsing: hint under Save files to when the chosen folder exists but Blanc can't write to it (read-only, or access refused). {path} is the folder's path.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc can't save to %1$@, so downloads ask where to save until it can or you choose another folder."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc kann nicht in %1$@ speichern. Bis das wieder geht oder du einen anderen Ordner wählst, fragen Downloads, wo sie gespeichert werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc no puede guardar en %1$@, así que las descargas preguntan dónde guardarse hasta que pueda o elijas otra carpeta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc ne peut pas enregistrer dans %1$@ : les téléchargements demandent où les enregistrer jusqu’à ce que ce soit possible ou que vous choisissiez un autre dossier."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blanc non può salvare in %1$@, quindi i download chiedono dove salvare finché non sarà possibile o non scegli un’altra cartella."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Blanc não consegue salvar em %1$@, então os downloads perguntam onde salvar até que consiga ou você escolha outra pasta."
           }
         }
       }

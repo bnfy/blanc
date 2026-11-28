@@ -45,7 +45,7 @@ const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 const { developmentBrandAssetPath } = require('./development-brand-preview');
 const { ublockBrandResourcePath } = require('./ublock-brand-resource');
 const { buildTrustReceipt, inspectLocalSignature } = require('./trust-receipt');
-const { downloadFolderState } = require('./download-folder');
+const { downloadFolderState, checkDownloadFolder } = require('./download-folder');
 
 function trustLinksForVersion(version) {
   const release = encodeURIComponent(String(version));
@@ -504,27 +504,33 @@ function setupPages(hooks = {}) {
   // #1780: where downloads go. The page never sends a path: Change… opens
   // the folder dialog here, and Use Downloads stores '' (the system folder).
   function downloadFolderReply() {
-    const isDirectory = (p) => fs.statSync(p).isDirectory();
-    return downloadFolderState(settings.getSettings().downloadFolder, app.getPath('downloads'), isDirectory);
+    return downloadFolderState(settings.getSettings().downloadFolder, app.getPath('downloads'),
+      (folder) => checkDownloadFolder(fs, folder));
   }
-  // Settings must open even if the folder can't be read: no row then.
+  // Settings must open even if the folder can't be read: the row then says so.
   function settingsDownloadFolder() {
     try {
       return downloadFolderReply();
     } catch {
-      return null;
+      return downloadFolderState(settings.getSettings().downloadFolder, '', () => 'missing');
     }
   }
-  handle('pages:settings:download-folder:choose', 'settings', async () => {
-    const current = downloadFolderReply();
-    const picked = await dialog.showOpenDialog(hooks.getMainWindow?.() ?? undefined, {
-      title: t('settings.general.downloadFolder.chooseTitle'),
-      defaultPath: current.missing ? app.getPath('downloads') : current.path,
-      properties: ['openDirectory', 'createDirectory'],
-    });
-    if (picked.canceled || !picked.filePaths.length) return { cancelled: true, folder: current };
-    settings.setDownloadFolder(picked.filePaths[0], app.getPath('downloads'));
-    return { folder: downloadFolderReply() };
+  handle('pages:settings:download-folder', 'settings', () => settingsDownloadFolder());
+  // One folder dialog at a time: a second Change… gets the open one's answer.
+  let choosingDownloadFolder = null;
+  handle('pages:settings:download-folder:choose', 'settings', () => {
+    choosingDownloadFolder ??= (async () => {
+      const current = downloadFolderReply();
+      const picked = await dialog.showOpenDialog(hooks.getMainWindow?.() ?? undefined, {
+        title: t('settings.general.downloadFolder.chooseTitle'),
+        defaultPath: current.missing ? app.getPath('downloads') : current.path,
+        properties: ['openDirectory', 'createDirectory'],
+      });
+      if (picked.canceled || !picked.filePaths.length) return { cancelled: true, folder: current };
+      settings.setDownloadFolder(picked.filePaths[0], app.getPath('downloads'));
+      return { folder: downloadFolderReply() };
+    })().finally(() => { choosingDownloadFolder = null; });
+    return choosingDownloadFolder;
   });
   handle('pages:settings:download-folder:reset', 'settings', () => {
     settings.setDownloadFolder('', app.getPath('downloads'));

@@ -34,26 +34,45 @@ function resolveDownloadFolder(stored, systemFolder) {
 }
 
 // What Settings shows. `missing` is true when the chosen folder isn't a
-// folder now (an unplugged drive, a deleted folder): downloads then ask where
-// to save, as for any folder Blanc can't write to, and never fall back to
-// another folder unasked.
-function downloadFolderState(stored, systemFolder, isDirectory) {
+// folder now (an unplugged drive, a deleted folder); `unwritable` when it is
+// one Blanc can't write to (read-only, or access refused). Downloads then ask
+// where to save, and never fall back to another folder unasked.
+// `check(folder)` answers 'ok', 'missing' or 'unwritable'.
+function downloadFolderState(stored, systemFolder, check) {
   const chosen = normalizeDownloadFolder(stored, systemFolder);
-  const folder = chosen || systemFolder;
-  let missing = false;
+  const folder = chosen || systemFolder || '';
+  let status = 'ok';
   if (chosen) {
     try {
-      missing = !isDirectory(chosen);
+      status = check(chosen);
     } catch {
-      missing = true;
+      status = 'missing';
     }
   }
   return {
     path: folder,
     name: path.basename(folder) || folder,
     custom: Boolean(chosen),
-    missing,
+    missing: status === 'missing',
+    unwritable: status === 'unwritable',
   };
+}
+
+// The check Settings uses, on the real file system.
+function checkDownloadFolder(fs, folder) {
+  let stat;
+  try {
+    stat = fs.statSync(folder);
+  } catch {
+    return 'missing';
+  }
+  if (!stat.isDirectory()) return 'missing';
+  try {
+    fs.accessSync(folder, fs.constants.W_OK);
+  } catch {
+    return 'unwritable';
+  }
+  return 'ok';
 }
 
 module.exports = {
@@ -61,4 +80,5 @@ module.exports = {
   normalizeDownloadFolder,
   resolveDownloadFolder,
   downloadFolderState,
+  checkDownloadFolder,
 };

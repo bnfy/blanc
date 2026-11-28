@@ -800,11 +800,20 @@
       if (!folder || typeof folder !== 'object') return;
       hint.textContent = folder.missing
         ? t('settings.general.downloadFolder.missing', { path: folder.path })
-        : folder.path;
+        : folder.unwritable
+          ? t('settings.general.downloadFolder.unwritable', { path: folder.path })
+          : folder.path;
       hint.title = folder.path;
       reset.hidden = folder.custom !== true;
     };
     render(downloadFolder);
+    // A drive can be unplugged or plugged back in while Settings is open.
+    const refresh = async () => {
+      if (document.visibilityState !== 'visible' || !window.bowserPages.settings.downloadFolder) return;
+      render(await window.bowserPages.settings.downloadFolder().catch(() => null));
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
     downloadFolderChoose.addEventListener('click', async () => {
       const reply = await window.bowserPages.settings.chooseDownloadFolder().catch(() => null);
       render(reply?.folder);

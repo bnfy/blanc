@@ -1089,6 +1089,7 @@ Vous pouvez réessayer avec « %2$s » ou réinstaller depuis blanc.day.</stri
     <string name="settings_general_download_folder_reset">Utiliser Téléchargements</string>
     <string name="settings_general_download_folder_choose_title">Choisissez où enregistrer les téléchargements</string>
     <string name="settings_general_download_folder_missing">%1$s est introuvable pour le moment : les téléchargements demandent où les enregistrer jusqu’à ce qu’il revienne ou que vous choisissiez un autre dossier.</string>
+    <string name="settings_general_download_folder_unwritable">Blanc ne peut pas enregistrer dans %1$s : les téléchargements demandent où les enregistrer jusqu’à ce que ce soit possible ou que vous choisissiez un autre dossier.</string>
     <string name="settings_general_tab_switch_order_recent">Dans l’ordre où vous les avez utilisés</string>
     <string name="settings_general_tab_switch_order_list">Dans l’ordre de la liste des onglets</string>
     <string name="settings_general_tab_archive_label">Archiver les onglets inactifs</string>

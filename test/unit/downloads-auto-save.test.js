@@ -256,8 +256,12 @@ test('a retry from the list with no free name asks instead of overwriting', { sk
   downloads.retryDownload(rowFor(item).id);
   fs.chmodSync(dir, 0o555);
   try {
+    // Settings names another folder; Save As still opens where the file was going.
+    const elsewhere = fs.mkdtempSync(path.join(userData, 'Elsewhere-'));
+    downloads.setDownloadSavePolicy({ askWhereToSave: () => false, folder: () => dir, dialogFolder: () => elsewhere });
     const again = start('eleven.zip');
     assert.equal(again.savePath, '');
+    assert.deepEqual(again.dialogOptions, { defaultPath: path.join(dir, 'eleven.zip') });
     assert.equal(fs.readFileSync(path.join(dir, 'eleven.zip'), 'utf8'), 'someone else');
     again.emit('done', {}, 'cancelled');
   } finally {

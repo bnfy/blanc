@@ -116,6 +116,7 @@ Exposed by `src/main/tab-preload.js` to the top-level `blanc://` page on each ho
 | `settings.language` | invoke | `pages:settings:language` | settings | Choose the interface language; optionally relaunch to apply it. |
 | `settings.linkTargets` | invoke | `pages:settings:link-targets` | settings | Where link routing rules can point: live profiles and Spaces, ids and names only. |
 | `settings.setLinkRoutes` | invoke | `pages:settings:link-routes:set` | settings | Replace the link routing rules; main validates the whole list and stores all or nothing. |
+| `settings.downloadFolder` | invoke | `pages:settings:download-folder` | settings | Where downloads go now, and whether that folder is there and writable. |
 | `settings.chooseDownloadFolder` | invoke | `pages:settings:download-folder:choose` | settings | Open the folder dialog and store the folder downloads go to; the page never sends a path. |
 | `settings.resetDownloadFolder` | invoke | `pages:settings:download-folder:reset` | settings | Send downloads to the system's Downloads folder again. |
 | `settings.blockingStatus` | invoke | `pages:blocking:status` | settings | Blocking provider status. |

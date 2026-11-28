@@ -1057,6 +1057,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_general_download_folder_reset">Use Downloads</string>
     <string name="settings_general_download_folder_choose_title">Choose where to save downloads</string>
     <string name="settings_general_download_folder_missing">%1$s can\'t be found right now, so downloads ask where to save until it\'s back or you choose another folder.</string>
+    <string name="settings_general_download_folder_unwritable">Blanc can\'t save to %1$s, so downloads ask where to save until it can or you choose another folder.</string>
     <string name="settings_general_tab_switch_order_recent">In the order you used them</string>
     <string name="settings_general_tab_switch_order_list">In the order of the tab list</string>
     <string name="settings_general_tab_archive_label">Archive inactive tabs</string>

@@ -208,7 +208,7 @@
     },
     {
       "file": "src/main/downloads.js",
-      "sha256": "6ed4a0c5b32b664ed0bc35b6148147c068469db1ab3c84c065c308bcefae8eae",
+      "sha256": "b27c526c5f238391f8384c8fbc58cd1ce713f0ba4682ef383be5cfd8ff4084d6",
       "literalChannels": [
         "input-event",
         "updated",
@@ -535,7 +535,7 @@
     },
     {
       "file": "src/main/pages.js",
-      "sha256": "ca20a47e889a9280f78747377603577e92b262cca857eb188400d3cee60db4b4",
+      "sha256": "eaf0313d19f5e2093a31d31a2306b4b509f9416f5ec7f09242d4220394b44b85",
       "literalChannels": [
         "blanc",
         "pages:app-version",
@@ -596,6 +596,7 @@
         "pages:profiles:remove",
         "pages:profiles:rename",
         "pages:settings:check-for-updates",
+        "pages:settings:download-folder",
         "pages:settings:download-folder:choose",
         "pages:settings:download-folder:reset",
         "pages:settings:drm-restart",
@@ -1019,7 +1020,7 @@
     },
     {
       "file": "src/main/tab-preload.js",
-      "sha256": "3091417104ac62c46ab782af33b8fc6c5f103d383397f2398c124bd71f60ae6d",
+      "sha256": "8bb5d1bd1c070b572f7031e06a788f65498a004b1cc2ca85b28b265f2ca8743f",
       "literalChannels": [
         "page-tint:changed",
         "pages:app-version",
@@ -1083,6 +1084,7 @@
         "pages:profiles:rename",
         "pages:settings:appearance",
         "pages:settings:check-for-updates",
+        "pages:settings:download-folder",
         "pages:settings:download-folder:choose",
         "pages:settings:download-folder:reset",
         "pages:settings:drm-restart",

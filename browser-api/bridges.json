@@ -1676,6 +1676,17 @@
         "doc": "Replace the link routing rules; main validates the whole list and stores all or nothing."
       },
       {
+        "name": "settings.downloadFolder",
+        "kind": "invoke",
+        "channel": "pages:settings:download-folder",
+        "hosts": [
+          "settings"
+        ],
+        "params": [],
+        "returns": "unknown",
+        "doc": "Where downloads go now, and whether that folder is there and writable."
+      },
+      {
         "name": "settings.chooseDownloadFolder",
         "kind": "invoke",
         "channel": "pages:settings:download-folder:choose",

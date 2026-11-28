@@ -3789,7 +3789,7 @@
   },
   "settings.general.askWhereToSave.hint": {
     "message": "Se è disattivato, i download vanno direttamente nella cartella qui sopra e un file con lo stesso nome riceve un numero.",
-    "source": "sha256:4cb107f078d73e81f80c0106da6f3d5a9742956ee4f9c2274821b25541a166c4"
+    "source": "sha256:27fd412b98a41c36f65025703c5d3f78d51dfab45ccf071bd7e5d61136d3ea71"
   },
   "settings.general.downloadFolder.label": {
     "message": "Salva i file in",
@@ -3810,6 +3810,10 @@
   "settings.general.downloadFolder.missing": {
     "message": "Al momento {path} non si trova, quindi i download chiedono dove salvare finché non torna o non scegli un’altra cartella.",
     "source": "sha256:de5ec843b81e00a51159742ab925aa76624e2800a40051ff7e7d0c19a735e2ad"
+  },
+  "settings.general.downloadFolder.unwritable": {
+    "message": "Blanc non può salvare in {path}, quindi i download chiedono dove salvare finché non sarà possibile o non scegli un’altra cartella.",
+    "source": "sha256:5d3402f1a92633fe04bab30c8c4def1fb8b2a3fc53360a298b9ec757474356b3"
   },
   "settings.general.tabSwitchOrder.recent": {
     "message": "Nell’ordine in cui le hai usate",

@@ -1089,6 +1089,7 @@ Puoi riprovare con «%2$s» o reinstallare Blanc da blanc.day.</string>
     <string name="settings_general_download_folder_reset">Usa Download</string>
     <string name="settings_general_download_folder_choose_title">Scegli dove salvare i download</string>
     <string name="settings_general_download_folder_missing">Al momento %1$s non si trova, quindi i download chiedono dove salvare finché non torna o non scegli un’altra cartella.</string>
+    <string name="settings_general_download_folder_unwritable">Blanc non può salvare in %1$s, quindi i download chiedono dove salvare finché non sarà possibile o non scegli un’altra cartella.</string>
     <string name="settings_general_tab_switch_order_recent">Nell’ordine in cui le hai usate</string>
     <string name="settings_general_tab_switch_order_list">Nell’ordine dell’elenco delle schede</string>
     <string name="settings_general_tab_archive_label">Archivia le schede inattive</string>

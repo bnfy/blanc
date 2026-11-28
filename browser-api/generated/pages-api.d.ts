@@ -277,6 +277,8 @@ export interface SettingsPagesAPI {
     linkTargets: () => Promise<unknown>;
     /** Replace the link routing rules; main validates the whole list and stores all or nothing. IPC: invoke `pages:settings:link-routes:set`. */
     setLinkRoutes: (routes: unknown) => Promise<unknown>;
+    /** Where downloads go now, and whether that folder is there and writable. IPC: invoke `pages:settings:download-folder`. */
+    downloadFolder: () => Promise<unknown>;
     /** Open the folder dialog and store the folder downloads go to; the page never sends a path. IPC: invoke `pages:settings:download-folder:choose`. */
     chooseDownloadFolder: () => Promise<unknown>;
     /** Send downloads to the system's Downloads folder again. IPC: invoke `pages:settings:download-folder:reset`. */
