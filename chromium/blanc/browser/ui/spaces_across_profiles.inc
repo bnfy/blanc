@@ -274,11 +274,15 @@ bool IsSpaceErrorCode(const std::string& code) {
 // answers through `pending.done`. It is shown without focus, so the asking
 // window's menu stays open for an error, and comes forward only once the
 // Space is in it (spacePendingDone). Null when no window can open.
-BrowserWindowInterface* NewSpaceWindow(Profile* profile, PendingSpaceOpen pending) {
+// `bounds` places it (a mini window's Move to Space, #1734, asks for an
+// ordinary window's size, which the window sizer would copy from the mini).
+BrowserWindowInterface* NewSpaceWindow(Profile* profile, PendingSpaceOpen pending,
+                                       std::optional<gfx::Rect> bounds = std::nullopt) {
   if (profile->IsOffTheRecord() ||
       GetBrowserWindowCreationStatusForProfile(*profile) != BrowserWindowInterface::CreationStatus::kOk) return nullptr;
   BrowserWindowCreateParams params(profile, true);
   params.should_trigger_session_restore = false;
+  if (bounds) params.initial_bounds = *bounds;
   auto* created = CreateBrowserWindow(std::move(params));
   if (!created) return nullptr;
   chrome::AddAndReturnTabAt(created, GURL("chrome://newtab/"), -1, true);
