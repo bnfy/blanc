@@ -28,29 +28,37 @@ const addressPremium = (productFor('mail-address-annual').amount - productFor('m
 // One plan on the page (owner, November 24, 2026). The address is an annual add-on
 // sold as the Blanc Mail + Address product, and Blanc Bundle is the upgrade for
 // Browser Patrons, named under the card rather than as a plan of its own.
-const plan = {
-  key: 'mail', name: 'Blanc Mail',
-  benefits: ['The Mac app for your existing email accounts', '14-day local app trial', 'No payment card needed for the trial'],
-};
+const billingOptions = [
+  { product: 'mail-annual', label: 'Annual' },
+  { product: 'mail-monthly', label: 'Monthly' },
+];
 const addressCheckout = checkoutHrefFor('mail-address-annual');
-// The hero's window: Blanc Mail's light capture of its demo inbox (sample mail
-// only), taken with the Mail repository's capture-public-shots.sh. The alt
-// text describes what the image shows; update it with each recapture.
-const heroShot = {
-  name: 'hero-light',
+// The owner-approved Mac window and the iPhone Inbox QA capture.
+const macShot = {
+  class: 'offer-shot',
+  name: 'hero-dark',
+  alt: 'Blanc Mail on Mac in dark mode, showing Mira’s sample inbox and the “Your Blanc Mail preview” email with a gold envelope and the headline “A little less inbox.”',
   width: 2200,
-  height: 1455,
-  alt: 'Blanc Mail on a Mac in the light appearance, showing sample mail: the Inbox with Work, Family, Finance and Shopping groups, a list of eight conversations, and Theo Lindqvist’s “Spring lookbook: final selects” thread open, with a photo of a white ceramic vase and two cups.',
+  height: 1421,
+  sizes: '(max-width: 600px) calc(100vw - 44px), (max-width: 1124px) calc(85vw - 48px), 910px',
+  priority: true,
+};
+const iphoneShot = {
+  class: 'iphone-shot',
+  name: 'iphone-inbox',
+  alt: 'Blanc Mail’s sample inbox on iPhone in dark mode, with a sign-in code ready to copy, a PDF attachment, and swipe actions for moving, archiving, or trashing a message.',
+  width: 1170,
+  height: 2532,
+  displayWidth: 640,
+  sizes: '(max-width: 600px) 240px, (max-width: 1124px) max(144px, 21vw), 227px',
 };
 ---
 <BaseLayout title="Blanc Mail — A little less inbox" description="A mail app for Mac, coming soon. Bring your Gmail account, or add a Blanc address of your own. Planned at $4.99 a month or $49.99 a year." path="/mail" header="solid">
   <MailBar />
   <main id="main-content" class="mail-overview">
-    <!-- The hero (owner, November 24, 2026): one primary action, then the real
-         app. While reservations are open that action is Reserve your address and
-         the waitlist is a quiet link; once they close, the waitlist leads. The
-         window is a capture of the signed demo build (Mail repository,
-         capture-public-shots.sh main, the light scene), refreshed whenever the app's UI changes. -->
+    <!-- The hero has one primary action, then both previews.
+         While reservations are open that action is Reserve your address and
+         the waitlist is a quiet link; once they close, the waitlist leads. -->
     <section class="offer-hero" aria-labelledby="offer-title">
       <p class="mail-eyebrow">Blanc Mail · for Mac · Coming soon</p>
       <h1 id="offer-title"><span class="mail-gold-text">A little less inbox.</span></h1>
@@ -75,32 +83,38 @@ const heroShot = {
         </div>
       )}
       {survey.open && <p class="mail-survey-link"><a href="/mail/survey">Help shape Blanc Mail: tell us what you’d want, anonymously.</a></p>}
-      <MailShot class="offer-shot" name={heroShot.name} alt={heroShot.alt} width={heroShot.width} height={heroShot.height} eager priority sizes="(max-width: 1180px) 100vw, 1120px" />
+      <MailShot shots={[macShot, iphoneShot]} />
     </section>
 
     <section id="pricing" class="overview-section pricing-section" aria-labelledby="plans-title">
       <h2 id="plans-title"><span class="mail-gold-text">Pricing</span></h2>
       <p class="section-intro">Planned pricing at launch. Purchases are not open yet.</p>
       <div class="offer-plan">
-        <h3>{plan.name}</h3>
-        <div class="offer-prices">
-          <p><strong class="mail-gold-text">{priceFor(`${plan.key}-annual`)}</strong> / year</p>
-          <p>or <strong class="mail-gold-text">{priceFor(`${plan.key}-monthly`)}</strong> / month</p>
-        </div>
-        <ul class="plan-benefits" role="list">
-          {plan.benefits.map(benefit => <li>{benefit}</li>)}
-        </ul>
-        {['annual', 'monthly'].map(period => {
-          const href = checkoutHrefFor(`${plan.key}-${period}`);
-          return href && <a class="plan-checkout" href={href}>Choose {plan.name} — {period}</a>;
-        })}
+        <h3>Blanc Mail</h3>
+        <p class="plan-description">Use your existing Gmail accounts in the Mac app.</p>
+        <dl class="offer-prices">
+          {billingOptions.map(({ product, label }) => {
+            const href = checkoutHrefFor(product);
+            return (
+              <div>
+                <dt>{label}</dt>
+                <dd>
+                  <p><strong class="mail-gold-text">{priceFor(product)}</strong> / {productFor(product).interval}</p>
+                  {href && <a class="plan-checkout" href={href}>Choose Blanc Mail — {label.toLowerCase()}</a>}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+        <p class="plan-trial">14-day trial on your Mac. No payment card needed.</p>
         <div class="plan-addon">
           <h4>Add a Blanc address</h4>
-          <p>${addressPremium} more a year, {priceFor('mail-address-annual')} in all. Your own Blanc address with 15 GB for mail and attachments. Annual billing only.</p>
+          <p class="plan-addon-price"><strong class="mail-gold-text">{priceFor('mail-address-annual')}/year</strong> total for Blanc Mail + Address</p>
+          <p>${addressPremium} more than annual Blanc Mail. Includes 15 GB for mail and attachments. Annual billing only.</p>
           {addressCheckout && <a class="plan-checkout" href={addressCheckout}>Choose Blanc Mail + Address — annual</a>}
         </div>
       </div>
-      <p class="plan-upgrade">Browser Patrons can upgrade to Blanc Bundle for {priceFor('suite-annual')} a year or {priceFor('suite-monthly')} a month. It adds Blanc Mail, a Blanc address and <a href="https://noddingoffapp.com/">Nodding Off</a>, bedtime stories for iPhone.</p>
+      <p class="plan-upgrade">Browser Patrons can upgrade to <strong>Blanc Bundle</strong> for <strong>{priceFor('suite-annual')}/year or {priceFor('suite-monthly')}/month</strong>. It adds Blanc Mail, a Blanc address and <a href="https://noddingoffapp.com/">Nodding Off</a>, bedtime stories for iPhone.</p>
     </section>
 
     <section id="address" class="overview-section address-section" aria-labelledby="address-title">
