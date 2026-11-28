@@ -262,6 +262,31 @@ export const EDITS = {
 // carries them, move these into EDITS with the pin record's deletion.
 export const MENU_EDITS = {
   'overlay.js': [
+    // Switch to tabs and Spaces (#1734 part 2, shipping #1791): a mini
+    // window's switcher lists the profile's tabs elsewhere and offers Spaces
+    // again; the host answers listMiniSwitchTabs / goToMiniSwitchTab. Remove
+    // these when the pin moves past #1791.
+    ["  let archivedEntries = [];\n",
+     "  let archivedEntries = [];\n  // A mini window's switcher also lists the profile's tabs elsewhere (#1734\n  // part 2): other windows and Spaces set aside; a pick that finds its tab\n  // gone leaves a notice until the input changes.\n  let elsewhereTabs = [];\n  let elsewhereNotice = '';\n"],
+    ["    tab: blancI18n.t('result.tag.tab'),\n", "    tab: blancI18n.t('result.tag.tab'),\n    elsewhere: blancI18n.t('result.tag.tab'),\n"],
+    ["    // A mini window holds no Space and switches to none (#1734): its Spaces\n    // button moves it instead, so typing a Space's name offers no Space here.\n    const spaceResults = state.miniWindow !== true;\n", ""],
+    ["    for (const w of spaceResults ? wsWorkspaces : []) {", "    for (const w of wsWorkspaces) {"],
+    ["    for (const profile of spaceResults ? wsOtherProfiles : []) {", "    for (const profile of wsOtherProfiles) {"],
+    ["      if (s) results.push({ kind: 'tab', title: t.title || blancI18n.t('tab.untitled'), sub, tab: t, score: s + 0.2 });\n    }\n",
+     "      if (s) results.push({ kind: 'tab', title: t.title || blancI18n.t('tab.untitled'), sub, tab: t, score: s + 0.2 });\n    }\n    // A mini window's tabs elsewhere (#1734 part 2) rank just below its own\n    // tabs and above Favorites, saying which Space or window holds them.\n    if (state.miniWindow === true) {\n      for (const e of elsewhereTabs) {\n        const s = matchScore(query, matchableText(e.title, e.url));\n        if (s) results.push({\n          kind: 'elsewhere',\n          title: e.title,\n          sub: `${hostOfUrl(e.url)} · ${e.place ?? blancI18n.t('mini.switch.anotherWindow')}`,\n          url: e.url,\n          tab: { url: e.url, favicon: e.favicon },\n          key: e.key,\n          score: s + 0.15,\n        });\n      }\n    }\n"],
+    [": r.kind === 'space' ? `space:${r.workspace.profileId ?? ''}:${r.workspace.id}` : r.url;",
+     ": r.kind === 'space' ? `space:${r.workspace.profileId ?? ''}:${r.workspace.id}` : r.kind === 'elsewhere' ? `elsewhere:${r.key}` : r.url;"],
+    ["    if (result.kind === 'tab') return `tab:${result.tab.id}`;\n",
+     "    if (result.kind === 'tab') return `tab:${result.tab.id}`;\n    if (result.kind === 'elsewhere') return `elsewhere:${result.key}`;\n"],
+    ["    if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);\n",
+     "    // A tab elsewhere (#1734 part 2): the host brings its window forward or\n    // opens its Space; the panel waits, and stays with a notice if it has gone.\n    if (result.kind === 'elsewhere') {\n      Promise.resolve(window.browserAPI.goToMiniSwitchTab(result.key)).then((reply) => {\n        if (reply?.ok) { window.browserAPI.closeOverlay(); return; }\n        // A tab that has gone leaves the list; a Space that couldn't open just\n        // now keeps its row for another try.\n        if (reply?.error === 'busy') elsewhereNotice = blancI18n.t('mini.switch.busy');\n        else {\n          elsewhereTabs = elsewhereTabs.filter((e) => e.key !== result.key);\n          elsewhereNotice = blancI18n.t('mini.switch.gone');\n        }\n        renderList();\n      }, () => {});\n      return;\n    }\n    if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);\n"],
+    ["          : [emptyRow(blancI18n.t('list.noMatches'))])\n      );\n    } else {",
+     "          : [emptyRow(blancI18n.t('list.noMatches'))])\n      );\n      if (elsewhereNotice) {\n        const notice = emptyRow(elsewhereNotice);\n        notice.classList.add('command-notice');\n        islandList.prepend(notice);\n      }\n    } else {"],
+    ["  addressInput.addEventListener('input', (e) => {\n", "  addressInput.addEventListener('input', (e) => {\n    elsewhereNotice = '';\n"],
+    ["const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice, sentList] = await Promise.all([",
+     "const [favoritesList, historyList, remoteList, workspacesPayload, bangsPayload, archivedList, notice, sentList, elsewhereList] = await Promise.all(["],
+    ["      window.browserAPI.listSentToThisDevice(),\n    ]);\n",
+     "      window.browserAPI.listSentToThisDevice(),\n      // The host answers [] outside a mini window.\n      window.browserAPI.listMiniSwitchTabs(),\n    ]);\n    elsewhereTabs = Array.isArray(elsewhereList) ? elsewhereList : [];\n"],
     // Move to Space (#1734): the New space… editor counts the tabs the host
     // moves; this payload has no tabOrder, and every start page but a private
     // one stays behind here.

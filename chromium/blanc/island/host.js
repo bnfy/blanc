@@ -548,7 +548,15 @@
   async function openSpace(id, options = {}) {
     // A mini window switches to no Space; only its menu's move mode (`move`)
     // files its tabs into one of this profile's (#1734).
-    if (snapshot?.miniWindow) return options.move === true && !otherProfileTarget(options) ? moveMiniWindowToSpace(id, null) : { ok: false, error: 'busy' };
+    if (snapshot?.miniWindow) {
+      if (options.move === true) return otherProfileTarget(options) ? { ok: false, error: 'busy' } : moveMiniWindowToSpace(id, null);
+      // Picked by name (the Quick Switcher, /space): go there, any profile's;
+      // nothing moves (#1734 part 2).
+      const target = otherProfileTarget(options);
+      const went = target ? await inOtherProfile('spaceOpenInProfile', [target, id]) : (await showSpace(id)) ? { ok: true, workspaceId: id, action: 'focus' } : { ok: false, error: 'activation-failed' };
+      if (went.ok) await miniSwitchArrived();
+      return went;
+    }
     // Another profile's Space opens (or comes forward) in a window of that
     // profile; this window's tabs and Space stay as they are.
     const target = otherProfileTarget(options);
@@ -746,6 +754,79 @@
     }
     await request('closeWindow');
     return { ok: true, workspaceId: target, movedCount: moved, action: 'focus' };
+  }
+  // Switch to tabs elsewhere from a mini window (#1734 part 2, shipping's
+  // mini-switch.js): the profile's tabs in its other windows, in its Spaces
+  // held live, and in its saved Spaces, never private tabs or start pages.
+  // Keys are opaque: t:<tabId>[:<spaceId>] or s:<spaceId>:<index>.
+  const miniSwitchListed = (url) => typeof url === 'string' && url !== '' && url !== 'blanc://newtab/' && url !== 'chrome://newtab/';
+  async function listMiniSwitchTabs() {
+    await refresh();
+    if (!snapshot?.miniWindow || snapshot.tabs.find((tab) => tab.id === snapshot.activeTabId)?.private) return [];
+    const [{ windows = [], records = {} } = {}, meta] = await Promise.all([request('miniSwitchList'), request('spaceMeta')]);
+    const name = (space) => meta.meta?.items?.[space]?.name ?? null;
+    const shown = new Set(), rows = [];
+    for (const window of windows) {
+      if (window.space) shown.add(window.space);
+      for (const tab of window.tabs ?? []) {
+        if (tab.private || !miniSwitchListed(tab.url)) continue;
+        rows.push({ key: window.space ? `t:${tab.id}:${window.space}` : `t:${tab.id}`, title: tab.title || tab.url, url: tab.url, favicon: null, place: window.space ? name(window.space) : null });
+      }
+    }
+    for (const space of meta.held ?? []) {
+      shown.add(space);
+      for (const tab of meta.heldTabs?.[space] ?? []) {
+        if (!tab.present || !miniSwitchListed(tab.url)) continue;
+        rows.push({ key: `t:${tab.id}:${space}`, title: tab.url, url: tab.url, favicon: null, place: name(space) });
+      }
+    }
+    for (const space of meta.meta?.order ?? []) {
+      if (shown.has(space) || (meta.meta.deleted ?? []).includes(space)) continue;
+      (records[space]?.tabs ?? []).forEach((tab, index) => {
+        if (miniSwitchListed(tab.url)) rows.push({ key: `s:${space}:${index}`, title: tab.title || tab.url, url: tab.url, favicon: null, place: name(space) });
+      });
+    }
+    return rows;
+  }
+  // Brings a Space's window forward, or opens it in a new window.
+  async function showSpace(space) {
+    const list = await spaceList();
+    if (!list.meta.items[space] || list.meta.deleted.includes(space)) return false;
+    if (list.elsewhere.has(space) && await request('spaceFocus', [space]) === true) return true;
+    return (await openSpaceElsewhere(space)).ok === true;
+  }
+  // After going somewhere: the mini window's Island closes without handing
+  // focus back, and an untouched mini window (only a start page) closes.
+  async function miniSwitchArrived() {
+    focusLeftWindow = true;
+    if (opened || overlayMode) await close(false);
+    if (!miniMoveRuns(snapshot.tabs).length) request('closeWindow').catch(() => {});
+    return { ok: true };
+  }
+  async function goToMiniSwitchTab(key) {
+    const gone = { ok: false, error: 'gone' };
+    if (!snapshot?.miniWindow || typeof key !== 'string') return gone;
+    const tab = /^t:([^:]+)(?::([^:]+))?$/.exec(key), saved = /^s:([^:]+):(\d+)$/.exec(key);
+    if (!tab && !saved) return gone;
+    const meta = await request('spaceMeta');
+    const exists = (space) => !!meta.meta?.items?.[space] && !(meta.meta.deleted ?? []).includes(space);
+    if (tab) {
+      const id = nativeId(tab[1]), space = tab[2];
+      if (await request('miniSwitchFocus', [id]) === true) return miniSwitchArrived();
+      // A Space on screen only lost the tab: say so rather than show it.
+      if (!space || !exists(space) || (meta.elsewhere ?? []).includes(space)) return gone;
+      if (!await showSpace(space)) return { ok: false, error: 'busy' };
+      // A held tab arrives in the Space's window with its id.
+      await request('miniSwitchFocus', [id]);
+      return miniSwitchArrived();
+    }
+    const space = saved[1], index = Number(saved[2]);
+    const { records = {} } = await request('miniSwitchList');
+    const url = records[space]?.tabs?.[index]?.url;
+    if (!exists(space) || !miniSwitchListed(url)) return gone;
+    if (!await showSpace(space)) return { ok: false, error: 'busy' };
+    await request('miniSwitchFocusUrl', [space, url, index]);
+    return miniSwitchArrived();
   }
   async function updateSpace(id, patch = {}) {
     const list = await spaceList();
@@ -2286,6 +2367,8 @@
     bangs: loadBangs,
     bangIcons: hosts => typed('bangIcons', [Array.isArray(hosts) ? hosts.map(String) : []]),
     getAllTabs: async () => snapshot ?? request('snapshot'),
+    listMiniSwitchTabs: () => listMiniSwitchTabs(),
+    goToMiniSwitchTab: (key) => goToMiniSwitchTab(key),
     keepMiniWindow: async () => {const kept = await request('keepMiniWindow'); await refresh(); await announceSpaces(); return kept;},
     createTab: async (url, options) => {
       // As in shipping, the address is loaded as given (the browser refuses

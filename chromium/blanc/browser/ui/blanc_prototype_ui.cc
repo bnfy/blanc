@@ -10861,6 +10861,81 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
     }
     // Answers whether a window showing the Space came forward, so the
     // caller's Island leaves the focus with it only when one did.
+    // Switch to tabs elsewhere from a mini window (#1734 part 2): the
+    // profile's other ordinary windows (never mini or hold windows) with
+    // their Space and tabs, and the saved Space records, for the host's
+    // listMiniSwitchTabs. Start pages read as blanc://newtab/, as in the
+    // snapshot.
+    if (method == "miniSwitchList" && args.empty()) {
+      base::ListValue windows;
+      for (auto* other : Owner::Live()) {
+        auto* other_browser = other->browser.get();
+        if (!other_browser || other == owner || other_browser->GetProfile() != profile || IsMiniWindow(other_browser) ||
+            IsHoldWindow(other_browser) || other_browser->IsDeleteScheduled()) continue;
+        base::ListValue rows;
+        auto* other_model = other_browser->GetTabStripModel();
+        for (int i = 0; i < other_model->count(); ++i) {
+          auto* page = other_model->GetWebContentsAt(i);
+          const GURL visible = page->GetVisibleURL();
+          const std::string url = visible == GURL("chrome://newtab/") || IsRegularStartPage(page->GetLastCommittedURL())
+              ? "blanc://newtab/" : IsFavoritesPage(visible) ? "blanc://bookmarks/" : visible.spec();
+          rows.Append(base::DictValue().Set("id", sessions::SessionTabHelper::IdForTab(page).id())
+              .Set("title", base::UTF16ToUTF8(page->GetTitle())).Set("url", url)
+              .Set("private", blanc::private_tabs::IsPrivateTab(page)));
+        }
+        windows.Append(base::DictValue().Set("space", other->space_name).Set("tabs", std::move(rows)));
+      }
+      auto listed = base::DictValue().Set("windows", std::move(windows));
+      auto* regular = profile->GetOriginalProfile();
+      SpaceRunner()->PostTaskAndReplyWithResult(FROM_HERE,
+          base::BindOnce(&SpaceDisk, regular->GetPath().AppendASCII("BlancPrototypeSpaces.json"), "sharedRecords", "", base::DictValue()),
+          base::BindOnce([](base::WeakPtr<Handler> self, std::string id, base::DictValue listed, base::DictValue read) {
+            if (!self) return;
+            if (const auto* records = read.FindDict("records")) listed.Set("records", records->Clone());
+            self->Reply(id, true, base::Value(std::move(listed)));
+          }, weak_factory_.GetWeakPtr(), id, std::move(listed)));
+      return;
+    }
+    // Brings forward the ordinary window holding the tab with this id, with
+    // the tab selected (#1734 part 2); false when no such tab is open.
+    if (method == "miniSwitchFocus" && args.size() == 1 && args[0].is_int()) {
+      for (auto* other : Owner::Live()) {
+        auto* other_browser = other->browser.get();
+        if (!other_browser || other_browser->GetProfile() != profile || IsMiniWindow(other_browser) ||
+            IsHoldWindow(other_browser) || other_browser->IsDeleteScheduled()) continue;
+        auto* other_model = other_browser->GetTabStripModel();
+        for (int i = 0; i < other_model->count(); ++i) {
+          if (sessions::SessionTabHelper::IdForTab(other_model->GetWebContentsAt(i)).id() != args[0].GetInt()) continue;
+          other_model->ActivateTabAt(i);
+          auto* window = other_browser->GetWindow();
+          if (window->IsMinimized()) window->Restore();
+          window->Activate();
+          reply(true, base::Value(true)); return;
+        }
+      }
+      reply(true, base::Value(false)); return;
+    }
+    // In the window showing Space args[0], selects the tab with address
+    // args[1] nearest its saved place args[2] (#1734 part 2: restoring can
+    // drop or reorder rows) and brings the window forward.
+    if (method == "miniSwitchFocusUrl" && args.size() == 3 && args[0].is_string() && args[1].is_string() && args[2].is_int()) {
+      for (auto* other : Owner::Live()) {
+        auto* other_browser = other->browser.get();
+        if (!other_browser || other_browser->GetProfile() != profile || IsMiniWindow(other_browser) ||
+            IsHoldWindow(other_browser) || other_browser->IsDeleteScheduled() || other->space_name != args[0].GetString()) continue;
+        auto* other_model = other_browser->GetTabStripModel();
+        int best = -1;
+        for (int i = 0; i < other_model->count(); ++i)
+          if (other_model->GetWebContentsAt(i)->GetVisibleURL().spec() == args[1].GetString() &&
+              (best < 0 || std::abs(i - args[2].GetInt()) < std::abs(best - args[2].GetInt()))) best = i;
+        if (best >= 0) other_model->ActivateTabAt(best);
+        auto* window = other_browser->GetWindow();
+        if (window->IsMinimized()) window->Restore();
+        window->Activate();
+        reply(true, base::Value(best >= 0)); return;
+      }
+      reply(true, base::Value(false)); return;
+    }
     if (method == "spaceFocus" && args.size() == 1 && args[0].is_string()) {
       reply(true, base::Value(FocusSpaceWindow(profile, args[0].GetString()))); return;
     }

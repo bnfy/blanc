@@ -198,5 +198,29 @@
     "fr": "Si les vidéos scintillent, désactivez cette option. Quittez Blanc et rouvrez-le pour appliquer la modification.",
     "it": "Se i video sfarfallano, disattiva questa opzione. Chiudi e riapri Blanc per applicare la modifica.",
     "pt-BR": "Se os vídeos piscarem, desative esta opção. Feche e abra o Blanc novamente para aplicar a alteração."
+  },
+  "mini.switch.anotherWindow": {
+    "en": "Another window",
+    "de": "Anderes Fenster",
+    "es": "Otra ventana",
+    "fr": "Autre fenêtre",
+    "it": "Un'altra finestra",
+    "pt-BR": "Outra janela"
+  },
+  "mini.switch.gone": {
+    "en": "That tab isn't open anymore.",
+    "de": "Dieser Tab ist nicht mehr geöffnet.",
+    "es": "Esa pestaña ya no está abierta.",
+    "fr": "Cet onglet n'est plus ouvert.",
+    "it": "Quella scheda non è più aperta.",
+    "pt-BR": "Essa aba não está mais aberta."
+  },
+  "mini.switch.busy": {
+    "en": "Blanc couldn't open that Space just now. Try again.",
+    "de": "Blanc konnte diesen Space gerade nicht öffnen. Versuche es erneut.",
+    "es": "Blanc no pudo abrir ese Space ahora mismo. Inténtalo de nuevo.",
+    "fr": "Blanc n'a pas pu ouvrir ce Space pour le moment. Réessayez.",
+    "it": "Blanc non è riuscito ad aprire quello Space in questo momento. Riprova.",
+    "pt-BR": "O Blanc não conseguiu abrir esse Space agora. Tente de novo."
   }
 }
