@@ -60,7 +60,7 @@ function body(name) {
 test('the host lists other windows, Spaces held and Spaces saved, never private tabs or start pages', () => {
   const list = body('listMiniSwitchTabs');
   // An ordinary window's panel never waits on the list.
-  assert.match(list, /^async function listMiniSwitchTabs\(\) \{\n    if \(!snapshot\?\.miniWindow\) return \[\];\n    await refresh\(\);/);
+  assert.match(list, /^async function listMiniSwitchTabs\(\) \{\n    \/\/ An ordinary window never waits; a new window has no snapshot yet\.\n    if \(snapshot && !snapshot\.miniWindow\) return \[\];\n    await refresh\(\);/);
   assert.match(list, /if \(!snapshot\?\.miniWindow \|\| snapshot\.tabs\.find\(\(tab\) => tab\.id === snapshot\.activeTabId\)\?\.private\) return \[\];/);
   // One native read, and a failure lists nothing rather than failing the panel.
   assert.match(list, /try \{ state = await miniSwitchState\(\); \} catch \{ return \[\]; \}/);

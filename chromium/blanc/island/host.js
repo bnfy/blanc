@@ -770,7 +770,8 @@
     return { ...state, exists, name: (space) => (exists(space) ? meta.items[space].name ?? null : null) };
   }
   async function listMiniSwitchTabs() {
-    if (!snapshot?.miniWindow) return [];
+    // An ordinary window never waits; a new window has no snapshot yet.
+    if (snapshot && !snapshot.miniWindow) return [];
     await refresh();
     if (!snapshot?.miniWindow || snapshot.tabs.find((tab) => tab.id === snapshot.activeTabId)?.private) return [];
     // The panel's other lists must not wait on, or fail with, this one.

@@ -8,10 +8,11 @@ import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {NativeFixture} from './lib/fixture.mjs';
-import {installDriver} from './lib/test-driver.mjs';
+import {installDriver,nativeCall} from './lib/test-driver.mjs';
 import {assertRendering,assertNodeRuntime} from './lib/render-guard.mjs';
 import {createWorld} from './world.mjs';
 import {checkLedger} from './lib/check-ledger.mjs';
+import {runtimes} from './adapters/tabs.mjs';
 const [configFile,out]=process.argv.slice(2),config=JSON.parse(fs.readFileSync(configFile));
 assertNodeRuntime();assert.equal(fs.existsSync(out),false);fs.mkdirSync(out,{recursive:true});
 const CHECKS=['off','F61-12','latest','F61-13','startup'];
@@ -21,6 +22,9 @@ const parent=fs.mkdtempSync(path.join(os.tmpdir(),'blanc-mini-links-'));
 const visible=()=>assertRendering(e=>f.host.eval(e));
 const holder=(rs,url)=>rs.find(r=>r.tabs.some(t=>t.url===url));
 const arrives=async url=>holder(await w.waitFor(()=>w.call('windowRuntimes'),rs=>rs.some(r=>r.tabs.some(t=>t.url===url&&!t.isLoading)),`${url} to open`),url);
+// Adapter ids ('window-2', ...) follow window order and move when a window
+// opens; native window ids never do.
+const nativeOf=async id=>nativeCall((await runtimes(w)).find(r=>r.id===id).cdp,'snapshot').then(s=>s.nativeWindowId);
 const minis=async()=>(await w.call('windowRuntimes')).filter(r=>r.mini);
 // On the Mac, through the app controller's own application:openURLs:.
 const fromApp=async url=>assert.equal(await w.native(process.platform==='darwin'?'systemOpenURL':'externalLink',[url]),true);
@@ -50,18 +54,18 @@ try{
   assert.deepEqual(mini.tabs.map(t=>t.url),[one,two],'both links, no start page beside them');
   assert.equal(mini.activeTabId,mini.tabs[1].id,'the last link is in front');
   assert.equal((await minis()).length,1);
-  first=mini.id;
+  first=await nativeOf(mini.id);
   passed('F61-12: links from another app open in one new mini window, with no blank tab');
  }
 
  // The most recently used mini window takes the next link.
  {
-  const newer=await w.call('openMiniWindow');
+  const newer=await nativeOf(await w.call('openMiniWindow'));
   assert.notEqual(newer,first);
   const url=f.base+'/mini-links-latest';
   await fromApp(url);
-  assert.equal((await arrives(url)).id,newer,'the newer mini window');
-  assert.ok(!(await w.call('windowRuntimes')).find(r=>r.id===first).tabs.some(t=>t.url===url));
+  assert.equal(await nativeOf((await arrives(url)).id),newer,'the newer mini window');
+  assert.equal((await minis()).length,2);
   passed('latest: a link joins the most recently used mini window');
  }
 

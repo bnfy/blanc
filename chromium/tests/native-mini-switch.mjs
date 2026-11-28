@@ -32,19 +32,40 @@ const spaceId=async name=>(await w.call('workspaceAction','list')).items.find(it
 async function miniWindow(slug){
  const id=await w.call('openMiniWindow');
  const r=await runtimeOf(id);
+ // A new window's Island page loads after the window exists.
+ await w.waitFor(()=>r.cdp.eval('typeof window.BlancPrototypeHost?.open==="function"&&!!document.querySelector("#overlay")?.contentDocument?.getElementById("addressInput")'),Boolean,'the mini window\'s Island');
  const mini={id,r,native:await nativeWindow(r)};
  if(slug){mini.url=f.base+'/'+slug;mini.tabId=await w.call('openTabInWindow',id,mini.url);}
  return mini;
 }
 const gone=mini=>w.waitFor(async()=>!(await byNativeWindow(mini.native)),Boolean,'the mini window to close');
 // The mini window's own search: open the panel, type, then click a row.
+// A new mini window opens its own panel 50 ms after its first snapshot,
+// which can clear what was typed, and another window taking focus closes
+// it, so the picker opens and types again until the text holds.
+const typed=(mini,text)=>inFrame(mini.r,'#overlay',`const input=doc.getElementById('addressInput');if(!input||doc.defaultView.getComputedStyle(input).display==='none')return 'hidden';if(input.value===${jsLiteral(text)})return 'held';input.value=${jsLiteral(text)};input.dispatchEvent(new Event('input',{bubbles:true}));return 'typed';`);
 async function search(mini,text){
- await mini.r.cdp.eval('window.BlancPrototypeHost.open(true)');
- await w.waitFor(()=>inFrame(mini.r,'#overlay',"return !!doc.getElementById('addressInput')&&doc.defaultView.getComputedStyle(doc.getElementById('addressInput')).display!=='none';"),Boolean,'the search panel');
- await inFrame(mini.r,'#overlay',`const input=doc.getElementById('addressInput');input.value=${jsLiteral(text)};input.dispatchEvent(new Event('input',{bubbles:true}));return true;`);
+ // open(true) shows the panel; open(false) would toggle the panel a new
+ // mini window's start page already opened.
+ mini.text=text;
+ await mini.r.cdp.eval('Promise.resolve(window.BlancPrototypeHost.open(true)).then(()=>true)');
+ await w.waitFor(()=>typed(mini,text),state=>state!=='hidden','the search panel');
 }
 const listed=mini=>mini.r.cdp.eval('window.BlancPrototypeHost.api.listMiniSwitchTabs()');
-const pickRow=(mini,match)=>w.waitFor(()=>inFrame(mini.r,'#overlay',`const row=[...doc.querySelectorAll('.island-row')].find(r=>{const title=r.querySelector('.row-title')?.textContent??'',sub=r.querySelector('.row-sub')?.textContent??'';return ${match};});if(row)row.click();return !!row;`),Boolean,'the row to pick');
+// A miss reports the rows shown and the list, so a failure says why.
+async function pickRow(mini,match){
+ try{
+  return await w.waitFor(async()=>{
+   // Focus moving to another window closes the panel: open it again.
+   const state=await typed(mini,mini.text);
+   if(state==='hidden')await mini.r.cdp.eval('Promise.resolve(window.BlancPrototypeHost.open(true)).then(()=>true)');
+   return state==='held'&&inFrame(mini.r,'#overlay',`const row=[...doc.querySelectorAll('.island-row')].find(r=>{const title=r.querySelector('.row-title')?.textContent??'',sub=r.querySelector('.row-sub')?.textContent??'';return ${match};});if(row)row.click();return !!row;`);
+  },Boolean,'the row to pick');
+ }catch(error){
+  const shown=await inFrame(mini.r,'#overlay',"return [...doc.querySelectorAll('.island-row')].map(r=>[r.querySelector('.row-title')?.textContent,r.querySelector('.row-sub')?.textContent]);");
+  throw Error(`${error.message}\nshown: ${JSON.stringify(shown)}\nlisted: ${JSON.stringify(await listed(mini).catch(e=>String(e)))}`);
+ }
+}
 try{
  await f.launch(config,path.join(parent,'fixture'),{testHooks:true,diskAssets:config.diskAssets!==false});
  await installDriver(f.host);await visible();await w.reset();
