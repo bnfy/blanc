@@ -1410,7 +1410,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_sync_off_title">Sync your Blanc</string>
     <string name="settings_sync_off_body">Favorites, settings and, if you choose, open tabs, end-to-end encrypted.</string>
     <string name="settings_sync_off_turn_on">Turn on Sync</string>
-    <string name="settings_sync_off_have_code">Already sync on another device?</string>
+    <string name="settings_sync_off_have_code">Already syncing on another device?</string>
     <string name="settings_sync_off_add_with_code">Add this device with a code</string>
     <string name="settings_sync_off_other_ways">Other ways</string>
     <string name="settings_sync_off_use_passphrase">Use a sync name and passphrase</string>
@@ -1430,7 +1430,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="settings_sync_sheet_start_body_generic">This turns on Sync for this computer. You won’t need a name or passphrase.</string>
     <string name="settings_sync_sheet_continue">Continue</string>
     <string name="settings_sync_sheet_making_code">Making a code…</string>
-    <string name="settings_sync_sheet_already_sync">Already sync on another computer?</string>
+    <string name="settings_sync_sheet_already_sync">Already syncing on another computer?</string>
     <string name="settings_sync_sheet_add_this_first">Add this Mac with a code first</string>
     <string name="settings_sync_sheet_add_this_first_generic">Add this computer with a code first</string>
     <string name="settings_sync_recovery_prompt_title">Keep a way back in</string>
