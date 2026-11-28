@@ -141,6 +141,23 @@ in the lane file in its place. Numbering starts at 0101.
   blocks it, the provider keeps the request and records a reset only when
   platform autofill was previously active and is still requested.
 
+- `0127-android-http-auth-refusal.patch`: `ChromeContentBrowserClient::
+  CreateLoginDelegate` returns no delegate on Android (F20, A6 ruling H1), as
+  desktop's patch 0014 does in an Island window: an HTTP basic or digest
+  challenge from a page, a resource or a proxy never becomes Chromium's "Sign
+  in" dialog, and the 401 or 407 reaches the page like any response.
+- `0128-android-certificate-warning.patch`: the certificate warnings never
+  offer Google's enhanced protection (A6 ruling S1): Safe Browsing is off in
+  Blanc, and the line named Chrome. Other warnings that still name Chrome
+  (another app interfering, a wrong clock, a site that needs HTTPS) are a
+  follow-up.
+- `0129-android-shared-text.patch`: text shared into Blanc with no http(s)
+  address opens what the Island opens for the same typed text
+  (`org.chromium.blanc.address.SharedText`, A6 ruling SH1): an address, or a
+  search with the engine in Blanc's Settings, never Chromium's autocomplete and
+  default engine (Google), and never a link for another app. It needs no native
+  code, so a share that starts Blanc works too.
+
 A Chromium file dropped from the lane keeps its applied edits in an existing
 checkout: restore it with `git checkout` there. A Blanc file the source drops or
 moves is removed by `apply.py`, when its bytes are what the previous map placed.
