@@ -87,11 +87,21 @@ test('picking a tab elsewhere goes there; a gone tab leaves a notice and the pan
   assert.equal(gone.context.elsewhereNotice, 'mini.switch.gone');
   assert.deepEqual(plain(gone.context.elsewhereTabs), []);
   assert.deepEqual(gone.calls.at(-1), ['render']);
+
+  // A Space that couldn't open just now keeps its row and says so.
+  const busy = sandbox({ elsewhere: [row('t:9', 'docs elsewhere', 'https://docs.example/', null)], goReply: { ok: false, error: 'busy' } });
+  busy.pickResult(busy.switcherResults('docs').find((r) => r.kind === 'elsewhere'));
+  await new Promise((r) => setImmediate(r));
+  assert.equal(busy.context.elsewhereNotice, 'mini.switch.busy');
+  assert.equal(busy.context.elsewhereTabs.length, 1);
 });
 
 test('the panel loads tabs elsewhere only in a mini window, and shows a notice row', () => {
   const refresh = lift('refreshSwitcherData');
-  assert.match(refresh, /state\.miniWindow === true \? window\.browserAPI\.listMiniSwitchTabs\(\) : \[\]/);
+  // Always asked: main answers [] outside a mini window, and a first panel
+  // can open before the window's tabs payload says it is a mini window.
+  assert.match(refresh, /\n      window\.browserAPI\.listMiniSwitchTabs\(\),\n/);
+  assert.match(overlay, /elsewhere: blancI18n\.t\('result\.tag\.tab'\),/);
   assert.match(refresh, /elsewhereTabs = Array\.isArray\(elsewhereList\) \? elsewhereList : \[\];/);
   assert.match(overlay, /if \(elsewhereNotice\) \{\s*const notice = emptyRow\(elsewhereNotice\);\s*notice\.classList\.add\('command-notice'\);/);
   assert.match(overlay, /addressInput\.addEventListener\('input', \(e\) => \{\s*elsewhereNotice = '';/);

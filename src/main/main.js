@@ -12454,7 +12454,7 @@ function registerIpcHandlers() {
       if (opts?.move === true) return otherProfileTarget(opts) ? { ok: false, error: 'busy' } : { ...moveMiniWindowToSpace(rt(), id, null, { showError: false }), ...workspacesProjection() };
       const mini = rt();
       const { result: went } = openSpaceInProfile({ profileId: otherProfileTarget(opts) ?? mini.profileId, spaceId: id });
-      if (went.ok) closeMiniWindowIfUntouched(mini);
+      if (went.ok) { hideOverlay({ refocusContent: false }); closeMiniWindowIfUntouched(mini); }
       return went.ok ? { ...went, ...workspacesProjection() } : went;
     }
     // Another profile's Space opens in a window of that profile; this window
@@ -14175,7 +14175,7 @@ function miniSwitchInputs(runtime) {
   const shown = new Set(live.map((r) => r.workspaceId).filter(Boolean));
   return {
     windows: live.map((r) => ({
-      self: r === runtime, mini: r.mini === true,
+      self: r === runtime, mini: r.mini === true, spaceId: r.workspaceId ?? null,
       place: r.workspaceId ? namedWorkspaces.get(r.workspaceId)?.name ?? null : null,
       tabs: r.tabOrder.map((id) => tabs.get(id)).filter(Boolean)
         .map((t) => ({ id: t.id, title: displayTitle(t) || '', url: t.url, favicon: t.favicon, private: !!t.private })),
@@ -14210,30 +14210,40 @@ function goToMiniSwitchTab(runtime, key) {
   const parsed = miniSwitch.parseMiniSwitchKey(key);
   if (!runtime?.mini || !parsed) return gone;
   const { profileId } = runtime;
+  // A window on screen; a held Space's runtime, or a window closed to the
+  // Dock (closing, its window gone), opens through the Spaces controller.
+  const live = (r) => !!r && !r.resident && !r.closing && !!r.window && !r.window.isDestroyed();
+  const open = (spaceId) => {
+    const { result, runtime: shown } = openSpaceInProfile({ profileId, spaceId });
+    return result.ok && shown ? shown : null;
+  };
   let target = null, select = null;
   if (parsed.kind === 'tab') {
     const tab = tabs.get(parsed.tabId), owner = windowRuntimes.runtimeForTab(parsed.tabId);
-    if (!tab || tab.private || !owner || owner === runtime || owner.mini || owner.closing || owner.profileId !== profileId) return gone;
-    if (owner.resident) {
-      if (!owner.workspaceId) return gone;
-      const { result, runtime: shown } = openSpaceInProfile({ profileId, spaceId: owner.workspaceId });
-      if (!result.ok || !shown) return { ok: false, error: 'busy' };
-      target = shown;
-    } else target = owner;
-    select = parsed.tabId;
+    if (!tab || !owner) {
+      // Gone since the list was built (closed, or its held Space let go):
+      // its Space, if it had one, is still worth showing.
+      if (!parsed.spaceId || !namedWorkspaces.get(parsed.spaceId)) return gone;
+      target = open(parsed.spaceId);
+    } else {
+      if (tab.private || owner === runtime || owner.mini || owner.profileId !== profileId) return gone;
+      if (!live(owner) && !owner.workspaceId) return gone;
+      target = live(owner) ? owner : open(owner.workspaceId);
+      select = parsed.tabId;
+    }
   } else {
     const record = namedWorkspaces.get(parsed.spaceId), url = record?.urls?.[parsed.index];
     if (!record || !url) return gone;
-    target = workspaceOwner(runtime, parsed.spaceId);
-    if (!target || target.resident) {
-      const { result, runtime: shown } = openSpaceInProfile({ profileId, spaceId: parsed.spaceId });
-      if (!result.ok || !shown) return { ok: false, error: 'busy' };
-      target = shown;
-    }
-    // The record's index names the tab while the window still holds it.
-    const candidate = target.tabOrder[parsed.index];
-    select = candidate && tabs.get(candidate)?.url === url ? candidate : null;
+    const owner = workspaceOwner(runtime, parsed.spaceId);
+    target = live(owner) ? owner : open(parsed.spaceId);
+    // Restoring can drop or reorder rows: the tab with the address nearest
+    // its saved place.
+    if (target) select = miniSwitch.nearestTabByUrl(target.tabOrder.map((id) => ({ id, url: tabs.get(id)?.url })), url, parsed.index);
   }
+  if (!target) return { ok: false, error: 'busy' };
+  // The mini window's panel closes without taking focus back from the window
+  // it sent you to (settleElsewhere's rule, F41-86).
+  withWindowRuntime(runtime, () => hideOverlay({ refocusContent: false }));
   if (select && target.tabOrder.includes(select)) withWindowRuntime(target, () => setActiveTab(select));
   focusMiniSwitchTarget(target);
   closeMiniWindowIfUntouched(runtime);

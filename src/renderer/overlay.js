@@ -946,6 +946,7 @@
   // provider name instead).
   const RESULT_TAGS = {
     tab: blancI18n.t('result.tag.tab'),
+    elsewhere: blancI18n.t('result.tag.tab'),
     favorite: blancI18n.t('result.tag.favorite'),
     history: blancI18n.t('result.tag.history'),
     group: blancI18n.t('result.tag.group'),
@@ -2063,8 +2064,13 @@
     if (result.kind === 'elsewhere') {
       Promise.resolve(window.browserAPI.goToMiniSwitchTab(result.key)).then((reply) => {
         if (reply?.ok) { window.browserAPI.closeOverlay(); return; }
-        elsewhereTabs = elsewhereTabs.filter((e) => e.key !== result.key);
-        elsewhereNotice = blancI18n.t('mini.switch.gone');
+        // A tab that has gone leaves the list; a Space that couldn't open just
+        // now keeps its row for another try.
+        if (reply?.error === 'busy') elsewhereNotice = blancI18n.t('mini.switch.busy');
+        else {
+          elsewhereTabs = elsewhereTabs.filter((e) => e.key !== result.key);
+          elsewhereNotice = blancI18n.t('mini.switch.gone');
+        }
         renderList();
       }, () => {});
       return;
@@ -4078,7 +4084,9 @@
       window.browserAPI.archiveList(),
       window.browserAPI.archiveNotice(),
       window.browserAPI.listSentToThisDevice(),
-      state.miniWindow === true ? window.browserAPI.listMiniSwitchTabs() : [],
+      // Main answers [] outside a mini window; asking always also covers a
+      // first panel that opens before the tabs payload says it is one.
+      window.browserAPI.listMiniSwitchTabs(),
     ]);
     elsewhereTabs = Array.isArray(elsewhereList) ? elsewhereList : [];
     favorites = favoritesList;

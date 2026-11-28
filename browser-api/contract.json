@@ -2060,7 +2060,7 @@
       "fields": {
         "key": {
           "type": "string",
-          "doc": "Opaque: t:<tabId> for a live tab, s:<spaceId>:<index> for a tab in a saved Space."
+          "doc": "Opaque: t:<tabId>[:<spaceId>] for a live tab (with its Space, if any), s:<spaceId>:<index> for a tab in a saved Space."
         },
         "title": {
           "type": "string",

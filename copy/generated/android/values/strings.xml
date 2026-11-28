@@ -2715,6 +2715,7 @@ You can retry with “%2$s”, or reinstall from blanc.day.</string>
     <string name="mini_move_to_space_menu">Move to Space</string>
     <string name="mini_switch_another_window">Another window</string>
     <string name="mini_switch_gone">That tab isn\'t open anymore.</string>
+    <string name="mini_switch_busy">Blanc couldn\'t open that Space just now. Try again.</string>
     <string name="ws_move_mode_header">Move this window to…</string>
     <string name="ws_error_mini_unmovable">A private tab, or a page that\'s playing sound, using the camera or microphone, sharing the screen or showing a pop-up, can\'t move to a space. Close or stop it, then try again.</string>
     <string name="mini_open_in_blanc_label">Open in Blanc — keep this mini window as an ordinary Blanc window</string>

@@ -1006,7 +1006,7 @@ export interface OtherProfileSpaces {
 
 /** A tab elsewhere in a mini window's Quick Switcher (#1734 part 2), from miniSwitchRows() in mini-switch.js: display data and an opaque key main resolves again when it is picked. */
 export interface MiniSwitchRow {
-  /** Opaque: t:<tabId> for a live tab, s:<spaceId>:<index> for a tab in a saved Space. */
+  /** Opaque: t:<tabId>[:<spaceId>] for a live tab (with its Space, if any), s:<spaceId>:<index> for a tab in a saved Space. */
   key: string;
   /** The tab's name, else its address. */
   title: string;

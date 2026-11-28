@@ -1373,7 +1373,7 @@ A tab elsewhere in a mini window's Quick Switcher (#1734 part 2), from miniSwitc
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `key` | `string` | Opaque: t:<tabId> for a live tab, s:<spaceId>:<index> for a tab in a saved Space. |
+| `key` | `string` | Opaque: t:<tabId>[:<spaceId>] for a live tab (with its Space, if any), s:<spaceId>:<index> for a tab in a saved Space. |
 | `title` | `string` | The tab's name, else its address. |
 | `url` | `string` |  |
 | `favicon` | `string \| null` | A PNG data URL, or null. |

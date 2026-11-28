@@ -2798,6 +2798,7 @@ Puedes reintentarlo con «%2$s» o reinstalar desde blanc.day.</string>
     <string name="mini_move_to_space_menu">Mover al Space</string>
     <string name="mini_switch_another_window">Otra ventana</string>
     <string name="mini_switch_gone">Esa pestaña ya no está abierta.</string>
+    <string name="mini_switch_busy">Blanc no pudo abrir ese Space ahora mismo. Inténtalo de nuevo.</string>
     <string name="ws_move_mode_header">Mover esta ventana a…</string>
     <string name="ws_error_mini_unmovable">Una pestaña privada, o una página que reproduce sonido, usa la cámara o el micrófono, comparte la pantalla o muestra una ventana emergente, no se puede mover a un Space. Ciérrala o detenla e inténtalo de nuevo.</string>
     <string name="mini_open_in_blanc_label">Abrir en Blanc: conservar esta miniventana como una ventana normal de Blanc</string>

@@ -25,14 +25,17 @@ function miniSwitchRows({ windows = [], saved = [] } = {}) {
     if (window.self || window.mini) continue;
     for (const tab of window.tabs ?? []) {
       if (tab.private || !listed(tab.url)) continue;
-      rows.push({ key: `t:${tab.id}`, title: tab.title || tab.url, url: tab.url, favicon: pngOnly(tab.favicon), place: window.place ?? null });
+      // A tab in a Space carries its Space, so a pick still shows the Space
+      // if the tab has gone by then (a held Space let go, the tab closed).
+      const key = window.spaceId ? `t:${tab.id}:${window.spaceId}` : `t:${tab.id}`;
+      rows.push({ key, title: tab.title || tab.url, url: tab.url, favicon: pngOnly(tab.favicon), place: window.place ?? null });
     }
   }
   for (const space of saved) {
     (space.urls ?? []).forEach((url, index) => {
       if (!listed(url)) return;
       const meta = space.meta?.[index] ?? {};
-      rows.push({ key: `s:${space.id}:${index}`, title: meta.title || url, url, favicon: pngOnly(meta.favicon), place: space.name });
+      rows.push({ key: `s:${space.id}:${index}`, title: meta.customTitle || meta.title || url, url, favicon: pngOnly(meta.favicon), place: space.name });
     });
   }
   return rows;
@@ -41,11 +44,22 @@ function miniSwitchRows({ windows = [], saved = [] } = {}) {
 /** A row's key back from the renderer, or null when it isn't one we made. */
 function parseMiniSwitchKey(key) {
   if (typeof key !== 'string') return null;
-  const tab = /^t:(.+)$/.exec(key);
-  if (tab) return { kind: 'tab', tabId: tab[1] };
+  const tab = /^t:([^:]+)(?::([^:]+))?$/.exec(key);
+  if (tab) return { kind: 'tab', tabId: tab[1], spaceId: tab[2] ?? null };
   const saved = /^s:([^:]+):(\d+)$/.exec(key);
   if (saved) return { kind: 'saved', spaceId: saved[1], index: Number(saved[2]) };
   return null;
 }
 
-module.exports = { miniSwitchRows, parseMiniSwitchKey };
+/** The tab a saved row means once its Space is open: the one with its
+ * address nearest its saved place (restoring can drop or reorder rows), or
+ * null when none has the address. `tabs` is the window's [{ id, url }]. */
+function nearestTabByUrl(tabs, url, index) {
+  let best = null;
+  tabs.forEach((tab, at) => {
+    if (tab.url === url && (best === null || Math.abs(at - index) < Math.abs(best.at - index))) best = { id: tab.id, at };
+  });
+  return best?.id ?? null;
+}
+
+module.exports = { miniSwitchRows, parseMiniSwitchKey, nearestTabByUrl };
