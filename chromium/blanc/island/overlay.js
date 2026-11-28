@@ -1885,7 +1885,7 @@ const __blancMarkup = trustedTypes.createPolicy("blanc-static-overlay", {createH
   // Move to Space (#1734): the tabs a mini window's move would take, for the
   // New space… editor (an unused start page stays behind).
   function movingTabCount(payload) {
-    return (payload.tabs ?? []).filter((tab) => (payload.tabOrder ?? []).includes(tab.id) && tab.url !== 'blanc://newtab/').length;
+    return (payload.tabs ?? []).filter((tab) => tab.private || tab.url !== 'blanc://newtab/').length;
   }
 
   function switcherResults(query) {

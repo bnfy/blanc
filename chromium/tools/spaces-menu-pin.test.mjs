@@ -39,7 +39,7 @@ test('pin: #1642\'s menu files come from their own commit, the rest from the ren
     'the renderer release now carries #1642: delete blanc/spaces-menu.json and the styles.css edits for #1642');
   const pinned = generate(renderer.ref);
   const release = generate(renderer.ref, FILES, null);
-  const fromMenu = generate(record.commit, record.files, null);
+  const fromMenu = generate(record.commit, record.files, record); // with the pin's own edits (MENU_EDITS)
   for (const file of FILES) {
     if (record.files.includes(file)) {
       assert.equal(pinned[file], fromMenu[file], `${file} comes from the menu pin`);

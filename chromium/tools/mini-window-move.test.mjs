@@ -30,6 +30,8 @@ test('the Island has the mini window\'s Spaces button and the menu its move mode
   assert.match(css, /#pillMiniSpaces:disabled \{ opacity: 0\.45; cursor: default; \}/);
   assert.match(read('blanc/island/workspace-ui.js'), /setMoveMode\(on, \{ tabCount = 0 \} = \{\}\)/);
   assert.match(read('blanc/island/overlay.js'), /workspaceUI\.setMoveMode\(payload\.miniWindow === true, \{ tabCount: movingTabCount\(payload\) \}\);/);
+  // The editor counts the tabs the host moves (no tabOrder in this payload).
+  assert.match(read('blanc/island/overlay.js'), /return \(payload\.tabs \?\? \[\]\)\.filter\(\(tab\) => tab\.private \|\| tab\.url !== 'blanc:\/\/newtab\/'\)\.length;/);
 });
 
 // The host (blanc/island/host.js) does the move with the native batch move
@@ -47,21 +49,25 @@ function body(name) {
 }
 
 test('a mini window moves in runs of tabs, each keeping its group; an unused start page stays', () => {
-  const miniMoveRuns = new Function(`${body('miniMoveRuns')}; return miniMoveRuns;`)();
+  const staying = host.match(/  const stayingStartPage = [^\n]+\n/)[0];
+  const miniMoveRuns = new Function(`${staying}${body('miniMoveRuns')}; return miniMoveRuns;`)();
   const tab = (id, extra = {}) => ({ id, url: `https://example.com/${id}`, groupId: null, canGoBack: false, canGoForward: false, ...extra });
+  // Every start page stays, used or not: the fork's Space records hold only
+  // web pages (CanMoveTabToSpace), so one would refuse the whole move.
   assert.deepEqual(miniMoveRuns([
     tab('1', { url: 'blanc://newtab/' }),
     tab('2'), tab('3', { groupId: 'g' }), tab('4', { groupId: 'g' }), tab('5'),
     tab('6', { url: 'blanc://newtab/', canGoBack: true }),
-  ]), [{ ids: ['2'], groupId: null }, { ids: ['3', '4'], groupId: 'g' }, { ids: ['5', '6'], groupId: null }]);
+  ]), [{ ids: ['2'], groupId: null }, { ids: ['3', '4'], groupId: 'g' }, { ids: ['5'], groupId: null }]);
   assert.deepEqual(miniMoveRuns([tab('1', { url: 'blanc://newtab/' })]), []);
   // A private tab's start page reads as blanc://newtab/ too, but it is never
   // left behind: it goes into the run, where canPlace refuses it (found on
   // the Mac Studio's candidate, F61-7).
   assert.deepEqual(miniMoveRuns([tab('1'), tab('2', { url: 'blanc://newtab/', private: true })]), [{ ids: ['1', '2'], groupId: null }]);
-  // A start page inside a group stays with its group (a group moves whole).
+  // A start page inside a group stays too; the move takes it out of the
+  // group first, since a group moves only with all its members.
   assert.deepEqual(miniMoveRuns([tab('1', { url: 'blanc://newtab/', groupId: 'g' }), tab('2', { groupId: 'g' })]),
-    [{ ids: ['1', '2'], groupId: 'g' }]);
+    [{ ids: ['2'], groupId: 'g' }]);
 });
 
 test('only the menu\'s move mode moves a mini window; switching by name stays refused', () => {
@@ -80,6 +86,12 @@ test('the move is all or nothing, writes the new Space after its first run, then
   assert.match(move, /if \(!state\?\.canPlace\) return \{ ok: false, error: 'unmovable', movedCount: 0 \};/);
   assert.match(move, /request\('spaceMoveTabs', \[run\.ids\.map\(nativeId\), target, create, \.\.\.\(run\.groupId \? \[run\.groupId\] : \[\]\)\]\)/);
   assert.match(move, /error: moved \? 'moved-partly' : /);
+  // Grouped start pages leave their group before the runs are read.
+  assert.match(move, /request\('setTabGroup', \[nativeId\(tab\.id\), null\]\)/);
+  // A later run waits out another window's Space write instead of stopping.
+  assert.match(move, /for \(let attempt = 0; index > 0 && attempt < 10 && !result\.ok && !result\.movedCount && \['busy', 'refused'\]\.includes\(result\.error\); attempt\+\+\)/);
+  // A new Space saved before anything moved is reported as saved, not failed.
+  assert.match(move, /create && result\.saved && !moved \? 'saved-not-moved'/);
   assert.match(move, /request\('spaceFocus', \[target\]\)/);
   assert.match(move, /openSpaceElsewhere\(target\)/);
   assert.match(move, /request\('closeWindow'\)/);

@@ -71,6 +71,10 @@ try{
  const six=await miniWithPage('mini-move-reading');
  await six.r.cdp.eval(`window.BlancPrototypeHost.api.groupTabByName(${jsLiteral(String(six.tabId))},'Research')`);
  await w.waitFor(async()=>(await snap(six.r)).groups?.some(g=>g.name==='Research'),Boolean,'the Research group in the mini window');
+ // A start page in the group stays behind: it can't go into a Space here.
+ const blankInGroup=await w.call('openTabInWindow',six.id,'chrome://newtab/');
+ await six.r.cdp.eval(`window.BlancPrototypeHost.api.groupTabByName(${jsLiteral(String(blankInGroup))},'Research')`);
+ await w.waitFor(async()=>(await snap(six.r)).tabs.filter(t=>t.groupId).length===2,Boolean,'both tabs in Research');
  await openMoveMenu(six);
  assert.equal(await chooseRow(six,'Reading'),true);
  await gone(six);
@@ -80,6 +84,9 @@ try{
   assert.ok(tab,'the page reached Reading');
   assert.equal(s.tabs.at(-1).url,six.url,'last');
   assert.equal(s.groups.find(g=>g.id===tab.groupId)?.name,'Research','still in its group');
+  assert.ok(!s.tabs.some(t=>t.url==='blanc://newtab/'&&t.groupId===tab.groupId),'the start page stayed behind');
+  // The Space opens at an ordinary window's size, not the mini window's.
+  assert.ok(s.windowBounds.width>760,`a full-size window (${JSON.stringify(s.windowBounds)})`);
  }
  passed('F61-6: a mini window moved to a Space open nowhere closes, and its page arrives last, in its group');
 
@@ -100,6 +107,7 @@ try{
  await inFrame(seven.r,'#overlay',`doc.querySelector('[data-focus-key="new"]').click();return true;`);
  const editor=await w.waitFor(()=>inFrame(seven.r,'#overlay',`const form=doc.getElementById('workspaceEditor');return form?{text:form.innerText,profile:!!doc.getElementById('workspaceProfile'),start:!!doc.querySelector('.ws-segmented')}:null;`),Boolean,'the New space editor');
  assert.match(editor.text,/With these tabs/);
+ assert.match(editor.text,/\b1 tab\b/,'the editor counts the one page that moves');
  assert.equal(editor.profile,false);assert.equal(editor.start,false);
  await inFrame(seven.r,'#overlay',`const input=doc.getElementById('workspaceName');input.value='Later';input.dispatchEvent(new Event('input',{bubbles:true}));doc.getElementById('workspaceEditor').requestSubmit();return true;`);
  await gone(seven);

@@ -664,15 +664,17 @@
   }
   // Move to Space from a mini window (#1734, shipping's moveMiniWindowToSpace):
   // the runs of tabs it moves, in order, each with its group (Chromium's
-  // groups are contiguous). An unused start page outside a group stays and
-  // closes with the window; a group moves whole.
+  // groups are contiguous). A start page stays and closes with the window,
+  // used or not: a Space's record here holds only web pages, so one would
+  // refuse the whole move (shipping keeps a used one; the fork can't).
+  const stayingStartPage = tab => !tab.private && tab.url === 'blanc://newtab/';
   function miniMoveRuns(tabs) {
     const runs = [];
     for (const tab of tabs) {
       const groupId = tab.groupId ?? null;
       // A private tab's start page also reads as blanc://newtab/; it is never
       // left behind to close with the window (canPlace refuses it instead).
-      if (!groupId && !tab.private && tab.url === 'blanc://newtab/' && !tab.canGoBack && !tab.canGoForward) continue;
+      if (stayingStartPage(tab)) continue;
       const last = runs.at(-1);
       if (last && last.groupId === groupId) last.ids.push(tab.id);
       else runs.push({ ids: [tab.id], groupId });
@@ -685,6 +687,11 @@
   // Spaces menu renders a failure itself.
   async function moveMiniWindowToSpace(id, creation) {
     await refresh();
+    // A group moves only with all its members, so a start page in one leaves
+    // the group first.
+    const grouped = snapshot.tabs.filter(tab => tab.groupId && stayingStartPage(tab));
+    for (const tab of grouped) await request('setTabGroup', [nativeId(tab.id), null]);
+    if (grouped.length) await refresh();
     const runs = miniMoveRuns(snapshot.tabs);
     const ids = runs.flatMap(run => run.ids);
     if (!ids.length) return { ok: false, error: 'busy', movedCount: 0 };
@@ -701,7 +708,14 @@
     let moved = 0, tabCount = 0, failure = null;
     for (const [index, run] of runs.entries()) {
       const create = !!creation && index === 0;
-      const result = await request('spaceMoveTabs', [run.ids.map(nativeId), target, create, ...(run.groupId ? [run.groupId] : [])]);
+      const move = () => request('spaceMoveTabs', [run.ids.map(nativeId), target, create, ...(run.groupId ? [run.groupId] : [])]);
+      let result = await move();
+      // Another window's Space write (an autosave, a switch) can land between
+      // two runs; a later run waits it out rather than leaving tabs behind.
+      for (let attempt = 0; index > 0 && attempt < 10 && !result.ok && !result.movedCount && ['busy', 'refused'].includes(result.error); attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        result = await move();
+      }
       moved += result.movedCount ?? 0;
       if (result.tabCount) tabCount = result.tabCount;
       // A new Space is listed once its record is saved, so it stays findable.
@@ -711,7 +725,13 @@
         fresh.meta.order.push(target);
         await request('spaceMetaSave', [fresh.meta]);
       }
-      if (!result.ok) { failure = ({ refused: 'busy', 'prepare-failed': 'activation-failed' }[result.error] ?? result.error); break; }
+      if (!result.ok) {
+        // A new Space saved before anything moved is listed, so the editor
+        // must not invite a retry that can only be a duplicate name.
+        failure = create && result.saved && !moved ? 'saved-not-moved'
+          : ({ refused: 'busy', 'prepare-failed': 'activation-failed' }[result.error] ?? result.error);
+        break;
+      }
     }
     const after = await spaceList();
     if (after.meta.items[target] && tabCount) after.meta.items[target].tabCount = tabCount;
