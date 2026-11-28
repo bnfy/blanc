@@ -3,5 +3,5 @@ Description=Blanc Android nightly: build and gate main's Android lane
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash %h/blanc/chromium/android/server/nightly.sh
+ExecStart=/bin/bash %h/blanc-nightly/chromium/android/server/nightly.sh
 Nice=10

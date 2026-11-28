@@ -161,9 +161,13 @@ plan, record its environment with `build.mjs --record-environment`, and build it
 `--allow-large-build`. The first release build after this change writes
 `.blanc-applied-commit` (or write the last applied commit there by hand). Then:
 
+The service runs `nightly.sh` from the nightly's own clone, never from `~/blanc`, which other work
+checks out on other branches:
+
 ```sh
+git clone --filter=blob:none "$(git -C ~/blanc remote get-url origin)" ~/blanc-nightly
 mkdir -p ~/.config/systemd/user
-cp ~/blanc/chromium/android/server/blanc-android-nightly.{service,timer} ~/.config/systemd/user/
+cp ~/blanc-nightly/chromium/android/server/blanc-android-nightly.{service,timer} ~/.config/systemd/user/
 systemctl --user daemon-reload && systemctl --user enable --now blanc-android-nightly.timer
 loginctl enable-linger "$USER"
 ```
