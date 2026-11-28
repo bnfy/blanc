@@ -11,7 +11,7 @@
       "stage": "now",
       "product": "Blanc Mail",
       "title": "Blanc Mail for Mac",
-      "line": "A native Gmail app from the makers of Blanc.",
+      "line": "A native Mac app for Gmail and Proton Mail, from the makers of Blanc.",
       "icon": "/blanc-mail-icon.webp?v=80583d44",
       "link": { "href": "/mail", "label": "Join the waitlist" }
     },
@@ -21,6 +21,13 @@
       "product": "Blanc Browser",
       "title": "Blanc for Teams",
       "line": "Blanc built under your team’s own brand and kept up to date for you. We’re taking a few pilot teams."
+    },
+    {
+      "id": "chrome-web-store",
+      "stage": "now",
+      "product": "Blanc Browser",
+      "title": "Chrome Web Store extensions",
+      "line": "Coming soon: add extensions from the Chrome Web Store to Blanc."
     },
     {
       "id": "crash-reports",
