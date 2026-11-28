@@ -47,25 +47,31 @@ The Electron builds play Netflix, Spotify and other protected video through
 castLabs' free EVS signing, which covers only unmodified ECS releases. The
 fork needs castLabs' commercial Widevine certification, an audit of the
 application and its code. castLabs confirmed that route on October 26, 2026,
-and the owner signed its NDA the same day; requirements, pricing and
-timeline have not been shared. Google has not answered the direct
-Widevine application of October 23. NDA-covered details stay out of this
-repository.
+and the owner signed its NDA the same day. castLabs has since sent its
+pricing, and the owner decided it was too expensive to pursue for now (as the
+owner recorded on November 28, 2026). The terms are NDA-covered and stay out
+of this repository. Google has not answered the direct Widevine application
+of October 23.
 
-Replacing Electron without protected video would take it away from everyone
-who updates. So the replacement can't ship until one of these is true:
+So certification isn't coming soon, and a full phase-out of Electron with
+protected video intact isn't possible now. Replacing Electron without it
+would take protected video away from everyone who updates. The question left
+is D3 for the replacement:
 
-1. **Certified.** castLabs (or Google) certifies the fork, and protected
-   playback passes on Mac and Windows. Linux has no VMP, and the Electron
-   Linux build plays protected video through ECS today, so Linux needs its
-   own answer.
-2. **Decided without it.** The owner decides (D3 for the replacement) that
-   the replacement ships without protected video. Electron Blanc then stays
-   installable for those sites, and the X2 notice and handoff open them
-   there. Electron is then kept, not phased out, for as long as that lasts.
+1. **Ship without protected video.** The replacement takes over from
+   Electron for everything else. Electron Blanc stays installable, and the
+   X2 notice and handoff open protected-video pages there. Electron is
+   reduced to a player for those sites, not phased out, and still needs its
+   security releases.
+2. **Wait.** The replacement doesn't ship until protected video is possible:
+   the owner revisits certification, Google answers, or the price changes.
+   The betas carry on meanwhile.
 
-No date in this plan can move ahead of that answer. Everything else is
-scheduled so that it is ready when the answer comes.
+Linux needs its own answer in either case. It has no VMP, and the Electron
+Linux build plays protected video through ECS today.
+
+No date in this plan can move ahead of that decision. Everything else is
+scheduled so that it's ready when the owner makes it.
 
 ## Gates, owners and targets
 
@@ -77,11 +83,10 @@ targets, not promises; each moves only with a recorded reason.
 
 | Step | Owner | Target |
 | --- | --- | --- |
-| Follow-up to castLabs asking for requirements, price and timeline; drafted by Claude, approved and sent by the owner | Owner | Dec 2 |
-| Decide D3 for the replacement: wait for certification, or ship without it with the X2 handoff | Owner | When castLabs answers, or Jan 5 if they haven't |
+| Decide D3 for the replacement: ship without protected video (Electron kept for those sites), or wait | Owner | Jan 5 |
 | Build the X2 notice and handoff to Electron Blanc (needed in either case, and for the betas) | Claude | Dec 19 |
 | Owner hand check of X2 on live sites, with the real handoff | Owner | Dec 22 |
-| If certified: integrate the certified CDM path, then the playback checks on Mac and Windows | Claude | Certification + 2 weeks |
+| If shipping without it: the Electron build's reduced role (still updated, opened by the handoff), and what the replacement tells people about it | Claude, owner approves the copy | Jan 9 |
 
 ### G2. Parity on all three platforms (spec §10.1)
 
@@ -141,19 +146,20 @@ targets, not promises; each moves only with a recorded reason.
 
 ## The release candidate
 
-If G1 is settled by early January, every other gate is targeted for
-January 15, 2027. The first replacement release candidate would then build
-on Chromium 160 stable (released January 5) and go out by staged rollout
-through the bridge release in the second half of January 2027.
+Every gate other than G1 is targeted for January 15, 2027. If the owner
+decides by then to ship without protected video, the first replacement
+release candidate builds on Chromium 160 stable (released January 5) and
+goes out by staged rollout through the bridge release in the second half of
+January 2027.
 
-If G1 is still open then, the candidate waits for it and the betas carry on.
+If the owner decides to wait, the candidate waits and the betas carry on.
 The work in G2 to G8 is not wasted: every item is also needed by the betas
 or by the eventual replacement.
 
 ## Decisions this plan needs from the owner
 
-1. D3 for the replacement: wait for certified protected video, or ship
-   without it and keep Electron for those sites (G1).
+1. D3 for the replacement: ship without protected video and keep Electron
+   for those sites, or wait (G1).
 2. Intel Macs: build them, or leave them on Electron (G3).
 3. The replacement's version, channel and identity (G4).
 4. Each exclusion that stays in a platform's suite (G2).
