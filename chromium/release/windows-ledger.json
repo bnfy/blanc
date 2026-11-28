@@ -75,6 +75,21 @@
       "signingRun": 45710806198,
       "stagingGateRun": 45712323080,
       "note": "Fifth Windows Blanc Beta and the first on Chromium 159 (159.0.8154.33), from night 20261125-1417 (635 suite cases; F41:141 and glance:538 passed on the rerun), published 2026-11-25 22:28 UTC as its own GitHub pre-release (not latest) through windows-release.mjs: Chromium 159, and the Spaces menu keeps its place as it closes. Signed by Bananify Creative, owner-signed update package, staging gate passed, Sigstore-signed checksums; verify-public run 45713571364."
+    },
+    {
+      "build": 913,
+      "version": "159.0.8154.913",
+      "tag": "chromium-beta-windows-159.0.8154.913",
+      "date": "2026-11-28",
+      "sourceCommit": "d77142ae9d248c6f53093df040fb3f637f5f5169",
+      "candidate": "windows-x64-5de179e4080bc14b",
+      "candidateZipSha256": "1e2f28e2006d693543da5325c7ab4f402d246051f0ccd0c6b1afe358ea9fbb35",
+      "setupSHA256": "be5bb08dffc0b0f0309fcde3651be69b91b9bb6c4bf420e5afc409ddda47a0ae",
+      "installerSHA256": "6e9a65718e981daab159902f85310a5939a6e74a276234569bb32aff25eb4364",
+      "packageSHA256": "926e0386130b9c220d857a2b1d833e58c72578a9f05472de3cf98b88cb571c5d",
+      "signingRun": 46160207457,
+      "stagingGateRun": 46161452889,
+      "note": "Sixth Windows Blanc Beta, from night 20261128-0400 (635 suite cases, none rerun), published 2026-11-28 15:51 UTC as its own GitHub pre-release (not latest) through windows-release.mjs: the hardware video decoding switch in Settings → System (patch 0118), the Settings polish (patches 0117 and 0119) and the refined Sunrise icon (#1773). Signed by Bananify Creative, owner-signed update package, staging gate passed, Sigstore-signed checksums; verify-public run 46162064035."
     }
   ]
 }
