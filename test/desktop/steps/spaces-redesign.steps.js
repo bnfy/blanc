@@ -361,7 +361,12 @@ async function closingFrames(world) {
     if (Date.now() > deadline) throw new Error(`the overlay never closed: ${JSON.stringify(frames.slice(-3))}`);
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
-  const fading = frames.filter((f) => f.mode == null && f.showing && f.hidden && f.display !== 'none');
+  // Once the fade ends the overlay drops body[data-closing] and the menu
+  // returns to its default placement, fully transparent, while main may
+  // still hold the view for a frame or two. Nothing is drawn then, so only
+  // frames still marked closing, or with any opacity left, count.
+  const fading = frames.filter((f) => f.mode == null && f.showing && f.hidden && f.display !== 'none'
+    && (f.closing !== '' || f.opacity > 0));
   assert.ok(fading.length > 0, `the menu is still drawn after the overlay closes: ${JSON.stringify(frames)}`);
   // Opened from the mark it sits SPACES_MENU_SIDE in from its view's left and
   // SPACES_MENU_PAD down (styles.css); it must not jump back to the panel's
