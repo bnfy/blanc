@@ -35,8 +35,7 @@
   outline-offset: 3px;
 }
 .mail-overview a { color: inherit; text-underline-offset: 3px; }
-/* The hero (owner, November 24, 2026): centred copy and one primary action
-   over the real app window, which a soft gold floor lifts off the page. */
+/* A soft gold reflection behind the app captures. */
 .offer-hero { padding: clamp(28px, 4vw, 60px) 0 clamp(36px, 4.5vw, 64px); text-align: center; }
 .offer-hero .mail-eyebrow {
   margin: 0;
@@ -71,18 +70,60 @@
 .mail-overview .offer-link:hover { text-decoration: underline; }
 .offer-signup[open] .offer-link::after { transform: rotate(90deg); }
 .offer-link::-webkit-details-marker { display: none; }
-/* The capture keeps macOS's transparent shadow margin, so the gap above it is small. */
-.offer-shot { position: relative; isolation: isolate; max-width: 1120px; margin: clamp(4px, 1vw, 12px) auto 0; }
-.offer-shot::before {
+.offer-hero .mail-shot { margin: clamp(18px, 2vw, 30px) auto 0; }
+.offer-devices {
+  --screenshot-glow: #d1ae6c40;
+  display: grid;
+  align-items: center;
+  position: relative;
+  isolation: isolate;
+}
+.offer-devices::before {
   position: absolute;
   content: "";
   z-index: -1;
-  inset: 30% -12% -10%;
-  background: radial-gradient(ellipse 50% 42% at 50% 62%, #a888534d, #8c765926 48%, transparent 100%);
+  inset: 0 -10% -10%;
+  background: radial-gradient(ellipse 54% 48% at 58% 58%, #a888534d, #8c765926 50%, transparent 100%);
   pointer-events: none;
 }
-.offer-shot img { display: block; width: 100%; height: auto; }
-.offer-shot figcaption { margin-top: 6px; font-weight: 500; }
+.offer-devices img { display: block; width: 100%; min-width: 0; height: auto; }
+.offer-hero .mail-shot figcaption {
+  margin-top: 4px;
+  color: color-mix(in srgb, var(--body) 72%, transparent);
+  font-size: 11px;
+  font-weight: 500;
+}
+.offer-devices .offer-shot { position: relative; }
+.offer-devices .offer-shot img { filter: drop-shadow(0 0 14px var(--screenshot-glow)); }
+/* The Mac capture includes transparent margins around the window. */
+.offer-devices .offer-shot::after {
+  content: "";
+  position: absolute;
+  inset: 4.08% 3.86% 7.95%;
+  border-radius: 1.35% / 2.2%;
+  box-shadow: 0 0 0 1px var(--line);
+  pointer-events: none;
+}
+.iphone-shot {
+  border-radius: clamp(18px, 2.2vw, 27px);
+  box-shadow: 0 0 0 1px var(--line), 0 0 28px var(--screenshot-glow), 0 20px 54px #0007;
+}
+.iphone-shot img { border-radius: inherit; }
+@media (min-width: 601px) {
+  .offer-devices {
+    --screenshot-overlap: clamp(32px, 6%, 66px);
+    grid-template-columns: minmax(0, 1fr) var(--screenshot-overlap) calc(max(144px, 21%) - var(--screenshot-overlap));
+    padding-inline-end: 12px;
+  }
+  /* Account for the transparent margin below the Mac window. */
+  .offer-hero .mail-shot figcaption { margin-top: clamp(-28px, -2vw, -14px); }
+  .offer-devices .offer-shot { grid-area: 1 / 1 / 2 / 3; }
+  .offer-devices .iphone-shot {
+    grid-area: 1 / 2 / 2 / 4;
+    z-index: 1;
+    transform: rotate(3deg);
+  }
+}
 /* The envelope closes the page, above "Get Blanc Mail at launch." */
 .envelope-stage {
   position: relative;
@@ -160,37 +201,57 @@
 .section-intro { margin: 14px 0 0; }
 /* One plan card (owner, November 24, 2026), with the address add-on inside it. */
 .offer-plan {
-  max-width: 520px;
-  margin: 40px auto 0;
+  max-width: 640px;
+  margin: clamp(24px, 4vw, 40px) auto 0;
   text-align: left;
-  padding: 30px 28px 32px;
+  padding: clamp(18px, 4.5vw, 32px);
   border-radius: 22px;
   background: linear-gradient(180deg, #15110b, #0b0906);
   box-shadow: inset 0 0 0 1px #f2ead81a, inset 0 1px 0 #fff3d614;
 }
-.offer-plan h3 { margin-bottom: 8px; font-size: 24px; line-height: 1.2; letter-spacing: .02em; }
-.offer-prices { margin: 6px 0 22px; color: var(--body); font-size: 15.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
-.offer-prices p { margin: 0; }
-.offer-prices strong { font: 400 44px/1.1 var(--site-font-display); }
-.offer-prices p + p strong { font-size: 24px; }
-.plan-benefits { display: grid; gap: 10px; margin: 0; padding: 20px 0 0; border-top: 1px solid #e0c08433; list-style: none; }
-.plan-benefits li { position: relative; padding-inline-start: 22px; font-size: 15.5px; line-height: 1.5; }
-.plan-benefits li::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 2px;
-  top: .6em;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--mail-gilt);
+.offer-plan h3 { line-height: 1.2; }
+.plan-description, .plan-trial, .plan-addon p, .plan-upgrade {
+  color: var(--body);
+  font-size: 15px;
+  line-height: 1.55;
 }
-.offer-plan a { color: #e6cf9a; }
-.plan-checkout { display: block; margin-top: 20px; }
-.plan-addon { margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0c08433; }
-.plan-addon h4 { margin: 0 0 6px; font-family: var(--site-font-display); font-size: 20px; font-weight: 400; line-height: 1.2; letter-spacing: .02em; }
-.plan-addon p { margin: 0; font-size: 15.5px; line-height: 1.5; }
-.plan-upgrade { max-width: 520px; margin: 18px auto 0; font-size: 15px; line-height: 1.55; }
+.plan-description { margin: 6px 0 0; }
+.offer-prices {
+  display: grid;
+  margin: 22px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #d1ae6c09;
+  font-variant-numeric: tabular-nums;
+}
+.offer-prices > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 12px clamp(12px, 3vw, 20px);
+}
+.offer-prices > div + div { border-block-start: 1px solid var(--line); }
+.offer-prices dt { font-size: 14px; font-weight: 600; }
+.offer-prices dd, .offer-prices p { margin: 0; }
+.offer-prices p { color: var(--body); font-size: 14px; }
+.offer-prices strong { font: 400 clamp(30px, 4vw, 40px)/1.1 var(--site-font-display); }
+@media (min-width: 520px) {
+  .offer-prices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .offer-prices > div { display: block; padding-block: 16px; }
+  .offer-prices > div + div { border-block-start: 0; border-inline-start: 1px solid var(--line); }
+  .offer-prices dd { margin-block-start: 4px; }
+}
+.plan-trial { margin: 0; }
+.offer-plan .plan-checkout { display: block; margin-top: 12px; color: var(--accent); }
+.plan-addon { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line); }
+.plan-addon h4 { margin: 0 0 5px; font: 400 22px/1.2 var(--site-font-display); }
+.plan-addon p { margin: 0; }
+.plan-addon .plan-addon-price { margin-bottom: 5px; color: var(--ink); text-wrap: balance; }
+.plan-addon-price strong { font-size: 20px; }
+.plan-upgrade { max-width: 640px; margin: 18px auto 0; text-wrap: pretty; }
+.plan-upgrade strong { color: var(--ink); font-weight: 600; }
 .faq-spread, .signup-spread {
   display: grid;
   grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
@@ -246,6 +307,8 @@
   .offer-hero .mail-eyebrow { font-size: 10px; letter-spacing: .16em; }
   .offer-hero h1 { margin: 14px auto; font-size: clamp(43px, 12.4vw, 60px); }
   .offer-intro { font-size: 16px; }
+  .offer-devices { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .offer-devices .iphone-shot { width: min(100%, 240px); margin-inline: auto; }
   .envelope-stage { width: min(100%, 280px); margin-inline: auto; }
   .mail-segments span { padding: 7px 10px; }
   .mail-overview .mail-waitlist input[type=email] { flex: none; min-height: 44px; }
@@ -298,7 +361,6 @@
 }
 @media (forced-colors: active) {
   .offer-plan { outline: 1px solid CanvasText; }
-  .plan-benefits li::before { background: CanvasText; }
   .mail-overview :is(.mail-gold-text, .mail-shimmer) { color: CanvasText; background: none; }
   .mail-overview .offer-action, .mail-segments input:checked + span { border: 1px solid ButtonText; }
 }

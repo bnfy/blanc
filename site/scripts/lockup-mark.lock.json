@@ -1,10 +1,10 @@
 {
   "source": {
-    "file": "assets/sunrise-mark-4096.png",
-    "sha256": "65bea87624bb99b9af856db7d07397ed1d09eb3772cacc1ccb1783d0921e0e84"
+    "file": "assets/sunrise-mark.svg",
+    "sha256": "b263a1fe29b4e7839c58ab5578dbb0a27fe87b87e000eecceca7e1f8a2a1b657"
   },
   "exports": {
-    "sunrise-mark-2048.webp": "d6493ca5aa63442b6da51478cc1b9d9eb4cd9dde27a710e1a0d8610169998e97",
-    "sunrise-mark-256.webp": "6c165b66b07edf957a46d33b942c977cf4408433d19b5ca6eb7af4e22ab3988b"
+    "sunrise-mark-2048.webp": "78fc87cdf2f39d85ec93e1c4011c0edbf3aec0ee942120a6f58e3e892f350028",
+    "sunrise-mark-256.webp": "712341c7ec92457ff9c57aff71892b0377f0a0d55e5aa2ba203eed4ed2a0bdbe"
   }
 }

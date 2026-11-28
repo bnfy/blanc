@@ -2,7 +2,7 @@
 
 # browserAPI reference
 
-158 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
+160 members, exposed only to `blanc-chrome://index/`, `blanc-chrome://overlay/`, `blanc-chrome://permission/`, `blanc-chrome://float/`, `blanc-chrome://glance/`.
 
 | Member | Group | Kind | Channel | Signature | Platforms |
 | --- | --- | --- | --- | --- | --- |
@@ -142,6 +142,8 @@
 | `siteInfoForgetCertificateException` | island | invoke | `chrome:site-info-forget-certificate-exception` | `() => Promise<boolean>` | all |
 | `sleepBackgroundTabs` | tabs | invoke | `chrome:sleep-background-tabs` | `() => Promise<TabId[]>` | all |
 | `keepMiniWindow` | island | invoke | `chrome:mini-keep` | `() => Promise<boolean>` | all |
+| `listMiniSwitchTabs` | island | invoke | `chrome:mini-switch-tabs` | `() => Promise<MiniSwitchRow[]>` | all |
+| `goToMiniSwitchTab` | island | invoke | `chrome:mini-switch-go` | `(key: string) => Promise<MiniSwitchResult>` | all |
 | `inviteFriend` | island | invoke | `chrome:invite-friend` | `() => Promise<InviteFriendResult>` | all |
 | `fillLoginFromOnePassword` | passwords | invoke | `chrome:onepassword-fill` | `() => Promise<FillLoginSuccess \| FillLoginFailure \| false>` | darwin, win32, linux |
 | `cycleTheme` | appearance | invoke | `chrome:cycle-theme` | `(theme?: ThemePreference) => Promise<ThemePreference>` | all |
@@ -1364,3 +1366,24 @@ One other live local profile and its Spaces.
 | `status` | `WorkspaceSaveStatus` |  |
 | `full` | `boolean` | The profile holds the most Spaces it can. |
 | `items` | `OtherProfileSpace[]` |  |
+
+### `MiniSwitchRow`
+
+A tab elsewhere in a mini window's Quick Switcher (#1734 part 2), from miniSwitchRows() in mini-switch.js: display data and an opaque key main resolves again when it is picked.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `key` | `string` | Opaque: t:<tabId>[:<spaceId>] for a live tab (with its Space, if any), s:<spaceId>:<index> for a tab in a saved Space. |
+| `title` | `string` | The tab's name, else its address. |
+| `url` | `string` |  |
+| `favicon` | `string \| null` | A PNG data URL, or null. |
+| `place` | `string \| null` | The Space's name, or null for a window in no Space. |
+
+### `MiniSwitchResult`
+
+Result of goToMiniSwitchTab, built by goToMiniSwitchTab() in main.js.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `ok` | `boolean` |  |
+| `error?` | `'gone' \| 'busy'` | Present when ok is false: the tab or its Space is gone, or the Space couldn't open now. |

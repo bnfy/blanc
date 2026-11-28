@@ -72,3 +72,44 @@ Feature: mini windows
     And I choose "Reading" from the mini window's Spaces button
     Then the mini window has closed
     And that other window shows "Reading" with that fixture page last, and no new window opened
+
+  @F61-9 @F61
+  Scenario: a mini window's search goes to a tab in another window
+    Given another window showing the fixture page "elsewhere-docs"
+    When I open a mini window
+    And I search the mini window for "elsewhere-docs" and pick the row in "Another window"
+    Then that other window has that page selected
+    And the mini window has closed
+
+  @F61-10 @F61
+  Scenario: a mini window's search opens a Space set aside at the tab picked
+    Given a saved space named "Reading" holding the fixture page "reading-notes", open in no window
+    When I open a mini window
+    And I search the mini window for "reading-notes" and pick the row in "Reading"
+    Then a window shows "Reading" with that page selected
+    And the mini window has closed
+
+  @F61-11 @F61
+  Scenario: going to a Space by name leaves a mini window that holds a page
+    Given a saved space named "Reading" that is open in no window
+    When I open a mini window
+    And I open a fixture page in the mini window
+    And I search the mini window for "Reading" and pick the Space "Reading"
+    Then a window shows "Reading"
+    And the mini window is still open with its page
+
+  @F61-12 @F61
+  Scenario: with the setting on, links from other apps open in a mini window
+    Given links from other apps open in a mini window
+    When another app opens the fixture page "link-one"
+    Then a mini window shows "link-one" as its only tab
+    When another app opens the fixture page "link-two"
+    Then that mini window holds "link-one" and "link-two", and no other mini window is open
+
+  @F61-13 @F61
+  Scenario: a link rule still wins over the mini window
+    Given a saved space named "Reading" that is open in no window
+    And a link rule sends the routed site to the Space "Reading"
+    And links from other apps open in a mini window
+    When another app opens a link to the routed site
+    Then that link opens in a window showing "Reading", and no mini window is open

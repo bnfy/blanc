@@ -28,6 +28,7 @@ function harness(extraHooks = {}) {
     if (name === './utility-pages') return { KNOWN_PAGES, UTILITY_PAGES };
     // Built at setup time, so the real (Electron-free) module is needed.
     if (name === './default-browser-status') return require('../../src/main/default-browser-status');
+    if (name === './download-folder') return require('../../src/main/download-folder');
     if (name.startsWith('./')) return {};
     return require(name);
   };

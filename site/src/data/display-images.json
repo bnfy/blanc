@@ -210,6 +210,20 @@
     "height": 728
   },
   {
+    "source": "mail/screens/hero-dark.webp",
+    "sourceSha256": "68700a02066412dbabfd4ef3ced3254a11474b2df62f0ab84eb35bfff6dc5df1",
+    "output": "mail/screens/hero-dark-1100.webp",
+    "width": 1100,
+    "height": 710
+  },
+  {
+    "source": "mail/screens/iphone-inbox.webp",
+    "sourceSha256": "922c06a3e6395d8317715c227fe21cca8f0dfc6ba16a1de9278d10039579c0b4",
+    "output": "mail/screens/iphone-inbox-640.webp",
+    "width": 640,
+    "height": 1385
+  },
+  {
     "source": "mail/teasers/address-offer.webp",
     "sourceSha256": "f479caa4b690060faed24b27213a2ac04f91270232e33fb7ff39483693921b04",
     "output": "mail/teasers/address-offer-512.webp",

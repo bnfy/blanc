@@ -2054,6 +2054,43 @@
           "type": "OtherProfileSpace[]"
         }
       }
+    },
+    "MiniSwitchRow": {
+      "doc": "A tab elsewhere in a mini window's Quick Switcher (#1734 part 2), from miniSwitchRows() in mini-switch.js: display data and an opaque key main resolves again when it is picked.",
+      "fields": {
+        "key": {
+          "type": "string",
+          "doc": "Opaque: t:<tabId>[:<spaceId>] for a live tab (with its Space, if any), s:<spaceId>:<index> for a tab in a saved Space."
+        },
+        "title": {
+          "type": "string",
+          "doc": "The tab's name, else its address."
+        },
+        "url": {
+          "type": "string"
+        },
+        "favicon": {
+          "type": "string | null",
+          "doc": "A PNG data URL, or null."
+        },
+        "place": {
+          "type": "string | null",
+          "doc": "The Space's name, or null for a window in no Space."
+        }
+      }
+    },
+    "MiniSwitchResult": {
+      "doc": "Result of goToMiniSwitchTab, built by goToMiniSwitchTab() in main.js.",
+      "fields": {
+        "ok": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "'gone' | 'busy'",
+          "doc": "Present when ok is false: the tab or its Space is gone, or the Space couldn't open now.",
+          "optional": true
+        }
+      }
     }
   },
   "members": [
@@ -3870,6 +3907,29 @@
       "params": [],
       "returns": "boolean",
       "doc": "Open in Blanc (#1138): keep this mini window as an ordinary, saved Blanc window. Resolves to false when this window isn't a mini window."
+    },
+    {
+      "name": "listMiniSwitchTabs",
+      "group": "island",
+      "kind": "invoke",
+      "channel": "chrome:mini-switch-tabs",
+      "params": [],
+      "returns": "MiniSwitchRow[]",
+      "doc": "In a mini window (#1734 part 2): the profile's tabs in its other windows and in its Spaces set aside or saved, never private ones or other mini windows'. Empty in an ordinary window or while the active tab is private."
+    },
+    {
+      "name": "goToMiniSwitchTab",
+      "group": "island",
+      "kind": "invoke",
+      "channel": "chrome:mini-switch-go",
+      "params": [
+        {
+          "name": "key",
+          "type": "string"
+        }
+      ],
+      "returns": "MiniSwitchResult",
+      "doc": "Go to a tab listMiniSwitchTabs listed: bring its window forward, or open its Space, with the tab selected; an untouched mini window then closes."
     },
     {
       "name": "inviteFriend",

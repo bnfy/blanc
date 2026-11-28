@@ -15,6 +15,9 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const linux = JSON.parse(read('site/src/data/blanc-beta-linux.json'));
 const ledger = JSON.parse(read(`docs/website-blanc-beta-linux-${linux.version}-claims.json`));
 const page = read('site/src/pages/download.astro');
+// The Linux beta is built from the desktop lane's Chromium pin; its version
+// keeps the pin's first three numbers and replaces the last with its build.
+const pin = JSON.parse(read('chromium/lanes/desktop.json')).version;
 
 const section = () => {
   const start = page.indexOf('<article class="dl-beta-row dl-beta-row--linux" id="beta-linux"');
@@ -40,12 +43,12 @@ test('the data and ledger name the same published Linux pre-release', () => {
   assert.equal(ledger.release, linux.version);
   assert.equal(ledger.tag, linux.tag);
   assert.equal(linux.tag, `chromium-beta-linux-${linux.version}`);
-  assert.match(linux.version, /^158\.0\.8127\.(\d+)$/);
+  assert.equal(linux.version, `${pin.split('.').slice(0, 3).join('.')}.${linux.build}`);
   assert.equal(linux.version.split('.')[3], String(linux.build));
   assert.equal(linux.releaseUrl, `https://github.com/bnfy/blanc/releases/tag/${linux.tag}`);
   assert.equal(ledger.releaseUrl, linux.releaseUrl);
   assert.equal(linux.published, ledger.publicRelease);
-  assert.equal(linux.chromium, '158.0.8127.37');
+  assert.equal(linux.chromium, pin);
   const expected = {
     'x64 deb': `blanc-beta_${linux.version}-1_amd64.deb`,
     'x64 rpm': `blanc-beta-${linux.version}-1.x86_64.rpm`,
