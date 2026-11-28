@@ -1,0 +1,25 @@
+diff -ruN a/chrome/browser/chrome_content_browser_client.cc b/chrome/browser/chrome_content_browser_client.cc
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -7566,6 +7566,13 @@
+     bool do_not_prompt_for_login,
+     content::GuestPageHolder* guest,
+     content::LoginDelegate::LoginAuthRequiredCallback auth_required_callback) {
++#if BUILDFLAG(IS_ANDROID)
++  // Blanc (F20, patch 0127): website sign-in belongs to the website, so an
++  // HTTP basic or digest challenge, from a page, a resource or a proxy, never
++  // becomes a credential dialog. No delegate cancels the challenge, and the
++  // 401 or 407 reaches the page like any response, as on desktop (patch 0014).
++  return nullptr;
++#else
+ #if BUILDFLAG(IS_CHROMEOS)
+   // Negotiate challenge is handled via GSSAPI library, which can not receive
+   // external credentials. However, on ChromeOS we can suggest the user to
+@@ -7604,6 +7611,7 @@
+       is_request_for_primary_main_frame_navigation, is_request_for_navigation,
+       url, response_headers, do_not_prompt_for_login, guest,
+       std::move(auth_required_callback));
++#endif  // BUILDFLAG(IS_ANDROID)
+ }
+ 
+ bool ChromeContentBrowserClient::HandleExternalProtocol(

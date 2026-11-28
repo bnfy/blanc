@@ -176,3 +176,21 @@ against the back gesture.
 
 The emulator's changes for this spike (mobile data back on, a PIN set and removed) don't persist: it is
 the read-only emulator.
+
+## Audit, 2026-11-28
+
+Rechecked on `emulator-5554` (Android 16, Google APIs x86-64) with the debug build of November 24
+(`me.bnfy.blanc.dev` 159.0.8154.18, from `cdb76a844`), after #1679 and #1680 merged.
+
+| Item | Today | Left for A6 |
+| --- | --- | --- |
+| Long-press menu (C1, C2) | Done in #1679: a link offers Open in new tab, Open in private tab, Preview page, Copy link address, Copy link text, Save link as… and Share link | Pixel hands-on |
+| Passwords (P1) | Done in #1680: autofill on, a Settings row, Google's autofill service answering on the emulator | Bitwarden and Google Password Manager on the Pixel |
+| HTTP sign-in (H1) | Still Chromium's "Sign in" dialog on `httpbin.org/basic-auth` | Refuse it as desktop's patch 0014 does (F20) |
+| Certificate warning (S1) | Still says "Turn on enhanced protection to get Chrome's highest level of security" | Hide that line and check the other strings for "Chrome" |
+| Sharing into Blanc (SH1) | A shared address opens; shared plain words search Google, as the spike saw (this row first said they opened nothing: the check's shell split the words, so no share reached Blanc) | Route shared words through Blanc's address input and search engine |
+| Codecs (§7) | Not on: `requestMediaKeySystemAccess` with H.264 is unsupported, and no Android args template sets `proprietary_codecs` | A reviewed args change and a rebuild of each output |
+| Widevine (W1, K1) | Unsupported on the emulator, as expected (ClearKey only) | After the codecs: Shaka's Widevine streams and one real service on the Pixel; the owner's licensing call |
+| Passkeys (K6) | `isUserVerifyingPlatformAuthenticatorAvailable()` false with no screen lock; creation was refused by Play services in the spike | Waits on Google's and the providers' allowlists for the Play signing certificate |
+| Back (B1) | `enableOnBackInvokedCallback` is true; Back from a second page stays in Blanc | Pixel hands-on (gesture preview, first page, pull to refresh) |
+| Edge-to-edge | Done in A1 (24 of 24 layouts) | — |
