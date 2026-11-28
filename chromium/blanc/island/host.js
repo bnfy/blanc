@@ -61,6 +61,7 @@
   let geometry = "";
   // No menu button until the strip reports one (the Mac never does).
   let menuButtonGeometry = '[0,0,0,0]';
+  let pillGeometry = '[0,0,0,0]';
   // Rail hover previews (set up with the rail hooks below; null until then).
   let railHover = null;
   let blockerRecoveryShown = false;
@@ -1637,6 +1638,17 @@
     // there is the button's, not the start of a window drag.
     const menu = pillRect?.menuButtonRect;
     const menuNext = JSON.stringify(menu ? [menu.x, menu.y, menu.width, menu.height].map(islandDip) : [0, 0, 0, 0]);
+    // The resting Island: a press there is the Island's even while the
+    // reported surface is something else (a site's permission prompt, a
+    // sheet), never the start of a window drag.
+    const pillBox = pill && !pill.hidden ? pill.getBoundingClientRect() : null;
+    const stripBox = strip.getBoundingClientRect();
+    const pillNext = JSON.stringify(pillBox && pillBox.width > 0
+      ? [stripBox.x + pillBox.x, stripBox.y + pillBox.y, pillBox.width, pillBox.height].map(islandDip) : [0, 0, 0, 0]);
+    if (pillNext !== pillGeometry) {
+      pillGeometry = pillNext;
+      request('pillBounds', JSON.parse(pillNext)).catch(error => notice(error.message));
+    }
     if (menuNext !== menuButtonGeometry) {
       menuButtonGeometry = menuNext;
       request('menuButtonBounds', JSON.parse(menuNext)).catch(error => notice(error.message));
