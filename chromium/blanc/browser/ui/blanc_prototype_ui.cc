@@ -1572,6 +1572,12 @@ class Owner : public base::SupportsUserData::Data,
   // The strip's own menu button, where it draws one (Windows and Linux), in
   // the Island view's coordinates: never part of the window's drag handle.
   gfx::Rect menu_button_bounds;
+  // The resting Island in the strip, in the Island view's coordinates: never
+  // part of the window's drag handle, even while interactive_bounds names
+  // something else (a site's permission prompt, a sheet). Without it a
+  // pending location prompt turned every click on the Island into a window
+  // drag (owner's report, 2026-11-28).
+  gfx::Rect pill_bounds;
   // The Island band's current color (host.js syncBandColor): the page's
   // sampled top edge, a theme's frame, the private band or the Start Page
   // backdrop's color. Chromium's infobars take it (InfoBarStyleFor).
@@ -1991,6 +1997,20 @@ class Owner : public base::SupportsUserData::Data,
           host->GetPrimaryMainFrame()->ExecuteJavaScript(
               u"window.BlancPrototypeHost?.railDismiss('page')", base::NullCallback());
       }
+    }
+    // A click in the page closes the open Island, as shipping's overlay blur
+    // does. The host's own blur covers the first click, which moves focus
+    // to the page; once the page has focus (it took it as the panel opened,
+    // or a click dismissed a right-click menu in the panel), later clicks
+    // move no focus and left the panel open (owner's report, 2026-11-28).
+    if (height > strip_height &&
+        (event.GetType() == blink::WebInputEvent::Type::kMouseDown ||
+         event.GetType() == blink::WebInputEvent::Type::kGestureTapDown)) {
+      auto* host = view ? view->GetWebContents() : nullptr;
+      if (host && host->GetLastCommittedURL() == GURL("chrome://blanc-prototype/host.html") &&
+          host->GetPrimaryMainFrame()->IsRenderFrameLive())
+        host->GetPrimaryMainFrame()->ExecuteJavaScript(
+            u"window.BlancPrototypeHost?.pageClick?.()", base::NullCallback());
     }
     // Wheel/gesture updates include inertial scrolling, unlike the
     // WebContents interaction callback which only reports scroll start.
@@ -11960,6 +11980,13 @@ class Handler : public content::WebUIMessageHandler, public extensions::Extensio
       reply(true, base::Value(true));
       return;
     }
+    if (method == "pillBounds" && args.size() == 4 &&
+        std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
+      owner->pill_bounds = gfx::Rect(args[0].GetInt(), args[1].GetInt(),
+          std::max(0, args[2].GetInt()), std::max(0, args[3].GetInt()));
+      reply(true, base::Value());
+      return;
+    }
     if (method == "menuButtonBounds" && args.size() == 4 &&
         std::ranges::all_of(args, [](const auto& v) { return v.is_int(); })) {
       owner->menu_button_bounds = gfx::Rect(args[0].GetInt(), args[1].GetInt(),
@@ -14927,6 +14954,7 @@ bool IsCaption(views::View* parent, int x, int y) {
   // turned the layout toggle's click into a window drag.
   if (x < RailWidth(parent)) return false;
   return owner && !owner->interactive_bounds.Contains(x, y - view->y()) &&
+      !owner->pill_bounds.Contains(x, y - view->y()) &&
       !owner->menu_button_bounds.Contains(x, y - view->y());
 }
 

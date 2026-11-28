@@ -37,17 +37,28 @@ inline constexpr std::array<std::string_view, 8> kDisabledBackgroundFeatures =
      "PreconnectToSearch",
      "SearchEnginePreconnect2"};
 
+// Chromium's in-product tips that teach Chrome's own tab strip, which the
+// Island replaces: "Move your tabs to the side" showed over a window with
+// more than 20 tabs on the owner's Blanc Beta (2026-11-28), anchored to a tab
+// strip Blanc never draws. Blanc's vertical tabs are its own rail, so the
+// tips for Chromium's vertical tab strip are off too.
+inline constexpr std::array<std::string_view, 2> kDisabledChromiumPromos = {
+    "IPH_VerticalTabstripTutorialFeature",
+    "IPH_VerticalTabsExpandOnHoverFeature"};
+
 // Adds the switch and the features to any --disable-features already given.
 inline void DisableBackgroundServices(base::CommandLine& command_line) {
   command_line.AppendSwitch(kDisableComponentUpdateSwitch);
   std::vector<std::string> features = base::SplitString(
       command_line.GetSwitchValueASCII("disable-features"), ",",
       base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
-  for (std::string_view feature : kDisabledBackgroundFeatures) {
+  const auto add = [&features](std::string_view feature) {
     if (!std::ranges::contains(features, feature)) {
       features.emplace_back(feature);
     }
-  }
+  };
+  std::ranges::for_each(kDisabledBackgroundFeatures, add);
+  std::ranges::for_each(kDisabledChromiumPromos, add);
   command_line.AppendSwitchASCII("disable-features",
                                  base::JoinString(features, ","));
 }

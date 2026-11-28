@@ -61,6 +61,7 @@
   let geometry = "";
   // No menu button until the strip reports one (the Mac never does).
   let menuButtonGeometry = '[0,0,0,0]';
+  let pillGeometry = '[0,0,0,0]';
   // Rail hover previews (set up with the rail hooks below; null until then).
   let railHover = null;
   let blockerRecoveryShown = false;
@@ -1526,6 +1527,17 @@
     // there is the button's, not the start of a window drag.
     const menu = pillRect?.menuButtonRect;
     const menuNext = JSON.stringify(menu ? [menu.x, menu.y, menu.width, menu.height].map(islandDip) : [0, 0, 0, 0]);
+    // The resting Island: a press there is the Island's even while the
+    // reported surface is something else (a site's permission prompt, a
+    // sheet), never the start of a window drag.
+    const pillBox = pill && !pill.hidden ? pill.getBoundingClientRect() : null;
+    const stripBox = strip.getBoundingClientRect();
+    const pillNext = JSON.stringify(pillBox && pillBox.width > 0
+      ? [stripBox.x + pillBox.x, stripBox.y + pillBox.y, pillBox.width, pillBox.height].map(islandDip) : [0, 0, 0, 0]);
+    if (pillNext !== pillGeometry) {
+      pillGeometry = pillNext;
+      request('pillBounds', JSON.parse(pillNext)).catch(error => notice(error.message));
+    }
     if (menuNext !== menuButtonGeometry) {
       menuButtonGeometry = menuNext;
       request('menuButtonBounds', JSON.parse(menuNext)).catch(error => notice(error.message));
@@ -3667,6 +3679,15 @@
     tabThumbnail: (id, image) => railThumbnail(id, image),
     // A key or click in the page closes the rail's hover cards (native OnInputEvent).
     railDismiss: (reason) => railDismiss(String(reason)),
+    // A click in the page (native OnInputEvent) closes the open Island, as
+    // the focus loss does (dismissOnFocusLoss), but also once the page
+    // already has focus, when a click moves none. A click reaching the page
+    // means no right-click menu of the panel's is up.
+    pageClick: () => {
+      overlayMenuOpen = false;
+      if (!opened || !overlayMode || overlayMode === 'find' || overlayMode === 'display-share' || overlayDragging) return;
+      close(false);
+    },
     toggleGlance: () => (snapshot?.glanceTabId != null ? api.closeGlance() : api.openGlancePicker()),
     focusGlanceCard,
     spaceHeldState: () => request('spaceMeta'),
