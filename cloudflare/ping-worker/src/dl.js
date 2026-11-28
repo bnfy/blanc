@@ -17,7 +17,7 @@ export const BETA_DOWNLOAD = 'https://github.com/bnfy/blanc/releases/download/ch
 // Blanc Beta for Windows (owner, 2026-11-21): /dl/beta-win answers with its
 // public online installer. Update with site/src/data/blanc-beta-windows.json;
 // test/unit/site-blanc-beta-windows.test.js keeps the two equal.
-export const BETA_WINDOWS_DOWNLOAD = 'https://github.com/bnfy/blanc/releases/download/chromium-beta-windows-159.0.8154.910/Blanc-Beta-Setup-159.0.8154.910.exe';
+export const BETA_WINDOWS_DOWNLOAD = 'https://github.com/bnfy/blanc/releases/download/chromium-beta-windows-159.0.8154.913/Blanc-Beta-Setup-159.0.8154.913.exe';
 
 // Blanc Beta for Linux (owner, 2026-11-23): one counted route per package.
 // Update with site/src/data/blanc-beta-linux.json;
