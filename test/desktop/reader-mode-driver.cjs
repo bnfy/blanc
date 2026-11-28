@@ -94,15 +94,27 @@ app.whenReady().then(async () => {
     assert.ok(pickerGeometry.top >= 0 && pickerGeometry.bottom <= pickerGeometry.height);
     assert.equal(pickerGeometry.scrollable, true);
     // Scroll the list itself, then hit the real last option with native input.
-    const lastFont = await reader.executeJavaScript(`(() => {
+    // Measure only after the scrolled list has drawn (two frames), and only
+    // click where the last option really is: on a slow Linux runner the
+    // first measurement could come before the scroll landed and miss.
+    const lastFontPoint = () => reader.executeJavaScript(`new Promise((resolve) => {
       const menu = document.getElementById('fontOptions'); menu.scrollTop = menu.scrollHeight;
-      const r = document.querySelector('.font-option input[value=mono]').getBoundingClientRect();
-      return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};
-    })()`);
-    assert.ok(lastFont.y > 0 && lastFont.y < 300);
-    reader.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...lastFont});
-    reader.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,...lastFont});
-    await waitFor(() => reader.executeJavaScript('document.getElementById("font").value === "mono" && document.getElementById("fontOptions").hidden'), 'last font selectable in short pane');
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const option = document.querySelector('.font-option input[value=mono]').closest('.font-option') ?? document.querySelector('.font-option input[value=mono]');
+        const r = option.getBoundingClientRect();
+        const x = Math.round(r.x + r.width / 2), y = Math.round(r.y + r.height / 2);
+        resolve({ x, y, hits: option.contains(document.elementFromPoint(x, y)) });
+      }));
+    })`);
+    const fontChosen = () => reader.executeJavaScript('document.getElementById("font").value === "mono" && document.getElementById("fontOptions").hidden');
+    for (let attempt = 0; attempt < 3 && !(await fontChosen()); attempt++) {
+      const lastFont = await waitFor(async () => { const point = await lastFontPoint(); return point.hits ? point : null; }, 'last font option under the pointer');
+      assert.ok(lastFont.y > 0 && lastFont.y < 300);
+      reader.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,x:lastFont.x,y:lastFont.y});
+      reader.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,x:lastFont.x,y:lastFont.y});
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    await waitFor(fontChosen, 'last font selectable in short pane');
     pickerView.setBounds(pickerBounds);
     await waitFor(() => reader.executeJavaScript(`innerHeight === ${pickerBounds.height}`), 'reader viewport restored');
     await reader.executeJavaScript(`document.getElementById('appearanceToggle').click()`);
